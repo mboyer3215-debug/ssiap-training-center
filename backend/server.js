@@ -56,7 +56,48 @@ centers/
    -Nxxxxx/
       name: "Centre Test"
 
+// ✅ Création d'un centre (SaaS multi-centres)
+app.post('/create-center', async (req, res) => {
+  const { name } = req.body;
 
+  if (!name) {
+    return res.status(400).json({ error: 'Center name is required' });
+  }
+
+  const newCenterRef = db.ref('centers').push();
+
+  await newCenterRef.set({
+    name,
+    createdAt: Date.now()
+  });
+
+  res.json({
+    success: true,
+    centerId: newCenterRef.key
+  });
+});
+
+// ✅ Création d'une session dans un centre
+app.post('/create-session', async (req, res) => {
+  const { centerId, name, level } = req.body;
+
+  if (!centerId || !name || !level) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  const sessionRef = db.ref(`centers/${centerId}/sessions`).push();
+
+  await sessionRef.set({
+    name,
+    level,
+    startDate: Date.now()
+  });
+
+  res.json({
+    success: true,
+    sessionId: sessionRef.key
+  });
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
