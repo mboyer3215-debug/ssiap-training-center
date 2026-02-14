@@ -52,8 +52,7 @@ app.post('/submit-qcm', async (req, res) => {
   res.json(result);
 });
 
-centers/
-   -Nxxxxx/
+db.ref('centers')
      
 
 // ✅ Création d'un centre (SaaS multi-centres)
