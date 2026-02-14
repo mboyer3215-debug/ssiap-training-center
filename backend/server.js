@@ -38,8 +38,6 @@ app.post('/generate-qcm', async (req, res) => {
 app.post('/submit-qcm', async (req, res) => {
   const { answers, qcmId, userId, sessionId } = req.body;
 
-  // 🔐 Ici tu mets la vraie logique de correction serveur
-  // Pour l’instant on simule
   const score = Math.floor(Math.random() * 40) + 60;
 
   const result = {
@@ -52,10 +50,7 @@ app.post('/submit-qcm', async (req, res) => {
   res.json(result);
 });
 
-db.ref('centers')
-     
-
-// ✅ Création d'un centre (SaaS multi-centres)
+// ✅ Création d'un centre
 app.post('/create-center', async (req, res) => {
   const { name } = req.body;
 
@@ -76,7 +71,7 @@ app.post('/create-center', async (req, res) => {
   });
 });
 
-// ✅ Création d'une session dans un centre
+// ✅ Création d'une session
 app.post('/create-session', async (req, res) => {
   const { centerId, name, level } = req.body;
 
@@ -97,6 +92,6 @@ app.post('/create-session', async (req, res) => {
     sessionId: sessionRef.key
   });
 });
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
