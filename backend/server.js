@@ -54,7 +54,7 @@ app.post('/submit-qcm', async (req, res) => {
 
 centers/
    -Nxxxxx/
-      name: "Centre Test"
+     
 
 // ✅ Création d'un centre (SaaS multi-centres)
 app.post('/create-center', async (req, res) => {
