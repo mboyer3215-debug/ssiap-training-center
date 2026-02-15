@@ -36,20 +36,28 @@ app.post('/generate-qcm', async (req, res) => {
 
 // ✅ Route correction
 app.post('/submit-qcm', async (req, res) => {
-  const { answers, qcmId, userId, sessionId } = req.body;
+  const { centerId, userId, level, answers } = req.body;
 
+  if (!centerId || !userId || !level) {
+    return res.status(400).json({ error: "Missing parameters" });
+  }
+
+  // 🔐 Simulation correction (à remplacer plus tard)
   const score = Math.floor(Math.random() * 40) + 60;
 
-  const result = {
+  const resultRef = db.ref(`centers/${centerId}/results/${userId}`).push();
+
+  await resultRef.set({
     score,
+    level,
     completedAt: Date.now()
-  };
+  });
 
-  await db.ref(`sessions/${sessionId}/trainees/${userId}/results`).push(result);
-
-  res.json(result);
+  res.json({
+    success: true,
+    score
+  });
 });
-
 // ✅ Création d'un centre
 app.post('/create-center', async (req, res) => {
   const { name } = req.body;
