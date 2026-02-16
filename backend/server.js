@@ -36,30 +36,83 @@ app.post('/generate-qcm', async (req, res) => {
   res.json(selected);
 });
 
-// ✅ Route correction
+// ✅ Route correction avec vraie correction
 app.post('/submit-qcm', async (req, res) => {
   const { centerId, userId, level, answers } = req.body;
 
-  if (!centerId || !userId || !level) {
+  if (!centerId || !userId || !level || !answers) {
     return res.status(400).json({ error: "Missing parameters" });
   }
 
-  // 🔐 Simulation correction (à remplacer plus tard)
-  const score = Math.floor(Math.random() * 40) + 60;
+  try {
+    // 1️⃣ Récupérer les questions du niveau
+    const questionsSnapshot = await db.ref(`questions/${level}`).once('value');
+    const allQuestions = questionsSnapshot.val();
 
-  const resultRef = db.ref(`centers/${centerId}/results/${userId}`).push();
+    if (!allQuestions) {
+      return res.status(404).json({ error: "Questions not found for this level" });
+    }
 
-  await resultRef.set({
-    score,
-    level,
-    completedAt: Date.now()
-  });
+    // 2️⃣ Créer un map des questions par ID pour comparaison rapide
+    const questionsMap = {};
+    Object.values(allQuestions).forEach(q => {
+      questionsMap[q.id] = q;
+    });
 
-  res.json({
-    success: true,
-    score
-  });
+    // 3️⃣ Calculer le score
+    let correctCount = 0;
+    const detailedResults = [];
+
+    answers.forEach(answer => {
+      const question = questionsMap[answer.questionId];
+      
+      if (question) {
+        const isCorrect = answer.selectedAnswer === question.correctAnswer;
+        
+        if (isCorrect) {
+          correctCount++;
+        }
+
+        detailedResults.push({
+          questionId: answer.questionId,
+          selectedAnswer: answer.selectedAnswer,
+          correctAnswer: question.correctAnswer,
+          isCorrect
+        });
+      }
+    });
+
+    const totalQuestions = answers.length;
+    const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
+
+    // 4️⃣ Enregistrer dans Firebase
+    const resultRef = db.ref(`centers/${centerId}/results/${userId}`).push();
+
+    await resultRef.set({
+      score: scorePercentage,
+      correctCount,
+      totalQuestions,
+      level,
+      detailedResults,
+      completedAt: Date.now()
+    });
+
+    // 5️⃣ Réponse
+    res.json({
+      success: true,
+      score: scorePercentage,
+      correctCount,
+      totalQuestions,
+      passed: scorePercentage >= 60, // SSIAP = 60% minimum
+      resultId: resultRef.key
+    });
+
+  } catch (error) {
+    console.error("Error in submit-qcm:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
+
 // ✅ Création d'un centre
 app.post('/create-center', async (req, res) => {
   const { name } = req.body;
