@@ -263,7 +263,7 @@ const centerId = params.get('centerId');
 const sessionId = params.get('sessionId');
 const sessionTitre = decodeURIComponent(params.get('titre') || 'Session');
 const sessionNiveau = params.get('niveau') || 'SSIAP1';
-const API_URL = params.get('api') || 'http://localhost:5000/api';
+const API_URL = params.get('api') || 'https://ssiap-training-center.onrender.com/api';
 
 let quizConfig = { type: 'debut', nbQuestions: 10, partie: 'toutes' };
 let questions = [];

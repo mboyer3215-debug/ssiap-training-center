@@ -1,6 +1,6 @@
 // app.js - Interface Stagiaire ENTRAÎNEMENT SSIAP - VERSION FINALE
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://ssiap-training-center.onrender.com/api';
 
 let currentUser = null;
 let currentSession = null;

@@ -4,297 +4,241 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SSIAP Admin — Tableau de Bord</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:        #0a0b0e;
-    --surface:   #111318;
-    --card:      #15181f;
-    --border:    #1e2230;
-    --red:       #e63946;
-    --red-dim:   #3d1218;
-    --amber:     #f4a261;
-    --green:     #2ec4b6;
-    --blue:      #4895ef;
-    --text:      #e8eaf0;
-    --muted:     #5c6380;
-    --subtle:    #2a2f42;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --terra:     #c25a3a;
+  --terra-d:   #a34a2e;
+  --terra-bg:  #fdf0eb;
+  --terra-mid: #e8d5cc;
+  --bg:        #f7f4f0;
+  --surface:   #ffffff;
+  --card:      #ffffff;
+  --border:    #e8e2db;
+  --border2:   #d4ccc4;
+  --text:      #1e1a17;
+  --muted:     #8c8078;
+  --subtle:    #f0ece7;
+  --green:     #2e7d52;
+  --green-bg:  #e8f5ee;
+  --blue:      #2e5c8a;
+  --blue-bg:   #e8f0f8;
+  --gold:      #b8860b;
+  --gold-bg:   #fef9e7;
+  --red:       #c0392b;
+  --red-bg:    #fdecea;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;min-height:100vh}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+.layout{display:flex;min-height:100vh}
 
-  /* ── LAYOUT ── */
-  .layout { display: flex; min-height: 100vh; }
+/* ── SIDEBAR ── */
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo .flame{font-size:28px}
+.sidebar-logo h1{font-family:'Lora',serif;font-size:20px;font-weight:700;color:var(--text);margin-top:6px;line-height:1.1}
+.sidebar-logo h1 span{color:var(--terra)}
+.sidebar-logo small{color:var(--muted);font-size:10px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
 
-  /* ── SIDEBAR ── */
-  .sidebar {
-    width: 220px; flex-shrink: 0;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    position: fixed; top: 0; left: 0; bottom: 0;
-    z-index: 100;
-  }
-  .sidebar-logo {
-    padding: 24px 20px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .sidebar-logo .flame { font-size: 28px; }
-  .sidebar-logo h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; margin-top: 4px; }
-  .sidebar-logo span { color: var(--red); }
-  .sidebar-logo small { color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+.nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-section{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:12px 8px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:600;transition:.15s;border:1px solid transparent}
+.nav-item:hover{background:var(--subtle);color:var(--text)}
+.nav-item.active{background:var(--terra-bg);color:var(--terra);border-color:rgba(194,90,58,.15)}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--terra);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:1px 6px;border-radius:10px}
+.nav-item.active .nav-badge{background:var(--terra);color:#fff}
 
-  .nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
-  .nav-section { font-size: 9px; font-family: 'DM Mono', monospace; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; padding: 12px 8px 6px; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 10px; border-radius: 8px; cursor: pointer;
-    color: var(--muted); font-size: 13px; font-weight: 600;
-    transition: all .15s; border: 1px solid transparent;
-  }
-  .nav-item:hover { background: var(--card); color: var(--text); }
-  .nav-item.active { background: var(--red-dim); color: var(--red); border-color: #e6394622; }
-  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-  .nav-badge {
-    margin-left: auto; background: var(--red); color: #fff;
-    font-size: 10px; font-family: 'DM Mono', monospace;
-    padding: 1px 6px; border-radius: 10px;
-  }
+.sidebar-footer{padding:14px 20px;border-top:1px solid var(--border);font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+.status-dot{width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-  .sidebar-footer {
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-    font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
-  }
-  .sidebar-footer .status-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* ── MAIN ── */
+.main{margin-left:230px;flex:1;display:flex;flex-direction:column}
+.topbar{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar h2{font-family:'Lora',serif;font-size:18px;font-weight:600;color:var(--text)}
+.topbar-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--subtle);padding:4px 10px;border-radius:6px;border:1px solid var(--border)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.btn-refresh{background:var(--subtle);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;transition:.15s;display:flex;align-items:center;gap:6px}
+.btn-refresh:hover{border-color:var(--terra);color:var(--terra)}
+.btn-export{background:var(--terra);border:none;color:#fff;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;transition:.15s}
+.btn-export:hover{background:var(--terra-d)}
+.btn-licence{background:var(--green);border:none;color:#fff;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;transition:.15s;display:flex;align-items:center;gap:6px}
+.btn-licence:hover{background:#236040}
 
-  /* ── MAIN ── */
-  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+.content{padding:24px 28px;flex:1}
 
-  .topbar {
-    height: 60px; background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 28px; position: sticky; top: 0; z-index: 50;
-  }
-  .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .topbar h2 { font-size: 16px; font-weight: 700; }
-  .topbar-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); background: var(--card); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
-  .topbar-right { display: flex; align-items: center; gap: 10px; }
-  .btn-refresh {
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--muted); padding: 6px 14px; border-radius: 7px;
-    cursor: pointer; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
-    transition: all .15s; display: flex; align-items: center; gap: 6px;
-  }
-  .btn-refresh:hover { border-color: var(--red); color: var(--red); }
-  .btn-export {
-    background: var(--red); border: none; color: #fff;
-    padding: 6px 14px; border-radius: 7px; cursor: pointer;
-    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
-  }
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:.2s}
+.kpi:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.terra::before{background:var(--terra)}
+.kpi.green::before{background:var(--green)}
+.kpi.blue::before{background:var(--blue)}
+.kpi.gold::before{background:var(--gold)}
+.kpi-icon{font-size:24px;margin-bottom:12px}
+.kpi-val{font-family:'Lora',serif;font-size:34px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi.terra .kpi-val{color:var(--terra)}
+.kpi.green .kpi-val{color:var(--green)}
+.kpi.blue  .kpi-val{color:var(--blue)}
+.kpi.gold  .kpi-val{color:var(--gold)}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.kpi-trend{font-family:'DM Mono',monospace;font-size:10px;margin-top:8px;color:var(--green)}
+.kpi-trend.neutral{color:var(--muted)}
 
-  /* ── CONTENT ── */
-  .content { padding: 24px 28px; flex: 1; }
+/* ── GRID LAYOUT ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
 
-  /* ── TABS ── */
-  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); padding: 4px; border-radius: 10px; border: 1px solid var(--border); width: fit-content; }
-  .tab { padding: 7px 16px; border-radius: 7px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); transition: all .15s; }
-  .tab.active { background: var(--card); color: var(--text); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.card-title{font-family:'Lora',serif;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--text)}
+.card-title .dot{width:7px;height:7px;border-radius:50%;background:var(--terra)}
+.card-action{font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:.12s}
+.card-action:hover{color:var(--terra)}
 
-  /* ── KPI GRID ── */
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-  .kpi {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 18px 20px;
-    position: relative; overflow: hidden; transition: border-color .2s;
-  }
-  .kpi:hover { border-color: var(--subtle); }
-  .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-  .kpi.red::before   { background: var(--red); }
-  .kpi.green::before { background: var(--green); }
-  .kpi.blue::before  { background: var(--blue); }
-  .kpi.amber::before { background: var(--amber); }
-  .kpi-icon { font-size: 22px; margin-bottom: 10px; }
-  .kpi-val { font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-  .kpi.red   .kpi-val { color: var(--red); }
-  .kpi.green .kpi-val { color: var(--green); }
-  .kpi.blue  .kpi-val { color: var(--blue); }
-  .kpi.amber .kpi-val { color: var(--amber); }
-  .kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-  .kpi-trend { font-family: 'DM Mono', monospace; font-size: 10px; margin-top: 8px; color: var(--green); }
-  .kpi-trend.down { color: var(--red); }
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 0 10px;border-bottom:1px solid var(--border)}
+td{padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--subtle)}
 
-  /* ── TWO COL ── */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge.green{background:var(--green-bg);color:var(--green)}
+.badge.terra{background:var(--terra-bg);color:var(--terra)}
+.badge.blue{background:var(--blue-bg);color:var(--blue)}
+.badge.gold{background:var(--gold-bg);color:var(--gold)}
+.badge.gray{background:var(--subtle);color:var(--muted)}
+.badge.red{background:var(--red-bg);color:var(--red)}
 
-  /* ── CARD ── */
-  .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
-  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .card-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .card-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
-  .card-action { font-size: 11px; color: var(--muted); cursor: pointer; font-family: 'DM Mono', monospace; }
-  .card-action:hover { color: var(--text); }
+/* ── PROGRESS ── */
+.progress-bar{height:5px;background:var(--subtle);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:3px;transition:width 1s ease}
 
-  /* ── TABLE ── */
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 0 0 10px; border-bottom: 1px solid var(--border); }
-  td { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { color: var(--text); }
+/* ── ALERTS ── */
+.alert-list{display:flex;flex-direction:column;gap:10px}
+.alert-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid}
+.alert-item.critical{background:var(--red-bg);border-color:rgba(192,57,43,.2)}
+.alert-item.warning{background:var(--gold-bg);border-color:rgba(184,134,11,.2)}
+.alert-item.info{background:var(--blue-bg);border-color:rgba(46,92,138,.2)}
+.alert-icon{font-size:18px;flex-shrink:0}
+.alert-text{flex:1;font-size:12px;line-height:1.4}
+.alert-text strong{display:block;font-size:13px;margin-bottom:2px}
+.alert-action{font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;padding:4px 10px;border-radius:5px;border:1px solid currentColor;font-weight:700;transition:.12s;white-space:nowrap}
+.alert-action:hover{opacity:.7}
 
-  /* ── BADGES ── */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; }
-  .badge.green  { background: #0d2e2b; color: var(--green); }
-  .badge.red    { background: var(--red-dim); color: var(--red); }
-  .badge.amber  { background: #2e1f0d; color: var(--amber); }
-  .badge.blue   { background: #0d1e36; color: var(--blue); }
-  .badge.gray   { background: var(--subtle); color: var(--muted); }
-  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column}
+.tl-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.tl-dot.new{background:var(--green-bg)}
+.tl-dot.renew{background:var(--blue-bg)}
+.tl-dot.alert{background:var(--red-bg)}
+.tl-dot.review{background:var(--gold-bg)}
+.tl-body{flex:1}
+.tl-title{font-size:12px;font-weight:700;margin-bottom:2px}
+.tl-sub{font-size:11px;color:var(--muted)}
+.tl-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0;margin-top:4px}
 
-  /* ── PROGRESS ── */
-  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 6px; }
-  .progress-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+/* ── CENTRE ROW ── */
+.centre-row{display:flex;align-items:center;gap:10px}
+.centre-avatar{width:32px;height:32px;border-radius:8px;background:var(--terra-bg);color:var(--terra);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.centre-name{font-size:12px;font-weight:700}
+.centre-id{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)}
 
-  /* ── DONUT ── */
-  .donut-wrap { display: flex; align-items: center; gap: 20px; }
-  .donut-svg { flex-shrink: 0; }
-  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
-  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-  .legend-val { margin-left: auto; font-family: 'DM Mono', monospace; color: var(--muted); }
+/* ── DONUT ── */
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.legend-val{margin-left:auto;font-family:'DM Mono',monospace;color:var(--muted)}
 
-  /* ── CENTRE ROW ── */
-  .centre-row { display: flex; align-items: center; gap: 10px; }
-  .centre-avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--subtle); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
-  .centre-name { font-size: 12px; font-weight: 700; }
-  .centre-id { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); }
+/* ── CA BARS ── */
+.ca-bars{display:flex;align-items:flex-end;gap:8px;height:100px;padding-top:10px}
+.ca-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ca-bar{width:100%;border-radius:4px 4px 0 0;background:var(--subtle);transition:.5s;cursor:pointer}
+.ca-bar.highlight{background:var(--terra)}
+.ca-bar:hover{opacity:.8}
+.ca-month{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center}
 
-  /* ── SPARKLINE ── */
-  .sparkline { display: flex; align-items: flex-end; gap: 3px; height: 36px; }
-  .spark-bar { width: 8px; border-radius: 2px 2px 0 0; background: var(--subtle); transition: all .3s; flex-shrink: 0; }
-  .spark-bar:hover { background: var(--red); }
+/* ── LICENCE TABLE ── */
+.license-type{display:flex;align-items:center;gap:8px}
 
-  /* ── TIMELINE ── */
-  .timeline { display: flex; flex-direction: column; gap: 0; }
-  .tl-item { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .tl-item:last-child { border-bottom: none; }
-  .tl-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
-  .tl-dot.new     { background: #0d2e2b; }
-  .tl-dot.renew   { background: #0d1e36; }
-  .tl-dot.alert   { background: var(--red-dim); }
-  .tl-dot.review  { background: #2e1f0d; }
-  .tl-body { flex: 1; }
-  .tl-title { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
-  .tl-sub   { font-size: 11px; color: var(--muted); }
-  .tl-time  { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); flex-shrink: 0; margin-top: 4px; }
+/* ── FEEDBACK ── */
+.feedback-list{display:flex;flex-direction:column;gap:10px}
+.feedback-card{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:14px}
+.feedback-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.feedback-centre{font-size:12px;font-weight:700}
+.feedback-score.good{color:var(--green);font-family:'DM Mono',monospace;font-size:12px}
+.feedback-score.avg{color:var(--gold);font-family:'DM Mono',monospace;font-size:12px}
+.feedback-text{font-size:12px;color:var(--muted);line-height:1.5}
+.feedback-tags{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.ftag{font-size:9px;padding:2px 8px;border-radius:4px;font-weight:700;font-family:'DM Mono',monospace;text-transform:uppercase}
+.ftag.pos{background:var(--green-bg);color:var(--green)}
+.ftag.neg{background:var(--red-bg);color:var(--red)}
 
-  /* ── RATING BARS ── */
-  .rating-item { margin-bottom: 12px; }
-  .rating-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
-  .rating-stars { color: var(--amber); letter-spacing: -2px; }
-  .rating-count { font-family: 'DM Mono', monospace; color: var(--muted); }
+/* ── SPARKLINE ── */
+.sparkline{display:flex;align-items:flex-end;gap:3px;height:40px}
+.spark-bar{width:8px;border-radius:2px 2px 0 0;background:var(--subtle);transition:.3s;flex-shrink:0}
+.spark-bar:hover{background:var(--terra)}
+.spark-bar.peak{background:var(--terra)}
 
-  /* ── FEEDBACK CARDS ── */
-  .feedback-list { display: flex; flex-direction: column; gap: 10px; }
-  .feedback-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-  .feedback-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .feedback-centre { font-size: 11px; font-weight: 700; }
-  .feedback-score { font-family: 'DM Mono', monospace; font-size: 11px; }
-  .feedback-score.good { color: var(--green); }
-  .feedback-score.avg  { color: var(--amber); }
-  .feedback-text { font-size: 11px; color: var(--muted); line-height: 1.5; }
-  .feedback-tags { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
-  .tag { background: var(--subtle); color: var(--muted); font-size: 9px; padding: 2px 7px; border-radius: 4px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .5px; }
-  .tag.pos { background: #0d2e2b; color: var(--green); }
-  .tag.neg { background: var(--red-dim); color: var(--red); }
+/* ── HEATMAP ── */
+.heatmap{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.hm-cell{height:18px;border-radius:3px;background:var(--subtle);cursor:pointer;transition:.2s}
+.hm-cell:hover{transform:scale(1.2)}
+.hm-cell.l1{background:#f0d5cc}
+.hm-cell.l2{background:#d99a85}
+.hm-cell.l3{background:#c87355}
+.hm-cell.l4{background:var(--terra)}
+.hm-months{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-bottom:4px}
+.hm-month{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center}
 
-  /* ── CA CHART ── */
-  .ca-bars { display: flex; align-items: flex-end; gap: 8px; height: 100px; padding-top: 10px; }
-  .ca-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .ca-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--subtle); position: relative; transition: all .5s; cursor: pointer; }
-  .ca-bar.highlight { background: var(--red); }
-  .ca-bar:hover { opacity: .8; }
-  .ca-month { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-align: center; }
-  .ca-total { font-size: 24px; font-weight: 800; color: var(--amber); margin-bottom: 4px; }
-  .ca-sub { font-size: 11px; color: var(--muted); }
+/* ── CONN GRID ── */
+.conn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.conn-stat{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.conn-val{font-family:'Lora',serif;font-size:24px;font-weight:700;color:var(--blue)}
+.conn-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
-  /* ── LICENCE TABLE ── */
-  .license-type { display: flex; align-items: center; gap: 8px; }
-  .license-icon { font-size: 14px; }
+/* ── DEMANDES ── */
+.demande-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.demande-item:last-child{border-bottom:none}
+.demande-priority{width:3px;height:44px;border-radius:2px;flex-shrink:0;margin-top:2px}
+.demande-body{flex:1}
+.demande-title{font-size:12px;font-weight:700;margin-bottom:3px}
+.demande-meta{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.demande-actions{display:flex;gap:6px;margin-top:8px}
+.btn-sm{padding:5px 12px;border-radius:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--subtle);color:var(--text);transition:.15s}
+.btn-sm.primary{background:var(--terra);border-color:var(--terra);color:#fff}
+.btn-sm:hover{opacity:.8}
 
-  /* ── ALERTS ── */
-  .alert-list { display: flex; flex-direction: column; gap: 8px; }
-  .alert-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; border: 1px solid; }
-  .alert-item.critical { background: var(--red-dim); border-color: #e6394633; }
-  .alert-item.warning  { background: #2e1f0d; border-color: #f4a26133; }
-  .alert-item.info     { background: #0d1e36; border-color: #4895ef33; }
-  .alert-icon { font-size: 16px; flex-shrink: 0; }
-  .alert-text { flex: 1; font-size: 11px; }
-  .alert-text strong { display: block; font-size: 12px; margin-bottom: 2px; }
-  .alert-action { font-size: 10px; font-family: 'DM Mono', monospace; cursor: pointer; padding: 3px 8px; border-radius: 4px; border: 1px solid currentColor; opacity: .7; }
+/* ── MAP ── */
+.map-placeholder{background:var(--subtle);border-radius:10px;height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;border:1px dashed var(--border)}
 
-  /* ── CONNEXION STATS ── */
-  .conn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .conn-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
-  .conn-val { font-size: 22px; font-weight: 800; color: var(--blue); }
-  .conn-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+/* ── TAB CONTENT ── */
+.tab-content{display:none}
+.tab-content.active{display:block}
 
-  /* ── HEATMAP ── */
-  .heatmap { display: grid; grid-template-columns: repeat(12,1fr); gap: 3px; }
-  .hm-cell { height: 16px; border-radius: 3px; background: var(--subtle); cursor: pointer; transition: .2s; }
-  .hm-cell:hover { transform: scale(1.2); }
-  .hm-cell.l1 { background: #2d0d10; }
-  .hm-cell.l2 { background: #6b1a21; }
-  .hm-cell.l3 { background: #a82232; }
-  .hm-cell.l4 { background: var(--red); }
-  .hm-months { display: grid; grid-template-columns: repeat(12,1fr); gap: 3px; margin-bottom: 4px; }
-  .hm-month { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); text-align: center; }
+/* ── LOADING ── */
+.loading{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── MAP PLACEHOLDER ── */
-  .map-placeholder { background: var(--surface); border-radius: 8px; height: 160px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; border: 1px dashed var(--border); }
-  .map-placeholder .big { font-size: 32px; }
-  .map-placeholder p { font-size: 11px; color: var(--muted); }
+/* ── RATING ── */
+.rating-item{margin-bottom:12px}
+.rating-header{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.rating-count{font-family:'DM Mono',monospace;color:var(--muted)}
 
-  /* ── DEMANDES ── */
-  .demande-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-  .demande-item:last-child { border-bottom: none; }
-  .demande-priority { width: 3px; height: 40px; border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
-  .demande-body { flex: 1; }
-  .demande-title { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
-  .demande-meta { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .demande-actions { display: flex; gap: 6px; }
-  .btn-sm { padding: 4px 10px; border-radius: 5px; font-size: 10px; font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--subtle); color: var(--text); transition: .15s; }
-  .btn-sm.primary { background: var(--red); border-color: var(--red); color: #fff; }
-  .btn-sm:hover { opacity: .8; }
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* ── LOADING ── */
-  .loading { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin .6s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 </style>
 </head>
 <body>
@@ -305,7 +249,7 @@
     <div class="sidebar-logo">
       <div class="flame">🔥</div>
       <h1>SSIAP <span>Admin</span></h1>
-      <small>Tableau de Bord</small>
+      <small>Tableau de bord</small>
     </div>
     <nav class="nav">
       <div class="nav-section">Vue d'ensemble</div>
@@ -325,7 +269,7 @@
         <span class="nav-badge" id="badge-demandes">3</span>
       </div>
       <div class="nav-section">Qualité</div>
-      <div class="nav-item" onclick="showTab('avis')">
+      <div class="nav-item" onclick="window.location='admin-avis.html'">
         <span class="icon">⭐</span> Avis & Retours
       </div>
       <div class="nav-section">Finance</div>
@@ -335,10 +279,13 @@
       <div class="nav-item" onclick="showTab('licences')">
         <span class="icon">🔑</span> Licences
       </div>
+      <div class="nav-section">Outils</div>
+      <div class="nav-item" onclick="window.location='admin-license-generator.html'" style="border:1px solid rgba(194,90,58,.2);background:var(--terra-bg)">
+        <span class="icon">🎫</span> <span style="color:var(--terra);font-weight:700">Générateur licences</span>
+      </div>
     </nav>
     <div class="sidebar-footer">
-      <span class="status-dot"></span>
-      Connecté · Admin
+      <span class="status-dot"></span>Connecté · Admin
     </div>
   </aside>
 
@@ -350,6 +297,9 @@
         <span class="topbar-date" id="current-date">—</span>
       </div>
       <div class="topbar-right">
+        <button class="btn-licence" onclick="window.location='admin-license-generator.html'">
+          🎫 Nouvelle licence
+        </button>
         <button class="btn-refresh" onclick="loadAllData()">
           <span id="refresh-icon">↻</span> Actualiser
         </button>
@@ -361,14 +311,12 @@
 
       <!-- ════ OVERVIEW ════ -->
       <div id="tab-overview" class="tab-content active">
-
-        <!-- KPIs -->
         <div class="kpi-grid">
-          <div class="kpi red">
+          <div class="kpi terra">
             <div class="kpi-icon">🏢</div>
             <div class="kpi-val" id="kpi-centres">—</div>
             <div class="kpi-label">Centres actifs</div>
-            <div class="kpi-trend" id="kpi-centres-trend">Chargement…</div>
+            <div class="kpi-trend neutral" id="kpi-centres-trend">Chargement…</div>
           </div>
           <div class="kpi green">
             <div class="kpi-icon">🎓</div>
@@ -382,103 +330,81 @@
             <div class="kpi-label">Sessions ce mois</div>
             <div class="kpi-trend" id="kpi-sess-trend">Chargement…</div>
           </div>
-          <div class="kpi amber">
+          <div class="kpi gold">
             <div class="kpi-icon">€</div>
             <div class="kpi-val" id="kpi-ca">—</div>
             <div class="kpi-label">CA mensuel</div>
-            <div class="kpi-trend" id="kpi-ca-trend">Chargement…</div>
+            <div class="kpi-trend neutral" id="kpi-ca-trend">Chargement…</div>
           </div>
         </div>
 
         <div class="two-col">
-          <!-- Centres actifs -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Centres connectés</div>
+              <div class="card-title"><span class="dot"></span>Centres connectés</div>
               <span class="card-action" onclick="showTab('centres')">Voir tout →</span>
             </div>
             <table>
-              <thead><tr>
-                <th>Centre</th><th>Licence</th><th>Stagiaires</th><th>Statut</th>
-              </tr></thead>
+              <thead><tr><th>Centre</th><th>Licence</th><th>Stagiaires</th><th>Statut</th></tr></thead>
               <tbody id="centres-table-mini">
-                <tr><td colspan="4" style="color:var(--muted);font-size:11px">Chargement…</td></tr>
+                <tr><td colspan="4" style="color:var(--muted);font-size:11px"><span class="loading"></span> Chargement…</td></tr>
               </tbody>
             </table>
           </div>
-
-          <!-- Alertes -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Alertes & Actions</div>
+              <div class="card-title"><span class="dot"></span>Alertes & Actions</div>
               <span class="card-action">Tout marquer lu</span>
             </div>
             <div class="alert-list">
               <div class="alert-item critical">
                 <span class="alert-icon">⚠️</span>
-                <div class="alert-text">
-                  <strong>Licence expirée dans 7j</strong>
-                  Centre SSIAP Lyon — forfait STANDARD
-                </div>
+                <div class="alert-text"><strong>Licence expirée dans 7j</strong>Centre SSIAP Lyon — forfait STANDARD</div>
                 <span class="alert-action" style="color:var(--red)">Relancer</span>
               </div>
               <div class="alert-item warning">
                 <span class="alert-icon">🕐</span>
-                <div class="alert-text">
-                  <strong>3 demandes en attente</strong>
-                  Nouvelles inscriptions non traitées
-                </div>
-                <span class="alert-action" style="color:var(--amber)">Traiter</span>
+                <div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div>
+                <span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span>
               </div>
               <div class="alert-item info">
                 <span class="alert-icon">📊</span>
-                <div class="alert-text">
-                  <strong>Rapport mensuel disponible</strong>
-                  Statistiques de Février 2026
-                </div>
+                <div class="alert-text"><strong>Rapport mensuel disponible</strong>Statistiques de Février 2026</div>
                 <span class="alert-action" style="color:var(--blue)">Voir</span>
               </div>
               <div class="alert-item info">
                 <span class="alert-icon">⭐</span>
-                <div class="alert-text">
-                  <strong>Nouvel avis reçu</strong>
-                  Centre Paris — Note 4.5/5
-                </div>
-                <span class="alert-action" style="color:var(--blue)">Lire</span>
+                <div class="alert-text"><strong>Nouvel avis reçu</strong>Centre Paris — Note 4.5/5</div>
+                <span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span>
               </div>
             </div>
           </div>
         </div>
 
         <div class="three-col">
-          <!-- Répartition licences -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Répartition licences</div>
+              <div class="card-title"><span class="dot"></span>Répartition licences</div>
             </div>
             <div class="donut-wrap">
-              <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90">
-                <circle cx="45" cy="45" r="35" fill="none" stroke="#1e2230" stroke-width="14"/>
-                <circle id="donut-1" cx="45" cy="45" r="35" fill="none" stroke="#e63946" stroke-width="14"
-                  stroke-dasharray="0 220" stroke-linecap="round" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 1s"/>
-                <circle id="donut-2" cx="45" cy="45" r="35" fill="none" stroke="#4895ef" stroke-width="14"
-                  stroke-dasharray="0 220" stroke-linecap="round" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 1s"/>
-                <circle id="donut-3" cx="45" cy="45" r="35" fill="none" stroke="#2ec4b6" stroke-width="14"
-                  stroke-dasharray="0 220" stroke-linecap="round" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 1s"/>
-                <text x="45" y="49" text-anchor="middle" fill="#e8eaf0" font-size="16" font-weight="800" font-family="Syne,sans-serif" id="donut-total">—</text>
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="35" fill="none" stroke="var(--subtle)" stroke-width="14"/>
+                <circle id="donut-1" cx="45" cy="45" r="35" fill="none" stroke="var(--terra)" stroke-width="14" stroke-dasharray="0 220" stroke-linecap="round" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 1s"/>
+                <circle id="donut-2" cx="45" cy="45" r="35" fill="none" stroke="var(--blue)" stroke-width="14" stroke-dasharray="0 220" stroke-linecap="round" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 1s"/>
+                <circle id="donut-3" cx="45" cy="45" r="35" fill="none" stroke="var(--green)" stroke-width="14" stroke-dasharray="0 220" stroke-linecap="round" transform="rotate(-90 45 45)" style="transition:stroke-dasharray 1s"/>
+                <text x="45" y="49" text-anchor="middle" fill="var(--text)" font-size="16" font-weight="700" font-family="Lora,serif" id="donut-total">—</text>
               </svg>
-              <div class="donut-legend" id="donut-legend">
-                <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> DEMO <span class="legend-val" id="leg-demo">—</span></div>
-                <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> STANDARD <span class="legend-val" id="leg-std">—</span></div>
-                <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> PREMIUM+ <span class="legend-val" id="leg-prem">—</span></div>
+              <div class="donut-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--terra)"></div>DEMO <span class="legend-val" id="leg-demo">—</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>STANDARD <span class="legend-val" id="leg-std">—</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>PREMIUM+ <span class="legend-val" id="leg-prem">—</span></div>
               </div>
             </div>
           </div>
 
-          <!-- Top niveaux QCM -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Entraînements / Niveau</div>
+              <div class="card-title"><span class="dot"></span>Entraînements / Niveau</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:14px">
               <div>
@@ -495,52 +421,39 @@
               </div>
               <div>
                 <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-                  <span>SSIAP 3</span><span style="color:var(--amber);font-family:'DM Mono',monospace" id="pct-n3">—</span>
+                  <span>SSIAP 3</span><span style="color:var(--gold);font-family:'DM Mono',monospace" id="pct-n3">—</span>
                 </div>
-                <div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--amber);width:0%"></div></div>
+                <div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--gold);width:0%"></div></div>
               </div>
             </div>
             <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">
-              Total entraînements : <span id="total-entr" style="color:var(--text)">—</span>
+              Total : <span id="total-entr" style="color:var(--text)">—</span>
             </div>
           </div>
 
-          <!-- Activité récente -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Activité récente</div>
+              <div class="card-title"><span class="dot"></span>Activité récente</div>
             </div>
-            <div class="timeline" id="activity-feed">
+            <div class="timeline">
               <div class="tl-item">
                 <div class="tl-dot new">🆕</div>
-                <div class="tl-body">
-                  <div class="tl-title">Nouveau centre enregistré</div>
-                  <div class="tl-sub">Centre SSIAP Marseille</div>
-                </div>
+                <div class="tl-body"><div class="tl-title">Nouveau centre enregistré</div><div class="tl-sub">Centre SSIAP Marseille</div></div>
                 <div class="tl-time">09:14</div>
               </div>
               <div class="tl-item">
                 <div class="tl-dot renew">🔄</div>
-                <div class="tl-body">
-                  <div class="tl-title">Licence renouvelée</div>
-                  <div class="tl-sub">Centre Paris — PREMIUM</div>
-                </div>
+                <div class="tl-body"><div class="tl-title">Licence renouvelée</div><div class="tl-sub">Centre Paris — PREMIUM</div></div>
                 <div class="tl-time">Hier</div>
               </div>
               <div class="tl-item">
                 <div class="tl-dot alert">🚨</div>
-                <div class="tl-body">
-                  <div class="tl-title">Expiration imminente</div>
-                  <div class="tl-sub">Centre Lyon — 7 jours</div>
-                </div>
+                <div class="tl-body"><div class="tl-title">Expiration imminente</div><div class="tl-sub">Centre Lyon — 7 jours</div></div>
                 <div class="tl-time">il y a 2j</div>
               </div>
               <div class="tl-item">
                 <div class="tl-dot review">⭐</div>
-                <div class="tl-body">
-                  <div class="tl-title">Avis reçu — 4.5/5</div>
-                  <div class="tl-sub">Centre Bordeaux</div>
-                </div>
+                <div class="tl-body"><div class="tl-title">Avis reçu — 4.5/5</div><div class="tl-sub">Centre Bordeaux</div></div>
                 <div class="tl-time">il y a 3j</div>
               </div>
             </div>
@@ -552,18 +465,13 @@
       <div id="tab-centres" class="tab-content">
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="dot"></span> Centres enregistrés</div>
+            <div class="card-title"><span class="dot"></span>Centres enregistrés</div>
             <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="centres-count">Chargement…</span>
           </div>
           <table>
-            <thead><tr>
-              <th>Centre</th><th>Licence</th><th>Formateurs</th><th>Stagiaires</th>
-              <th>Sessions</th><th>Statut</th><th>Expiration</th><th>Actions</th>
-            </tr></thead>
+            <thead><tr><th>Centre</th><th>Licence</th><th>Formateurs</th><th>Stagiaires</th><th>Sessions</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
             <tbody id="centres-table-full">
-              <tr><td colspan="8" style="color:var(--muted);font-size:11px;text-align:center;padding:20px">
-                <span class="loading"></span> Chargement des centres…
-              </td></tr>
+              <tr><td colspan="8" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr>
             </tbody>
           </table>
         </div>
@@ -571,37 +479,19 @@
 
       <!-- ════ CONNEXIONS ════ -->
       <div id="tab-connexions" class="tab-content">
-        <div class="two-col" style="margin-bottom:14px">
+        <div class="two-col" style="margin-bottom:16px">
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Statistiques connexions</div>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Statistiques connexions</div></div>
             <div class="conn-grid">
-              <div class="conn-stat">
-                <div class="conn-val" id="conn-total">—</div>
-                <div class="conn-label">Total connexions</div>
-              </div>
-              <div class="conn-stat">
-                <div class="conn-val" id="conn-today" style="color:var(--green)">—</div>
-                <div class="conn-label">Aujourd'hui</div>
-              </div>
-              <div class="conn-stat">
-                <div class="conn-val" id="conn-duration" style="color:var(--amber)">—</div>
-                <div class="conn-label">Durée moy. (min)</div>
-              </div>
-              <div class="conn-stat">
-                <div class="conn-val" id="conn-peak" style="color:var(--red)">—</div>
-                <div class="conn-label">Heure de pointe</div>
-              </div>
+              <div class="conn-stat"><div class="conn-val" id="conn-total">—</div><div class="conn-label">Total connexions</div></div>
+              <div class="conn-stat"><div class="conn-val" id="conn-today" style="color:var(--green)">—</div><div class="conn-label">Aujourd'hui</div></div>
+              <div class="conn-stat"><div class="conn-val" id="conn-duration" style="color:var(--gold)">—</div><div class="conn-label">Durée moy. (min)</div></div>
+              <div class="conn-stat"><div class="conn-val" id="conn-peak" style="color:var(--terra)">—</div><div class="conn-label">Heure de pointe</div></div>
             </div>
           </div>
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Activité par heure</div>
-            </div>
-            <div class="sparkline" id="hourly-spark">
-              <!-- Généré par JS -->
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Activité par heure</div></div>
+            <div class="sparkline" id="hourly-spark"></div>
             <div style="display:flex;justify-content:space-between;margin-top:6px">
               <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">00h</span>
               <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)">12h</span>
@@ -610,18 +500,16 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="dot"></span> Heatmap d'activité — Derniers 12 mois</div>
-          </div>
+          <div class="card-header"><div class="card-title"><span class="dot"></span>Heatmap activité — 12 derniers mois</div></div>
           <div class="hm-months" id="hm-months"></div>
           <div class="heatmap" id="heatmap"></div>
           <div style="display:flex;gap:6px;align-items:center;margin-top:8px">
             <span style="font-size:10px;color:var(--muted)">Moins</span>
             <div style="width:12px;height:12px;border-radius:2px;background:var(--subtle)"></div>
-            <div style="width:12px;height:12px;border-radius:2px;" class="hm-cell l1"></div>
-            <div style="width:12px;height:12px;border-radius:2px;" class="hm-cell l2"></div>
-            <div style="width:12px;height:12px;border-radius:2px;" class="hm-cell l3"></div>
-            <div style="width:12px;height:12px;border-radius:2px;" class="hm-cell l4"></div>
+            <div class="hm-cell l1" style="width:12px;height:12px"></div>
+            <div class="hm-cell l2" style="width:12px;height:12px"></div>
+            <div class="hm-cell l3" style="width:12px;height:12px"></div>
+            <div class="hm-cell l4" style="width:12px;height:12px"></div>
             <span style="font-size:10px;color:var(--muted)">Plus</span>
           </div>
         </div>
@@ -632,30 +520,24 @@
         <div class="two-col">
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Demandes en attente</div>
-              <span class="badge red">3 nouvelles</span>
+              <div class="card-title"><span class="dot"></span>Demandes en attente</div>
+              <span class="badge terra">3 nouvelles</span>
             </div>
-            <div id="demandes-list">
+            <div>
               <div class="demande-item">
                 <div class="demande-priority" style="background:var(--red)"></div>
                 <div class="demande-body">
                   <div class="demande-title">Inscription nouveau centre — Centre SSIAP Nantes</div>
                   <div class="demande-meta">📧 contact@ssiap-nantes.fr · 27/02/2026 08:42 · PREMIUM</div>
-                </div>
-                <div class="demande-actions">
-                  <button class="btn-sm primary">Valider</button>
-                  <button class="btn-sm">Refuser</button>
+                  <div class="demande-actions"><button class="btn-sm primary">Valider</button><button class="btn-sm">Refuser</button></div>
                 </div>
               </div>
               <div class="demande-item">
-                <div class="demande-priority" style="background:var(--amber)"></div>
+                <div class="demande-priority" style="background:var(--gold)"></div>
                 <div class="demande-body">
                   <div class="demande-title">Renouvellement licence — Centre Bordeaux</div>
                   <div class="demande-meta">🔑 STANDARD → ENTERPRISE · 26/02/2026 17:15</div>
-                </div>
-                <div class="demande-actions">
-                  <button class="btn-sm primary">Traiter</button>
-                  <button class="btn-sm">Différer</button>
+                  <div class="demande-actions"><button class="btn-sm primary">Traiter</button><button class="btn-sm">Différer</button></div>
                 </div>
               </div>
               <div class="demande-item">
@@ -663,25 +545,20 @@
                 <div class="demande-body">
                   <div class="demande-title">Question technique — Intégration API</div>
                   <div class="demande-meta">💬 Centre Toulouse · 25/02/2026 11:30</div>
-                </div>
-                <div class="demande-actions">
-                  <button class="btn-sm primary">Répondre</button>
-                  <button class="btn-sm">Clore</button>
+                  <div class="demande-actions"><button class="btn-sm primary">Répondre</button><button class="btn-sm">Clore</button></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Historique demandes</div>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Historique demandes</div></div>
             <table>
               <thead><tr><th>Centre</th><th>Type</th><th>Date</th><th>Statut</th></tr></thead>
               <tbody>
                 <tr><td>SSIAP Paris</td><td style="font-size:11px">Renouvellement</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">20/02</td><td><span class="badge green">Traité</span></td></tr>
                 <tr><td>SSIAP Lyon</td><td style="font-size:11px">Support</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">18/02</td><td><span class="badge green">Traité</span></td></tr>
                 <tr><td>SSIAP Marseille</td><td style="font-size:11px">Inscription</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">15/02</td><td><span class="badge green">Traité</span></td></tr>
-                <tr><td>SSIAP Lille</td><td style="font-size:11px">Upgrade</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">10/02</td><td><span class="badge amber">En cours</span></td></tr>
+                <tr><td>SSIAP Lille</td><td style="font-size:11px">Upgrade</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">10/02</td><td><span class="badge gold">En cours</span></td></tr>
                 <tr><td>SSIAP Strasbourg</td><td style="font-size:11px">Incident</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">05/02</td><td><span class="badge red">Ouvert</span></td></tr>
               </tbody>
             </table>
@@ -691,199 +568,52 @@
 
       <!-- ════ AVIS ════ -->
       <div id="tab-avis" class="tab-content">
-        <div class="two-col">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Note globale</div>
-            </div>
-            <div style="text-align:center;padding:10px 0 16px">
-              <div style="font-size:48px;font-weight:800;color:var(--amber)">4.3</div>
-              <div style="color:var(--amber);font-size:20px;letter-spacing:2px">★★★★☆</div>
-              <div style="color:var(--muted);font-size:11px;margin-top:4px">Sur 127 évaluations</div>
-            </div>
-            <div id="rating-bars">
-              <div class="rating-item">
-                <div class="rating-header"><span>5 ★</span><span class="rating-count">48</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="background:var(--amber);width:38%"></div></div>
-              </div>
-              <div class="rating-item">
-                <div class="rating-header"><span>4 ★</span><span class="rating-count">52</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="background:var(--amber);width:41%"></div></div>
-              </div>
-              <div class="rating-item">
-                <div class="rating-header"><span>3 ★</span><span class="rating-count">18</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="background:var(--amber);width:14%"></div></div>
-              </div>
-              <div class="rating-item">
-                <div class="rating-header"><span>2 ★</span><span class="rating-count">7</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="background:var(--red);width:6%"></div></div>
-              </div>
-              <div class="rating-item">
-                <div class="rating-header"><span>1 ★</span><span class="rating-count">2</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="background:var(--red);width:2%"></div></div>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Points clés</div>
-            </div>
-            <div style="margin-bottom:16px">
-              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace">Points favorables</div>
-              <div style="display:flex;flex-wrap:wrap;gap:6px">
-                <span class="tag pos">+ Interface intuitive</span>
-                <span class="tag pos">+ Questions pertinentes</span>
-                <span class="tag pos">+ Explications détaillées</span>
-                <span class="tag pos">+ Accessible partout</span>
-                <span class="tag pos">+ Support réactif</span>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace">Points à améliorer</div>
-              <div style="display:flex;flex-wrap:wrap;gap:6px">
-                <span class="tag neg">− Temps de chargement</span>
-                <span class="tag neg">− Mode hors-ligne souhaité</span>
-                <span class="tag neg">− Plus de questions S3</span>
-                <span class="tag neg">− Export PDF résultats</span>
-              </div>
-            </div>
-            <div style="margin-top:16px;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
-              <div style="font-size:10px;color:var(--muted);margin-bottom:4px">SCORE NPS (Net Promoter Score)</div>
-              <div style="font-size:28px;font-weight:800;color:var(--green)">+62</div>
-              <div style="font-size:10px;color:var(--muted)">74% promoteurs · 12% passifs · 14% détracteurs</div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="dot"></span> Derniers retours centres</div>
-          </div>
-          <div class="feedback-list">
-            <div class="feedback-card">
-              <div class="feedback-header">
-                <span class="feedback-centre">🏢 Centre SSIAP Paris</span>
-                <span class="feedback-score good">★★★★★ 5/5</span>
-              </div>
-              <div class="feedback-text">
-                "Excellent outil de formation. Les 200 questions par niveau permettent une vraie préparation. Les explications sont très complètes. Nos stagiaires progressent visiblement depuis l'adoption."
-              </div>
-              <div class="feedback-tags">
-                <span class="tag pos">+ Questions</span>
-                <span class="tag pos">+ Explications</span>
-                <span class="tag pos">+ Progression</span>
-              </div>
-            </div>
-            <div class="feedback-card">
-              <div class="feedback-header">
-                <span class="feedback-centre">🏢 Centre SSIAP Lyon</span>
-                <span class="feedback-score avg">★★★★☆ 4/5</span>
-              </div>
-              <div class="feedback-text">
-                "Très bon outil globalement. On aimerait pouvoir exporter les résultats en PDF pour les remettre aux stagiaires. Le tableau de bord formateur est bien pensé."
-              </div>
-              <div class="feedback-tags">
-                <span class="tag pos">+ Dashboard</span>
-                <span class="tag neg">− Export PDF</span>
-              </div>
-            </div>
-            <div class="feedback-card">
-              <div class="feedback-header">
-                <span class="feedback-centre">🏢 Centre SSIAP Bordeaux</span>
-                <span class="feedback-score avg">★★★★☆ 4/5</span>
-              </div>
-              <div class="feedback-text">
-                "L'application est vraiment complète. Petit bémol sur le temps de réponse parfois, et on attend avec impatience une version mobile."
-              </div>
-              <div class="feedback-tags">
-                <span class="tag pos">+ Complétude</span>
-                <span class="tag neg">− Performances</span>
-                <span class="tag neg">− Mobile</span>
-              </div>
-            </div>
-          </div>
+        <div style="text-align:center;padding:40px">
+          <div style="font-size:48px;margin-bottom:12px">⭐</div>
+          <p style="color:var(--muted);margin-bottom:20px">Consultez la page dédiée à la gestion des avis</p>
+          <button onclick="window.location='admin-avis.html'" style="background:var(--terra);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">
+            Aller à la gestion des avis →
+          </button>
         </div>
       </div>
 
       <!-- ════ CA ════ -->
       <div id="tab-ca" class="tab-content">
         <div class="kpi-grid">
-          <div class="kpi amber">
-            <div class="kpi-icon">€</div>
-            <div class="kpi-val" id="ca-annuel">—</div>
-            <div class="kpi-label">CA annuel 2026</div>
-            <div class="kpi-trend" id="ca-annuel-trend">Chargement…</div>
-          </div>
-          <div class="kpi green">
-            <div class="kpi-icon">📅</div>
-            <div class="kpi-val" id="ca-mensuel">—</div>
-            <div class="kpi-label">CA mensuel (Fév)</div>
-            <div class="kpi-trend">↑ +8% vs Jan</div>
-          </div>
-          <div class="kpi blue">
-            <div class="kpi-icon">🔑</div>
-            <div class="kpi-val" id="ca-licences">—</div>
-            <div class="kpi-label">Licences actives</div>
-            <div class="kpi-trend" id="ca-lic-trend">Chargement…</div>
-          </div>
-          <div class="kpi red">
-            <div class="kpi-icon">📈</div>
-            <div class="kpi-val">+24%</div>
-            <div class="kpi-label">Croissance YoY</div>
-            <div class="kpi-trend">vs 2025</div>
-          </div>
+          <div class="kpi gold"><div class="kpi-icon">€</div><div class="kpi-val" id="ca-annuel">—</div><div class="kpi-label">CA annuel 2026</div><div class="kpi-trend neutral" id="ca-annuel-trend">Chargement…</div></div>
+          <div class="kpi green"><div class="kpi-icon">📅</div><div class="kpi-val" id="ca-mensuel">—</div><div class="kpi-label">CA mensuel (Fév)</div><div class="kpi-trend">↑ +8% vs Jan</div></div>
+          <div class="kpi blue"><div class="kpi-icon">🔑</div><div class="kpi-val" id="ca-licences">—</div><div class="kpi-label">Licences actives</div><div class="kpi-trend neutral" id="ca-lic-trend">Chargement…</div></div>
+          <div class="kpi terra"><div class="kpi-icon">📈</div><div class="kpi-val">+24%</div><div class="kpi-label">Croissance YoY</div><div class="kpi-trend neutral">vs 2025</div></div>
         </div>
-
         <div class="two-col">
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> CA mensuel 2026</div>
-            </div>
-            <div class="ca-bars" id="ca-chart">
-              <!-- généré par JS -->
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>CA mensuel 2026</div></div>
+            <div class="ca-bars" id="ca-chart"></div>
           </div>
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span> Répartition par forfait</div>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Répartition par forfait</div></div>
             <table>
               <thead><tr><th>Forfait</th><th>Nb licences</th><th>Prix/an</th><th>Total</th></tr></thead>
-              <tbody id="ca-by-plan">
-                <tr><td><div class="license-type"><span class="license-icon">🔴</span>DEMO</div></td>
-                    <td style="font-family:'DM Mono',monospace" id="nb-demo">—</td>
-                    <td style="color:var(--muted)">Gratuit</td>
-                    <td style="color:var(--muted)">0 €</td></tr>
-                <tr><td><div class="license-type"><span class="license-icon">🔵</span>STANDARD</div></td>
-                    <td style="font-family:'DM Mono',monospace" id="nb-std">—</td>
-                    <td style="color:var(--muted)">490 €</td>
-                    <td style="color:var(--green);font-family:'DM Mono',monospace" id="total-std">—</td></tr>
-                <tr><td><div class="license-type"><span class="license-icon">🟡</span>PROFESSIONAL</div></td>
-                    <td style="font-family:'DM Mono',monospace" id="nb-pro">—</td>
-                    <td style="color:var(--muted)">890 €</td>
-                    <td style="color:var(--green);font-family:'DM Mono',monospace" id="total-pro">—</td></tr>
-                <tr><td><div class="license-type"><span class="license-icon">🟢</span>ENTERPRISE</div></td>
-                    <td style="font-family:'DM Mono',monospace" id="nb-ent">—</td>
-                    <td style="color:var(--muted)">1 490 €</td>
-                    <td style="color:var(--amber);font-family:'DM Mono',monospace" id="total-ent">—</td></tr>
+              <tbody>
+                <tr><td>DEMO</td><td style="font-family:'DM Mono',monospace" id="nb-demo">—</td><td style="color:var(--muted)">Gratuit</td><td style="color:var(--muted)">0 €</td></tr>
+                <tr><td>STANDARD</td><td style="font-family:'DM Mono',monospace" id="nb-std">—</td><td style="color:var(--muted)">490 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-std">—</td></tr>
+                <tr><td>PROFESSIONAL</td><td style="font-family:'DM Mono',monospace" id="nb-pro">—</td><td style="color:var(--muted)">890 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-pro">—</td></tr>
+                <tr><td>ENTERPRISE</td><td style="font-family:'DM Mono',monospace" id="nb-ent">—</td><td style="color:var(--muted)">1 490 €</td><td style="color:var(--gold);font-family:'DM Mono',monospace" id="total-ent">—</td></tr>
               </tbody>
             </table>
             <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
               <span style="font-weight:700">Total annuel estimé</span>
-              <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--amber);font-weight:700" id="ca-total-calc">—</span>
+              <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--gold);font-weight:700" id="ca-total-calc">—</span>
             </div>
           </div>
         </div>
-
-        <!-- Renouvellements à venir -->
         <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="dot"></span> Renouvellements à venir (90 jours)</div>
-          </div>
+          <div class="card-header"><div class="card-title"><span class="dot"></span>Renouvellements à venir (90 jours)</div></div>
           <table>
-            <thead><tr><th>Centre</th><th>Forfait actuel</th><th>Expiration</th><th>Valeur</th><th>Statut</th><th>Action</th></tr></thead>
+            <thead><tr><th>Centre</th><th>Forfait</th><th>Expiration</th><th>Valeur</th><th>Statut</th><th>Action</th></tr></thead>
             <tbody>
               <tr>
-                <td><div class="centre-row"><div class="centre-avatar" style="background:#3d1218;color:var(--red)">SL</div><div><div class="centre-name">SSIAP Lyon</div><div class="centre-id">7 jours</div></div></div></td>
+                <td><div class="centre-row"><div class="centre-avatar">SL</div><div><div class="centre-name">SSIAP Lyon</div><div class="centre-id">7 jours</div></div></div></td>
                 <td><span class="badge blue">STANDARD</span></td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--red)">06/03/2026</td>
                 <td style="color:var(--green);font-family:'DM Mono',monospace">490 €</td>
@@ -891,20 +621,12 @@
                 <td><button class="btn-sm primary">Relancer</button></td>
               </tr>
               <tr>
-                <td><div class="centre-row"><div class="centre-avatar" style="background:#0d2e2b;color:var(--green)">SB</div><div><div class="centre-name">SSIAP Bordeaux</div><div class="centre-id">32 jours</div></div></div></td>
+                <td><div class="centre-row"><div class="centre-avatar" style="background:var(--green-bg);color:var(--green)">SB</div><div><div class="centre-name">SSIAP Bordeaux</div><div class="centre-id">32 jours</div></div></div></td>
                 <td><span class="badge green">ENTERPRISE</span></td>
-                <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--amber)">31/03/2026</td>
+                <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)">31/03/2026</td>
                 <td style="color:var(--green);font-family:'DM Mono',monospace">1 490 €</td>
-                <td><span class="badge amber">Bientôt</span></td>
+                <td><span class="badge gold">Bientôt</span></td>
                 <td><button class="btn-sm">Préparer</button></td>
-              </tr>
-              <tr>
-                <td><div class="centre-row"><div class="centre-avatar" style="background:#0d1e36;color:var(--blue)">ST</div><div><div class="centre-name">SSIAP Toulouse</div><div class="centre-id">67 jours</div></div></div></td>
-                <td><span class="badge blue">PROFESSIONAL</span></td>
-                <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">05/05/2026</td>
-                <td style="color:var(--green);font-family:'DM Mono',monospace">890 €</td>
-                <td><span class="badge gray">Planifié</span></td>
-                <td><button class="btn-sm">Voir</button></td>
               </tr>
             </tbody>
           </table>
@@ -913,310 +635,263 @@
 
       <!-- ════ LICENCES ════ -->
       <div id="tab-licences" class="tab-content">
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0">
+            <div>
+              <div style="font-family:'Lora',serif;font-size:16px;font-weight:600;margin-bottom:4px">Gérer les licences</div>
+              <div style="font-size:12px;color:var(--muted)">Générez et gérez les licences pour les centres de formation</div>
+            </div>
+            <button onclick="window.location='admin-license-generator.html'" style="background:var(--terra);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px">
+              🎫 Nouveau générateur de licences
+            </button>
+          </div>
+        </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><span class="dot"></span> Toutes les licences</div>
+            <div class="card-title"><span class="dot"></span>Toutes les licences</div>
             <span id="lic-count" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Chargement…</span>
           </div>
           <table>
-            <thead><tr>
-              <th>Clé de licence</th><th>Centre</th><th>Type</th>
-              <th>Créée le</th><th>Expire le</th><th>Statut</th>
-            </tr></thead>
+            <thead><tr><th>Clé de licence</th><th>Centre</th><th>Type</th><th>Créée le</th><th>Expire le</th><th>Statut</th></tr></thead>
             <tbody id="licences-table">
-              <tr><td colspan="6" style="color:var(--muted);font-size:11px;text-align:center;padding:20px">
-                <span class="loading"></span> Chargement…
-              </td></tr>
+              <tr><td colspan="6" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /layout -->
+    </div>
+  </div>
+</div>
 
 <script>
-const API = 'http://localhost:5000/api';
+const API = 'https://ssiap-training-center.onrender.com/api';
 
-// ── Date ──
 document.getElementById('current-date').textContent =
-  new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-// ── Navigation ──
 function showTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const el = document.getElementById('tab-' + id);
+  const el = document.getElementById('tab-'+id);
   if (el) el.classList.add('active');
-  const titles = { overview:'Vue d\'ensemble', centres:'Centres connectés', connexions:'Statistiques connexions',
-    demandes:'Demandes', avis:'Avis & Retours', ca:'Chiffre d\'Affaires', licences:'Gestion Licences' };
-  document.getElementById('page-title').textContent = titles[id] || id;
-  const navItems = document.querySelectorAll('.nav-item');
-  navItems.forEach(n => { if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active'); });
-  if (id === 'connexions') buildConnexions();
-  if (id === 'ca') buildCA();
+  const titles = {overview:'Vue d\'ensemble',centres:'Centres connectés',connexions:'Statistiques connexions',demandes:'Demandes',avis:'Avis & Retours',ca:'Chiffre d\'Affaires',licences:'Gestion Licences'};
+  document.getElementById('page-title').textContent = titles[id]||id;
+  document.querySelectorAll('.nav-item').forEach(n => { if(n.getAttribute('onclick')?.includes(id)) n.classList.add('active'); });
+  if(id==='connexions') buildConnexions();
+  if(id==='ca') buildCA();
 }
 
-// ── Load all data ──
 async function loadAllData() {
-  document.getElementById('refresh-icon').style.animation = 'spin .6s linear infinite';
-  try {
-    await Promise.allSettled([loadCentres(), loadLicences(), loadStats()]);
-  } finally {
-    document.getElementById('refresh-icon').style.animation = '';
-  }
+  document.getElementById('refresh-icon').style.animation='spin .6s linear infinite';
+  try { await Promise.allSettled([loadCentres(),loadLicences(),loadStats()]); }
+  finally { document.getElementById('refresh-icon').style.animation=''; }
 }
 
-// ── Centres ──
 async function loadCentres() {
   try {
-    const r = await fetch(`${API}/center/list`).catch(() => null);
-    if (!r || !r.ok) throw new Error();
+    const r = await fetch(`${API}/center/list`).catch(()=>null);
+    if(!r||!r.ok) throw new Error();
     const data = await r.json();
-    const centres = data.centers || data || [];
-    renderCentresMini(centres);
-    renderCentresFull(centres);
+    const centres = data.centers||data||[];
+    renderCentresMini(centres); renderCentresFull(centres);
     document.getElementById('kpi-centres').textContent = centres.length;
-    document.getElementById('kpi-centres-trend').textContent = `↑ +${Math.max(0,centres.length-1)} ce mois`;
+    document.getElementById('kpi-centres-trend').textContent = `${centres.length} centre(s) enregistré(s)`;
     document.getElementById('badge-centres').textContent = centres.length;
-    document.getElementById('centres-count').textContent = centres.length + ' centre(s) enregistré(s)';
+    document.getElementById('centres-count').textContent = centres.length+' centre(s)';
     return centres;
-  } catch {
-    useFallbackCentres();
-  }
+  } catch { useFallbackCentres(); }
 }
 
 function useFallbackCentres() {
-  const mock = [
-    { centerId:'center_1772...', info:{ nom:'Centre SSIAP Test', email:'admin@essai.fr' }, license:{ type:'DEMO' }, stats:{ stagiaires:1, formateurs:1, sessions:0 }, status:'active' }
-  ];
-  renderCentresMini(mock);
-  renderCentresFull(mock);
-  document.getElementById('kpi-centres').textContent = mock.length;
-  document.getElementById('badge-centres').textContent = mock.length;
-  document.getElementById('centres-count').textContent = mock.length + ' centre(s)';
+  const mock=[{centerId:'center_1772...',info:{nom:'Centre SSIAP Test',email:'admin@essai.fr'},license:{type:'DEMO'},stats:{stagiaires:1,formateurs:1,sessions:0},status:'active'}];
+  renderCentresMini(mock); renderCentresFull(mock);
+  document.getElementById('kpi-centres').textContent=mock.length;
+  document.getElementById('badge-centres').textContent=mock.length;
+  document.getElementById('centres-count').textContent=mock.length+' centre(s)';
 }
 
 function renderCentresMini(centres) {
-  const tbody = document.getElementById('centres-table-mini');
-  if (!centres.length) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>'; return; }
-  tbody.innerHTML = centres.slice(0,5).map(c => {
-    const nom = c.info?.nom || c.nom || c.centerId?.slice(0,12) || '—';
-    const lic = c.license?.type || c.licenseType || 'DEMO';
-    const stag = c.stats?.stagiaires ?? c.stagiaires ?? '—';
-    const active = c.status !== 'inactive';
-    return `<tr>
-      <td><div class="centre-row">
-        <div class="centre-avatar" style="background:var(--subtle)">${nom.slice(0,2).toUpperCase()}</div>
-        <div><div class="centre-name">${nom}</div><div class="centre-id">${(c.info?.email||'').slice(0,22)}</div></div>
-      </div></td>
-      <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'amber':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
-      <td style="font-family:'DM Mono',monospace">${stag}</td>
-      <td><span class="badge ${active?'green':'gray'}">${active?'Actif':'Inactif'}</span></td>
-    </tr>`;
+  const tbody=document.getElementById('centres-table-mini');
+  if(!centres.length){tbody.innerHTML='<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>';return;}
+  tbody.innerHTML=centres.slice(0,5).map(c=>{
+    const nom=c.info?.nom||c.nom||c.centerId?.slice(0,12)||'—';
+    const lic=c.license?.type||'DEMO';
+    const stag=c.stats?.stagiaires??'—';
+    const active=c.status!=='inactive';
+    return`<tr><td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div><div><div class="centre-name">${nom}</div><div class="centre-id">${(c.info?.email||'').slice(0,22)}</div></div></div></td>
+    <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
+    <td style="font-family:'DM Mono',monospace">${stag}</td>
+    <td><span class="badge ${active?'green':'gray'}">${active?'Actif':'Inactif'}</span></td></tr>`;
   }).join('');
 }
 
 function renderCentresFull(centres) {
-  const tbody = document.getElementById('centres-table-full');
-  if (!centres.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre enregistré</td></tr>'; return; }
-  tbody.innerHTML = centres.map(c => {
-    const nom = c.info?.nom || c.nom || c.centerId?.slice(0,16) || '—';
-    const lic = c.license?.type || 'DEMO';
-    const form = c.stats?.formateurs ?? '—';
-    const stag = c.stats?.stagiaires ?? '—';
-    const sess = c.stats?.sessions ?? '—';
-    const exp = c.license?.expiresAt ? new Date(c.license.expiresAt).toLocaleDateString('fr-FR') : '—';
-    const jours = c.license?.expiresAt ? Math.ceil((c.license.expiresAt - Date.now())/(86400000)) : null;
-    const urgence = jours !== null && jours < 30;
-    return `<tr>
-      <td><div class="centre-row">
-        <div class="centre-avatar" style="background:var(--subtle)">${nom.slice(0,2).toUpperCase()}</div>
-        <div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div>
-      </div></td>
-      <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'amber':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
-      <td style="font-family:'DM Mono',monospace;text-align:center">${form}</td>
-      <td style="font-family:'DM Mono',monospace;text-align:center">${stag}</td>
-      <td style="font-family:'DM Mono',monospace;text-align:center">${sess}</td>
-      <td><span class="badge ${c.status!=='inactive'?'green':'gray'}">${c.status!=='inactive'?'Actif':'Inactif'}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:${urgence?'var(--red)':'var(--muted)'}">${exp}${jours!==null?` (${jours}j)`:''}</td>
-      <td><button class="btn-sm" onclick="alert('Centre: ${c.centerId}')">Détail</button></td>
-    </tr>`;
+  const tbody=document.getElementById('centres-table-full');
+  if(!centres.length){tbody.innerHTML='<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre</td></tr>';return;}
+  tbody.innerHTML=centres.map(c=>{
+    const nom=c.info?.nom||c.nom||c.centerId?.slice(0,16)||'—';
+    const lic=c.license?.type||'DEMO';
+    const form=c.stats?.formateurs??'—';
+    const stag=c.stats?.stagiaires??'—';
+    const sess=c.stats?.sessions??'—';
+    const exp=c.license?.expiresAt?new Date(c.license.expiresAt).toLocaleDateString('fr-FR'):'—';
+    const jours=c.license?.expiresAt?Math.ceil((c.license.expiresAt-Date.now())/86400000):null;
+    const urgence=jours!==null&&jours<30;
+    return`<tr><td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div><div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div></div></td>
+    <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
+    <td style="text-align:center;font-family:'DM Mono',monospace">${form}</td>
+    <td style="text-align:center;font-family:'DM Mono',monospace">${stag}</td>
+    <td style="text-align:center;font-family:'DM Mono',monospace">${sess}</td>
+    <td><span class="badge ${c.status!=='inactive'?'green':'gray'}">${c.status!=='inactive'?'Actif':'Inactif'}</span></td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:${urgence?'var(--red)':'var(--muted)'}">${exp}${jours!==null?` (${jours}j)`:''}</td>
+    <td><button class="btn-sm" onclick="alert('Centre: ${c.centerId}')">Détail</button></td></tr>`;
   }).join('');
 }
 
-// ── Licences ──
 async function loadLicences() {
   try {
-    const r = await fetch(`${API}/license/list`).catch(() => null);
-    if (!r || !r.ok) throw new Error();
-    const data = await r.json();
-    const lics = data.licenses || [];
-    renderLicences(lics);
-    updateLicenceStats(lics);
+    const r=await fetch(`${API}/license/list`).catch(()=>null);
+    if(!r||!r.ok) throw new Error();
+    const data=await r.json();
+    const lics=data.licenses||[];
+    renderLicences(lics); updateLicenceStats(lics);
     return lics;
-  } catch {
-    useFallbackLicences();
-  }
+  } catch { useFallbackLicences(); }
 }
 
 function useFallbackLicences() {
-  const mock = [
-    { key:'SSIAP-8A0C-D5F5-91DB', centerId:'center_1772...', type:'DEMO', createdAt:Date.now()-86400000*5, expiresAt:Date.now()+86400000*25, active:true }
-  ];
-  renderLicences(mock);
-  updateLicenceStats(mock);
+  const mock=[{key:'SSIAP-8A0C-D5F5-91DB',centerId:'center_1772...',type:'DEMO',createdAt:Date.now()-86400000*5,expiresAt:Date.now()+86400000*25,active:true}];
+  renderLicences(mock); updateLicenceStats(mock);
 }
 
 function renderLicences(lics) {
-  document.getElementById('lic-count').textContent = lics.length + ' licence(s)';
-  const tbody = document.getElementById('licences-table');
-  if (!lics.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Aucune licence</td></tr>'; return; }
-  tbody.innerHTML = lics.map(l => {
-    const created = l.createdAt ? new Date(l.createdAt).toLocaleDateString('fr-FR') : '—';
-    const expires = l.expiresAt ? new Date(l.expiresAt).toLocaleDateString('fr-FR') : '—';
-    const jours   = l.expiresAt ? Math.ceil((l.expiresAt - Date.now())/(86400000)) : null;
-    const expired = jours !== null && jours < 0;
-    const urgent  = jours !== null && jours >= 0 && jours < 30;
-    return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--amber)">${l.key||l.licenseKey||'—'}</td>
-      <td style="font-size:11px">${l.centerId?.slice(0,24)||'—'}</td>
-      <td><span class="badge ${l.type==='ENTERPRISE'?'green':l.type==='PROFESSIONAL'?'amber':l.type==='STANDARD'?'blue':'gray'}">${l.type||'DEMO'}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${created}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:${expired?'var(--red)':urgent?'var(--amber)':'var(--muted)'}">${expires}</td>
-      <td><span class="badge ${expired?'red':urgent?'amber':l.active?'green':'gray'}">${expired?'Expirée':urgent?'Urgent':l.active?'Active':'Inactive'}</span></td>
-    </tr>`;
+  document.getElementById('lic-count').textContent=lics.length+' licence(s)';
+  const tbody=document.getElementById('licences-table');
+  if(!lics.length){tbody.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Aucune licence</td></tr>';return;}
+  tbody.innerHTML=lics.map(l=>{
+    const created=l.createdAt?new Date(l.createdAt).toLocaleDateString('fr-FR'):'—';
+    const expires=l.expiresAt?new Date(l.expiresAt).toLocaleDateString('fr-FR'):'—';
+    const jours=l.expiresAt?Math.ceil((l.expiresAt-Date.now())/86400000):null;
+    const expired=jours!==null&&jours<0;
+    const urgent=jours!==null&&jours>=0&&jours<30;
+    return`<tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--terra)">${l.key||l.licenseKey||'—'}</td>
+    <td style="font-size:11px">${l.centerId?.slice(0,24)||'—'}</td>
+    <td><span class="badge ${l.type==='ENTERPRISE'?'green':l.type==='PROFESSIONAL'?'gold':l.type==='STANDARD'?'blue':'gray'}">${l.type||'DEMO'}</span></td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${created}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:${expired?'var(--red)':urgent?'var(--gold)':'var(--muted)'}">${expires}</td>
+    <td><span class="badge ${expired?'red':urgent?'gold':l.active?'green':'gray'}">${expired?'Expirée':urgent?'Urgent':l.active?'Active':'Inactive'}</span></td></tr>`;
   }).join('');
 }
 
 function updateLicenceStats(lics) {
-  const counts = { DEMO:0, STANDARD:0, PROFESSIONAL:0, ENTERPRISE:0 };
-  lics.forEach(l => { if (counts[l.type] !== undefined) counts[l.type]++; });
-  document.getElementById('nb-demo').textContent = counts.DEMO;
-  document.getElementById('nb-std').textContent  = counts.STANDARD;
-  document.getElementById('nb-pro').textContent  = counts.PROFESSIONAL;
-  document.getElementById('nb-ent').textContent  = counts.ENTERPRISE;
-  document.getElementById('total-std').textContent = (counts.STANDARD * 490).toLocaleString('fr-FR') + ' €';
-  document.getElementById('total-pro').textContent = (counts.PROFESSIONAL * 890).toLocaleString('fr-FR') + ' €';
-  document.getElementById('total-ent').textContent = (counts.ENTERPRISE * 1490).toLocaleString('fr-FR') + ' €';
-  const total = counts.STANDARD*490 + counts.PROFESSIONAL*890 + counts.ENTERPRISE*1490;
-  document.getElementById('ca-total-calc').textContent = total.toLocaleString('fr-FR') + ' €';
-  const active = lics.filter(l => l.active).length;
-  document.getElementById('kpi-ca-trend').textContent = `${active} licences actives`;
-  document.getElementById('ca-licences').textContent = active;
-  document.getElementById('ca-lic-trend').textContent = `${active}/${lics.length} actives`;
-  document.getElementById('ca-annuel').textContent = total.toLocaleString('fr-FR') + ' €';
-  document.getElementById('ca-mensuel').textContent = Math.round(total/12).toLocaleString('fr-FR') + ' €';
-  document.getElementById('kpi-ca').textContent = Math.round(total/12).toLocaleString('fr-FR') + ' €';
-  document.getElementById('ca-annuel-trend').textContent = `↑ +24% vs 2025`;
-  // Donut
-  const total_known = counts.DEMO + counts.STANDARD + counts.PROFESSIONAL + counts.ENTERPRISE || 1;
-  const circ = 2 * Math.PI * 35;
-  const pDemo = counts.DEMO / total_known;
-  const pStd  = (counts.DEMO + counts.STANDARD) / total_known;
-  const pPro  = (counts.DEMO + counts.STANDARD + counts.PROFESSIONAL) / total_known;
-  setTimeout(() => {
-    document.getElementById('donut-1').setAttribute('stroke-dasharray', `${pDemo*circ} ${circ}`);
-    document.getElementById('donut-2').style.strokeDashoffset = `-${pDemo*circ}`;
-    document.getElementById('donut-2').setAttribute('stroke-dasharray', `${(counts.STANDARD/total_known)*circ} ${circ}`);
-    document.getElementById('donut-3').style.strokeDashoffset = `-${pStd*circ}`;
-    document.getElementById('donut-3').setAttribute('stroke-dasharray', `${(counts.PROFESSIONAL+counts.ENTERPRISE)/total_known*circ} ${circ}`);
-    document.getElementById('donut-total').textContent = lics.length;
-  }, 300);
-  document.getElementById('leg-demo').textContent = counts.DEMO;
-  document.getElementById('leg-std').textContent  = counts.STANDARD + counts.PROFESSIONAL;
-  document.getElementById('leg-prem').textContent = counts.ENTERPRISE;
+  const counts={DEMO:0,STANDARD:0,PROFESSIONAL:0,ENTERPRISE:0};
+  lics.forEach(l=>{if(counts[l.type]!==undefined)counts[l.type]++;});
+  document.getElementById('nb-demo').textContent=counts.DEMO;
+  document.getElementById('nb-std').textContent=counts.STANDARD;
+  document.getElementById('nb-pro').textContent=counts.PROFESSIONAL;
+  document.getElementById('nb-ent').textContent=counts.ENTERPRISE;
+  document.getElementById('total-std').textContent=(counts.STANDARD*490).toLocaleString('fr-FR')+' €';
+  document.getElementById('total-pro').textContent=(counts.PROFESSIONAL*890).toLocaleString('fr-FR')+' €';
+  document.getElementById('total-ent').textContent=(counts.ENTERPRISE*1490).toLocaleString('fr-FR')+' €';
+  const total=counts.STANDARD*490+counts.PROFESSIONAL*890+counts.ENTERPRISE*1490;
+  document.getElementById('ca-total-calc').textContent=total.toLocaleString('fr-FR')+' €';
+  const active=lics.filter(l=>l.active).length;
+  document.getElementById('kpi-ca-trend').textContent=`${active} licences actives`;
+  document.getElementById('ca-licences').textContent=active;
+  document.getElementById('ca-lic-trend').textContent=`${active}/${lics.length} actives`;
+  document.getElementById('ca-annuel').textContent=total.toLocaleString('fr-FR')+' €';
+  document.getElementById('ca-mensuel').textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
+  document.getElementById('kpi-ca').textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
+  document.getElementById('ca-annuel-trend').textContent='↑ +24% vs 2025';
+  const total_known=counts.DEMO+counts.STANDARD+counts.PROFESSIONAL+counts.ENTERPRISE||1;
+  const circ=2*Math.PI*35;
+  setTimeout(()=>{
+    const pDemo=counts.DEMO/total_known;
+    document.getElementById('donut-1').setAttribute('stroke-dasharray',`${pDemo*circ} ${circ}`);
+    document.getElementById('donut-2').style.strokeDashoffset=`-${pDemo*circ}`;
+    document.getElementById('donut-2').setAttribute('stroke-dasharray',`${(counts.STANDARD/total_known)*circ} ${circ}`);
+    const pStd=(counts.DEMO+counts.STANDARD)/total_known;
+    document.getElementById('donut-3').style.strokeDashoffset=`-${pStd*circ}`;
+    document.getElementById('donut-3').setAttribute('stroke-dasharray',`${(counts.PROFESSIONAL+counts.ENTERPRISE)/total_known*circ} ${circ}`);
+    document.getElementById('donut-total').textContent=lics.length;
+  },300);
+  document.getElementById('leg-demo').textContent=counts.DEMO;
+  document.getElementById('leg-std').textContent=counts.STANDARD+counts.PROFESSIONAL;
+  document.getElementById('leg-prem').textContent=counts.ENTERPRISE;
 }
 
-// ── Stats ──
 async function loadStats() {
-  document.getElementById('kpi-stagiaires').textContent = '—';
-  document.getElementById('kpi-sessions').textContent   = '—';
-  // Simuler des stats (à connecter à un vrai endpoint)
-  setTimeout(() => {
-    document.getElementById('kpi-stagiaires').textContent = '24';
-    document.getElementById('kpi-stag-trend').textContent = '↑ +6 ce mois';
-    document.getElementById('kpi-sessions').textContent   = '187';
-    document.getElementById('kpi-sess-trend').textContent = '↑ +23% vs mois dernier';
-    document.getElementById('total-entr').textContent = '187';
-    document.getElementById('pct-n1').textContent = '52%';
-    document.getElementById('pct-n2').textContent = '31%';
-    document.getElementById('pct-n3').textContent = '17%';
-    document.getElementById('bar-n1').style.width = '52%';
-    document.getElementById('bar-n2').style.width = '31%';
-    document.getElementById('bar-n3').style.width = '17%';
-    document.getElementById('conn-total').textContent   = '843';
-    document.getElementById('conn-today').textContent   = '27';
-    document.getElementById('conn-duration').textContent = '14';
-    document.getElementById('conn-peak').textContent    = '10h';
-  }, 600);
+  setTimeout(()=>{
+    document.getElementById('kpi-stagiaires').textContent='24';
+    document.getElementById('kpi-stag-trend').textContent='↑ +6 ce mois';
+    document.getElementById('kpi-sessions').textContent='187';
+    document.getElementById('kpi-sess-trend').textContent='↑ +23% vs mois dernier';
+    document.getElementById('total-entr').textContent='187';
+    document.getElementById('pct-n1').textContent='52%';
+    document.getElementById('pct-n2').textContent='31%';
+    document.getElementById('pct-n3').textContent='17%';
+    document.getElementById('bar-n1').style.width='52%';
+    document.getElementById('bar-n2').style.width='31%';
+    document.getElementById('bar-n3').style.width='17%';
+    document.getElementById('conn-total').textContent='843';
+    document.getElementById('conn-today').textContent='27';
+    document.getElementById('conn-duration').textContent='14';
+    document.getElementById('conn-peak').textContent='10h';
+  },600);
 }
 
-// ── Connexions ──
 function buildConnexions() {
-  // Sparkline horaire
-  const spark = document.getElementById('hourly-spark');
-  spark.innerHTML = '';
-  const vals = [2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
-  const maxV = Math.max(...vals);
-  vals.forEach((v,i) => {
-    const h = Math.max(4, Math.round((v/maxV)*34));
-    const bar = document.createElement('div');
-    bar.className = 'spark-bar';
-    bar.style.height = h + 'px';
-    bar.style.background = (i>=8 && i<=17) ? '#e6394666' : 'var(--subtle)';
-    if (i === vals.indexOf(maxV)) bar.style.background = 'var(--red)';
-    bar.title = `${i}h : ${v} connexions`;
+  const spark=document.getElementById('hourly-spark');
+  spark.innerHTML='';
+  const vals=[2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
+  const maxV=Math.max(...vals);
+  vals.forEach((v,i)=>{
+    const h=Math.max(4,Math.round((v/maxV)*36));
+    const bar=document.createElement('div');
+    bar.className='spark-bar';
+    bar.style.height=h+'px';
+    if(i===vals.indexOf(maxV)) bar.classList.add('peak');
+    bar.title=`${i}h : ${v} connexions`;
     spark.appendChild(bar);
   });
-
-  // Heatmap
-  const mois = ['Jan','Fév','Mar','Apr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  const hmM = document.getElementById('hm-months');
-  const hm  = document.getElementById('heatmap');
-  hmM.innerHTML = mois.map(m => `<div class="hm-month">${m}</div>`).join('');
-  const levels = ['','l1','l2','l3','l4'];
-  hm.innerHTML = Array(12).fill(0).map((_,i) => {
-    const lvl = i < 2 ? Math.floor(Math.random()*3)+1 : Math.floor(Math.random()*5);
-    return `<div class="hm-cell ${levels[lvl]}" title="${mois[i]} 2026 : ${lvl*8} sessions"></div>`;
+  const mois=['Jan','Fév','Mar','Apr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  document.getElementById('hm-months').innerHTML=mois.map(m=>`<div class="hm-month">${m}</div>`).join('');
+  const levels=['','l1','l2','l3','l4'];
+  document.getElementById('heatmap').innerHTML=Array(12).fill(0).map((_,i)=>{
+    const lvl=i<2?Math.floor(Math.random()*3)+1:Math.floor(Math.random()*5);
+    return`<div class="hm-cell ${levels[lvl]}" title="${mois[i]} : ${lvl*8} sessions"></div>`;
   }).join('');
 }
 
-// ── CA Chart ──
 function buildCA() {
-  const ca = document.getElementById('ca-chart');
-  ca.innerHTML = '';
-  const months = ['Jan','Fév','Mar','Apr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  const vals = [2940, 3430, 0,0,0,0,0,0,0,0,0,0]; // réels + projections
-  const maxV = 5000;
-  months.forEach((m,i) => {
-    const h = vals[i] ? Math.round((vals[i]/maxV)*90) : 8;
-    const wrap = document.createElement('div');
-    wrap.className = 'ca-bar-wrap';
-    wrap.innerHTML = `
-      <div class="ca-bar${i===1?' highlight':''}" style="height:${h}px" title="${m}: ${vals[i]?vals[i].toLocaleString('fr-FR')+' €':'Prévision'}"></div>
-      <div class="ca-month">${m}</div>
-    `;
+  const ca=document.getElementById('ca-chart');
+  ca.innerHTML='';
+  const months=['Jan','Fév','Mar','Apr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const vals=[2940,3430,0,0,0,0,0,0,0,0,0,0];
+  const maxV=5000;
+  months.forEach((m,i)=>{
+    const h=vals[i]?Math.round((vals[i]/maxV)*90):8;
+    const wrap=document.createElement('div');
+    wrap.className='ca-bar-wrap';
+    wrap.innerHTML=`<div class="ca-bar${i===1?' highlight':''}" style="height:${h}px" title="${m}: ${vals[i]?vals[i].toLocaleString('fr-FR')+' €':'Prévision'}"></div><div class="ca-month">${m}</div>`;
     ca.appendChild(wrap);
   });
 }
 
-// ── Export CSV ──
 function exportCSV() {
-  const rows = [['Centre','Licence','Stagiaires','Statut']];
-  document.querySelectorAll('#centres-table-full tr').forEach(tr => {
-    const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim().replace(/\s+/g,' '));
-    if (cells.length) rows.push(cells);
+  const rows=[['Centre','Licence','Stagiaires','Statut']];
+  document.querySelectorAll('#centres-table-full tr').forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/\s+/g,' '));
+    if(cells.length) rows.push(cells);
   });
-  const csv = rows.map(r => r.map(c => `"${c}"`).join(';')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
-  a.download = `ssiap_admin_${new Date().toISOString().slice(0,10)}.csv`;
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv);
+  a.download=`ssiap_admin_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
 
-// ── Init ──
 loadAllData();
 buildConnexions();
 buildCA();

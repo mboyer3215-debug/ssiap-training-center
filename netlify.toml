@@ -1,0 +1,25 @@
+# Netlify configuration
+[[redirects]]
+  from = "/"
+  to = "/center/center-login.html"
+  status = 302
+
+[[redirects]]
+  from = "/center"
+  to = "/center/center-login.html"
+  status = 302
+
+[[redirects]]
+  from = "/formateur"
+  to = "/formateur/formateur-login.html"
+  status = 302
+
+[[redirects]]
+  from = "/stagiaire"
+  to = "/stagiaire/stagiaire-login.html"
+  status = 302
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin/admin-dashboard.html"
+  status = 302

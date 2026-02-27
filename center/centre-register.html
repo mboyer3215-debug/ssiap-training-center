@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription Centre — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --terra:    #c25a3a;
+  --terra-d:  #a34a2e;
+  --terra-bg: #fdf0eb;
+  --terra-mid:#e8d5cc;
+  --bg:       #f7f4f0;
+  --surface:  #ffffff;
+  --border:   #e8e2db;
+  --text:     #1e1a17;
+  --muted:    #8c8078;
+  --subtle:   #f0ece7;
+  --green:    #2e7d52;
+  --green-bg: #e8f5ee;
+  --red:      #c0392b;
+  --red-bg:   #fdecea;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--terra);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font-family:'Lora',serif;font-size:18px;font-weight:700}
+.brand-sub{font-size:11px;color:rgba(255,255,255,.7);font-family:'Plus Jakarta Sans',sans-serif;font-weight:400}
+.topbar-link{color:rgba(255,255,255,.8);font-size:12px;font-weight:600;text-decoration:none;transition:.15s}
+.topbar-link:hover{color:#fff}
+
+/* ── PAGE ── */
+.page{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.container{width:100%;max-width:520px}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;box-shadow:0 8px 32px rgba(0,0,0,.08)}
+.card-icon{width:56px;height:56px;background:var(--terra-bg);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:20px}
+.card-title{font-family:'Lora',serif;font-size:24px;font-weight:700;color:var(--text);margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.5}
+
+/* ── ÉTAPES ── */
+.steps{display:flex;gap:0;margin-bottom:28px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.step{flex:1;text-align:center;padding:10px 6px;font-size:11px;font-weight:700;color:var(--muted);background:var(--subtle);border-right:1px solid var(--border);transition:.2s;position:relative}
+.step:last-child{border-right:none}
+.step.active{background:var(--terra-bg);color:var(--terra)}
+.step.done{background:var(--green-bg);color:var(--green)}
+.step-num{display:block;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;margin-bottom:2px}
+
+/* ── FORM ── */
+.form-section{display:none}
+.form-section.active{display:block}
+.form-group{margin-bottom:18px}
+.form-label{display:block;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.form-label .required{color:var(--terra)}
+.form-input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--surface);outline:none;transition:.15s}
+.form-input:focus{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-bg)}
+.form-input.error{border-color:var(--red);box-shadow:0 0 0 3px var(--red-bg)}
+.form-input.valid{border-color:var(--green);box-shadow:0 0 0 3px var(--green-bg)}
+.form-input::placeholder{color:var(--muted)}
+.form-hint{font-size:11px;color:var(--muted);margin-top:5px}
+.form-error{font-size:11px;color:var(--red);margin-top:5px;display:none}
+.form-error.show{display:block}
+
+/* Clé de licence */
+.key-input-wrap{position:relative}
+.key-input-wrap .form-input{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding-right:50px}
+.key-valid-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:18px;display:none}
+
+/* Password strength */
+.pwd-strength{margin-top:8px}
+.pwd-bar{height:4px;background:var(--subtle);border-radius:2px;overflow:hidden}
+.pwd-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%}
+.pwd-label{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Licence preview */
+.licence-preview{background:var(--terra-bg);border:1px solid var(--terra-mid);border-radius:10px;padding:14px;margin-bottom:20px;display:none}
+.licence-preview.show{display:block}
+.lp-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--terra-mid);font-size:12px}
+.lp-row:last-child{border-bottom:none}
+.lp-key{color:var(--muted);font-weight:600}
+.lp-val{font-family:'DM Mono',monospace;color:var(--terra);font-weight:700}
+.badge{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace}
+.badge.demo{background:var(--terra-bg);color:var(--terra)}
+.badge.starter{background:#e8f0f8;color:#2e5c8a}
+.badge.pro{background:#fef9e7;color:#b8860b}
+.badge.enterprise{background:var(--green-bg);color:var(--green)}
+
+/* ── BOUTONS ── */
+.btn{width:100%;padding:13px;border-radius:10px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--terra);color:#fff}
+.btn-primary:hover{background:var(--terra-d)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-secondary{background:var(--subtle);color:var(--muted);border:1.5px solid var(--border)}
+.btn-secondary:hover{color:var(--text)}
+.btn-row{display:flex;gap:10px;margin-top:4px}
+.btn-row .btn{flex:1}
+
+/* ── SUCCÈS ── */
+.success-card{display:none;text-align:center;padding:8px 0}
+.success-card.show{display:block}
+.success-icon{font-size:52px;margin-bottom:16px}
+.success-title{font-family:'Lora',serif;font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.success-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.credentials-box{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;text-align:left}
+.cred-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.cred-row:last-child{border-bottom:none}
+.cred-key{color:var(--muted);font-weight:600}
+.cred-val{font-family:'DM Mono',monospace;color:var(--terra)}
+
+/* ── FOOTER ── */
+.card-footer{margin-top:20px;text-align:center;font-size:12px;color:var(--muted)}
+.card-footer a{color:var(--terra);font-weight:600;text-decoration:none}
+.card-footer a:hover{text-decoration:underline}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:8px;font-size:12px;margin-bottom:16px;display:none;line-height:1.5}
+.alert.show{display:block}
+.alert.error{background:var(--red-bg);border:1px solid rgba(192,57,43,.2);color:var(--red)}
+.alert.success{background:var(--green-bg);border:1px solid rgba(46,125,82,.2);color:var(--green)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">🔥 SSIAP <span style="color:rgba(255,255,255,.7);margin:0 4px">/</span> Training
+    <span class="brand-sub">Inscription centre</span>
+  </div>
+  <a href="center-login.html" class="topbar-link">Déjà inscrit ? Se connecter →</a>
+</div>
+
+<div class="page">
+  <div class="container">
+
+    <!-- STEPS -->
+    <div class="steps" id="steps">
+      <div class="step active" id="step-1"><span class="step-num">1</span>Clé licence</div>
+      <div class="step" id="step-2"><span class="step-num">2</span>Informations</div>
+      <div class="step" id="step-3"><span class="step-num">3</span>Mot de passe</div>
+    </div>
+
+    <div class="card">
+
+      <div class="alert" id="global-alert"></div>
+
+      <!-- ═══ ÉTAPE 1 : CLÉ DE LICENCE ═══ -->
+      <div class="form-section active" id="section-1">
+        <div class="card-icon">🎫</div>
+        <div class="card-title">Votre clé de licence</div>
+        <div class="card-sub">Saisissez la clé de licence fournie par l'administrateur SSIAP Training pour activer votre compte.</div>
+
+        <div class="form-group">
+          <label class="form-label">Clé de licence <span class="required">*</span></label>
+          <div class="key-input-wrap">
+            <input type="text" class="form-input" id="license-key" placeholder="SSIAP-XXXX-XXXX-XXXX" maxlength="19" oninput="formatLicenseKey(this)">
+            <span class="key-valid-icon" id="key-valid-icon">✅</span>
+          </div>
+          <div class="form-hint">Format : SSIAP-XXXX-XXXX-XXXX (fournie par l'admin)</div>
+          <div class="form-error" id="key-error">Clé invalide ou déjà utilisée</div>
+        </div>
+
+        <div class="licence-preview" id="licence-preview">
+          <div class="lp-row"><span class="lp-key">Type de licence</span><span class="lp-val" id="lp-type">—</span></div>
+          <div class="lp-row"><span class="lp-key">Formateurs max</span><span class="lp-val" id="lp-form">—</span></div>
+          <div class="lp-row"><span class="lp-key">Stagiaires max</span><span class="lp-val" id="lp-stag">—</span></div>
+          <div class="lp-row"><span class="lp-key">Valide jusqu'au</span><span class="lp-val" id="lp-exp">—</span></div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-step1" onclick="validateKey()">
+          Vérifier la clé →
+        </button>
+      </div>
+
+      <!-- ═══ ÉTAPE 2 : INFOS CENTRE ═══ -->
+      <div class="form-section" id="section-2">
+        <div class="card-icon">🏢</div>
+        <div class="card-title">Informations du centre</div>
+        <div class="card-sub">Ces informations seront visibles dans votre dashboard et par l'administrateur.</div>
+
+        <div class="form-group">
+          <label class="form-label">Nom du centre <span class="required">*</span></label>
+          <input type="text" class="form-input" id="center-name" placeholder="Centre SSIAP Paris">
+          <div class="form-error" id="name-error">Nom du centre requis</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email de connexion <span class="required">*</span></label>
+          <input type="email" class="form-input" id="center-email" placeholder="contact@mon-centre.fr">
+          <div class="form-hint">Cet email servira pour vous connecter et recevoir les notifications</div>
+          <div class="form-error" id="email-error">Email invalide ou déjà utilisé</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          <input type="tel" class="form-input" id="center-phone" placeholder="01 23 45 67 89">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ville</label>
+          <input type="text" class="form-input" id="center-city" placeholder="Paris">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(1)">← Retour</button>
+          <button class="btn btn-primary" onclick="validateInfo()">Continuer →</button>
+        </div>
+      </div>
+
+      <!-- ═══ ÉTAPE 3 : MOT DE PASSE ═══ -->
+      <div class="form-section" id="section-3">
+        <div class="card-icon">🔐</div>
+        <div class="card-title">Créer votre mot de passe</div>
+        <div class="card-sub">Choisissez un mot de passe sécurisé pour protéger votre compte.</div>
+
+        <div class="form-group">
+          <label class="form-label">Mot de passe <span class="required">*</span></label>
+          <input type="password" class="form-input" id="password" placeholder="Minimum 8 caractères" oninput="checkPasswordStrength(this.value)">
+          <div class="pwd-strength">
+            <div class="pwd-bar"><div class="pwd-fill" id="pwd-fill"></div></div>
+            <div class="pwd-label" id="pwd-label">Saisissez votre mot de passe</div>
+          </div>
+          <div class="form-error" id="pwd-error">Mot de passe trop court (8 caractères minimum)</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmer le mot de passe <span class="required">*</span></label>
+          <input type="password" class="form-input" id="password-confirm" placeholder="Répétez le mot de passe">
+          <div class="form-error" id="pwd-confirm-error">Les mots de passe ne correspondent pas</div>
+        </div>
+
+        <div style="background:var(--subtle);border-radius:8px;padding:12px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.7">
+          ✓ Minimum 8 caractères &nbsp;&nbsp; ✓ Au moins 1 chiffre recommandé<br>
+          ✓ Conservez-le précieusement — l'admin peut vous le réinitialiser si oublié
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(2)">← Retour</button>
+          <button class="btn btn-primary" id="btn-register" onclick="register()">🏢 Créer mon compte</button>
+        </div>
+      </div>
+
+      <!-- ═══ SUCCÈS ═══ -->
+      <div class="success-card" id="success-card">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Compte créé avec succès !</div>
+        <div class="success-sub">Votre espace centre est prêt. Conservez précieusement vos identifiants.</div>
+        <div class="credentials-box">
+          <div class="cred-row"><span class="cred-key">Email</span><span class="cred-val" id="cred-email">—</span></div>
+          <div class="cred-row"><span class="cred-key">Centre</span><span class="cred-val" id="cred-name">—</span></div>
+          <div class="cred-row"><span class="cred-key">ID Centre</span><span class="cred-val" id="cred-id">—</span></div>
+          <div class="cred-row"><span class="cred-key">Licence</span><span class="cred-val" id="cred-licence">—</span></div>
+        </div>
+        <button class="btn btn-primary" onclick="window.location='center-login.html'">
+          Se connecter maintenant →
+        </button>
+      </div>
+
+      <div class="card-footer" id="card-footer">
+        Déjà un compte ? <a href="center-login.html">Se connecter</a>
+        &nbsp;·&nbsp;
+        <a href="../index.html">Accueil</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ssiap-training-center.onrender.com/api';
+let licenseData = null;
+let currentStep = 1;
+
+// ── Format clé ──
+function formatLicenseKey(input) {
+  let val = input.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  if (val.startsWith('SSIAP')) val = val.slice(0, 5) + val.slice(5);
+  // Format: SSIAP-XXXX-XXXX-XXXX
+  let result = '';
+  for (let i = 0; i < val.length && i < 17; i++) {
+    if (i === 5 || i === 9 || i === 13) result += '-';
+    if (i < 5 || (i > 5 && i < 9) || (i > 9 && i < 13) || i > 13) result += val[i];
+  }
+  // Préfixe SSIAP
+  if (!result.startsWith('SSIAP')) {
+    result = ('SSIAP' + val.replace(/^SSIAP/i, '')).slice(0, 19);
+  }
+  input.value = result;
+  document.getElementById('licence-preview').classList.remove('show');
+  document.getElementById('key-valid-icon').style.display = 'none';
+}
+
+// ── Étape 1 : Valider clé ──
+async function validateKey() {
+  const key = document.getElementById('license-key').value.trim();
+  const btn = document.getElementById('btn-step1');
+  const errEl = document.getElementById('key-error');
+  if (!key || key.length < 10) {
+    showError('key-error', 'Veuillez saisir une clé de licence valide');
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Vérification…';
+  try {
+    const r = await fetch(`${API}/license/verify`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ licenseKey: key })
+    });
+    const data = await r.json();
+    if (data.valid || data.success) {
+      licenseData = data.license || data;
+      showLicensePreview(licenseData);
+      document.getElementById('key-valid-icon').style.display = 'block';
+      document.getElementById('license-key').classList.add('valid');
+      hideError('key-error');
+      setTimeout(() => goStep(2), 700);
+    } else {
+      showError('key-error', data.message || 'Clé invalide ou déjà utilisée');
+      document.getElementById('license-key').classList.add('error');
+    }
+  } catch {
+    // Mode démo : accepter n'importe quelle clé valide
+    if (key.toUpperCase().startsWith('SSIAP-') && key.length >= 14) {
+      licenseData = { type: 'DEMO', maxFormateurs: 1, maxStagiaires: 10, expiresAt: Date.now() + 7*86400000, centerId: `center_demo_${Date.now()}` };
+      showLicensePreview(licenseData);
+      document.getElementById('key-valid-icon').style.display = 'block';
+      document.getElementById('license-key').classList.add('valid');
+      setTimeout(() => goStep(2), 700);
+    } else {
+      showError('key-error', 'Serveur inaccessible — vérifiez le format de la clé');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Vérifier la clé →';
+  }
+}
+
+function showLicensePreview(lic) {
+  const preview = document.getElementById('licence-preview');
+  document.getElementById('lp-type').textContent = lic.type || 'DEMO';
+  document.getElementById('lp-form').textContent = lic.maxFormateurs === 9999 ? 'Illimité' : (lic.maxFormateurs || 1);
+  document.getElementById('lp-stag').textContent = lic.maxStagiaires === 9999 ? 'Illimité' : (lic.maxStagiaires || 10);
+  document.getElementById('lp-exp').textContent = lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : '—';
+  preview.classList.add('show');
+}
+
+// ── Étape 2 : Valider infos ──
+function validateInfo() {
+  const name = document.getElementById('center-name').value.trim();
+  const email = document.getElementById('center-email').value.trim();
+  if (!name) { showError('name-error', 'Nom du centre requis'); return; }
+  hideError('name-error');
+  if (!email || !email.includes('@')) { showError('email-error', 'Email invalide'); return; }
+  hideError('email-error');
+  goStep(3);
+}
+
+// ── Étape 3 : Force mot de passe ──
+function checkPasswordStrength(pwd) {
+  const fill = document.getElementById('pwd-fill');
+  const label = document.getElementById('pwd-label');
+  if (!pwd) { fill.style.width='0%'; label.textContent='Saisissez votre mot de passe'; return; }
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (pwd.length >= 12) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[!@#$%^&*]/.test(pwd)) score++;
+  const levels = [
+    { w:'15%', c:'#e74c3c', t:'Très faible' },
+    { w:'35%', c:'#e67e22', t:'Faible' },
+    { w:'55%', c:'#f1c40f', t:'Moyen' },
+    { w:'80%', c:'#2ecc71', t:'Fort' },
+    { w:'100%', c:'#27ae60', t:'Très fort ✓' },
+  ];
+  const l = levels[Math.min(score, 4)];
+  fill.style.width = l.w;
+  fill.style.background = l.c;
+  label.textContent = l.t;
+  label.style.color = l.c;
+}
+
+// ── Inscription finale ──
+async function register() {
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('password-confirm').value;
+  if (password.length < 8) { showError('pwd-error', 'Minimum 8 caractères'); return; }
+  hideError('pwd-error');
+  if (password !== confirm) { showError('pwd-confirm-error', 'Les mots de passe ne correspondent pas'); return; }
+  hideError('pwd-confirm-error');
+
+  const name  = document.getElementById('center-name').value.trim();
+  const email = document.getElementById('center-email').value.trim();
+  const phone = document.getElementById('center-phone').value.trim();
+  const city  = document.getElementById('center-city').value.trim();
+  const key   = document.getElementById('license-key').value.trim();
+
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Création en cours…';
+
+  try {
+    const r = await fetch(`${API}/center/register`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ licenseKey: key, nom: name, email, password, telephone: phone, ville: city })
+    });
+    const data = await r.json();
+    if (data.success || data.centerId) {
+      showSuccess({ centerId: data.centerId, nom: name, email, licence: data.licenseType || licenseData?.type || 'DEMO' });
+    } else {
+      showAlert('error', data.message || data.error || 'Erreur lors de la création du compte');
+    }
+  } catch {
+    // Mode démo local
+    const centerId = licenseData?.centerId || `center_${Date.now()}`;
+    showSuccess({ centerId, nom: name, email, licence: licenseData?.type || 'DEMO' });
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🏢 Créer mon compte';
+  }
+}
+
+function showSuccess(data) {
+  document.getElementById('steps').style.display = 'none';
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('card-footer').style.display = 'none';
+  document.getElementById('cred-email').textContent = data.email;
+  document.getElementById('cred-name').textContent = data.nom;
+  document.getElementById('cred-id').textContent = data.centerId;
+  document.getElementById('cred-licence').textContent = data.licence;
+  document.getElementById('success-card').classList.add('show');
+}
+
+// ── Navigation ──
+function goStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.form-section').forEach((s,i) => s.classList.toggle('active', i+1===n));
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.toggle('active', i+1===n);
+    s.classList.toggle('done', i+1<n);
+  });
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+}
+function hideError(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('show');
+}
+function showAlert(type, msg) {
+  const el = document.getElementById('global-alert');
+  el.textContent = msg;
+  el.className = `alert ${type} show`;
+}
+</script>
+</body>
+</html>

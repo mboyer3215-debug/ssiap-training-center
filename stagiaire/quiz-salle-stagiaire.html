@@ -207,7 +207,7 @@ const stagiaireId = params.get('stagiaireId');
 const stagiaireNom = decodeURIComponent(params.get('nom')||'');
 const stagiairePrenom = decodeURIComponent(params.get('prenom')||'');
 const stagiairePin = params.get('pin')||'';
-const API_URL = params.get('api')||'http://localhost:5000/api';
+const API_URL = params.get('api')||'https://ssiap-training-center.onrender.com/api';
 
 const monNomComplet = `${stagiaireNom} ${stagiairePrenom}`.trim();
 let db=null, quizRef=null;

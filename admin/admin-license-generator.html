@@ -1,340 +1,609 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur de Licences - ADMIN</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur de Licences — SSIAP Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --terra:     #c25a3a;
+  --terra-d:   #a34a2e;
+  --terra-bg:  #fdf0eb;
+  --terra-mid: #e8d5cc;
+  --bg:        #f7f4f0;
+  --surface:   #ffffff;
+  --border:    #e8e2db;
+  --border2:   #d4ccc4;
+  --text:      #1e1a17;
+  --muted:     #8c8078;
+  --subtle:    #f0ece7;
+  --green:     #2e7d52;
+  --green-bg:  #e8f5ee;
+  --blue:      #2e5c8a;
+  --blue-bg:   #e8f0f8;
+  --gold:      #b8860b;
+  --gold-bg:   #fef9e7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;min-height:100vh;padding:0}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f3f4f6;
-            padding: 40px 20px;
-        }
+/* ── TOPBAR ── */
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--text)}
+.topbar-brand span{color:var(--terra)}
+.btn-back{display:flex;align-items:center;gap:6px;background:var(--subtle);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:.15s;text-decoration:none}
+.btn-back:hover{border-color:var(--terra);color:var(--terra)}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+/* ── LAYOUT ── */
+.page{max-width:1000px;margin:0 auto;padding:32px 24px}
 
-        .header {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-        }
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--terra) 0%,var(--terra-d) 100%);color:#fff;border-radius:16px;padding:32px;margin-bottom:28px;position:relative;overflow:hidden}
+.hero::before{content:'🎫';position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:80px;opacity:.15}
+.hero h1{font-family:'Lora',serif;font-size:26px;font-weight:700;margin-bottom:8px}
+.hero p{font-size:13px;opacity:.85;max-width:480px}
+.hero-stats{display:flex;gap:24px;margin-top:20px}
+.hero-stat{text-align:center}
+.hero-stat-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:700}
+.hero-stat-lbl{font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.5px}
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.card-title{font-family:'Lora',serif;font-size:17px;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.card-title span{width:8px;height:8px;border-radius:50%;background:var(--terra);display:inline-block}
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+/* ── FORM ── */
+.form-group{margin-bottom:18px}
+.form-group label{display:block;margin-bottom:6px;color:var(--text);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,
+.form-group select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--surface);transition:.15s;outline:none}
+.form-group input:focus,
+.form-group select:focus{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-bg)}
+.form-group input::placeholder{color:var(--muted)}
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #374151;
-            font-weight: 500;
-        }
+/* ── PLAN CARDS ── */
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.plan-card{padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:.15s;position:relative}
+.plan-card:hover{border-color:var(--terra-mid)}
+.plan-card.selected{border-color:var(--terra);background:var(--terra-bg)}
+.plan-card input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+.plan-name{font-size:12px;font-weight:800;margin-bottom:4px}
+.plan-card.selected .plan-name{color:var(--terra)}
+.plan-price{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--terra)}
+.plan-price.free{color:var(--green)}
+.plan-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4}
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-        }
+/* ── BTN ── */
+.btn-generate{width:100%;padding:14px;background:var(--terra);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-generate:hover{background:var(--terra-d)}
+.btn-generate:disabled{opacity:.5;cursor:not-allowed}
 
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #dc2626;
-        }
+/* ── RESULT ── */
+.result{display:none;margin-top:20px;background:var(--green-bg);border:2px solid var(--green);border-radius:14px;padding:24px}
+.result.show{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.result-title{color:var(--green);font-family:'Lora',serif;font-size:17px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.license-key-box{background:var(--surface);border:2px solid var(--green);border-radius:10px;padding:16px 20px;text-align:center;margin-bottom:14px}
+.license-key{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--terra);letter-spacing:2px;word-break:break-all}
+.btn-copy{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:.15s;margin-top:8px}
+.btn-copy:hover{opacity:.85}
+.result-details{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.detail-row:last-child{border-bottom:none}
+.detail-row .key{color:var(--muted);font-weight:600}
+.detail-row .val{font-family:'DM Mono',monospace;color:var(--text);font-weight:700}
+.result-note{background:var(--gold-bg);border:1px solid rgba(184,134,11,.2);border-radius:8px;padding:12px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
+.result-note strong{color:var(--gold)}
 
-        .btn {
-            padding: 14px 28px;
-            background: #dc2626;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-        }
+/* ── TYPES TABLE ── */
+.types-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px}
+.type-card{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:14px}
+.type-name{font-size:13px;font-weight:800;color:var(--terra);margin-bottom:6px}
+.type-price{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.type-price.free{color:var(--green)}
+.type-features{font-size:11px;color:var(--muted);line-height:1.7}
+.type-features li{list-style:none;padding-left:0}
+.type-features li::before{content:'✓ ';color:var(--green);font-weight:700}
 
-        .btn:hover {
-            background: #b91c1c;
-        }
+/* ── HISTORY ── */
+.history-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.history-item:last-child{border-bottom:none}
+.history-key{font-family:'DM Mono',monospace;font-size:11px;color:var(--terra);flex:1}
+.history-meta{font-size:10px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace}
+.badge.green{background:var(--green-bg);color:var(--green)}
+.badge.blue{background:var(--blue-bg);color:var(--blue)}
+.badge.gold{background:var(--gold-bg);color:var(--gold)}
+.badge.gray{background:var(--subtle);color:var(--muted)}
+.badge.terra{background:var(--terra-bg);color:var(--terra)}
 
-        .result {
-            background: #d1fae5;
-            border: 2px solid #16a34a;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .result.show {
-            display: block;
-        }
-
-        .license-key {
-            font-size: 24px;
-            font-weight: bold;
-            color: #dc2626;
-            font-family: monospace;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .license-details {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .license-details div {
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .license-details div:last-child {
-            border-bottom: none;
-        }
-
-        .btn-copy {
-            background: #2563eb;
-            padding: 10px 20px;
-            border: none;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        .btn-copy:hover {
-            background: #1d4ed8;
-        }
-
-        .license-types {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .license-type-card {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #e5e7eb;
-        }
-
-        .license-type-card h4 {
-            color: #dc2626;
-            margin-bottom: 10px;
-        }
-
-        .license-type-card ul {
-            font-size: 13px;
-            color: #6b7280;
-            margin-left: 20px;
-        }
-    </style>
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔥 Générateur de Licences SSIAP</h1>
-            <p>Administration - Création de licences pour les centres de formation</p>
-        </div>
 
-        <div class="card">
-            <h2 style="margin-bottom: 20px;">Créer une nouvelle licence</h2>
-            
-            <form id="form-generate">
-                <div class="form-group">
-                    <label for="center-name">Nom du centre *</label>
-                    <input type="text" id="center-name" required placeholder="Centre SSIAP Paris">
-                </div>
+<header class="topbar">
+  <div class="topbar-brand">🔥 SSIAP <span>Training</span> <span style="color:var(--muted);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:400">/ Générateur licences</span></div>
+  <a href="admin-dashboard.html" class="btn-back">← Retour dashboard</a>
+</header>
 
-                <div class="form-group">
-                    <label for="center-email">Email du centre *</label>
-                    <input type="email" id="center-email" required placeholder="contact@centre-ssiap.fr">
-                </div>
+<div class="page">
 
-                <div class="form-group">
-                    <label for="license-type">Type de licence *</label>
-                    <select id="license-type" required>
-                        <option value="">-- Sélectionner --</option>
-                        <option value="DEMO">DEMO (7 jours, 1 formateur, 10 stagiaires)</option>
-                        <option value="STARTER">STARTER (1 mois, 2 formateurs, 50 stagiaires) - 49€</option>
-                        <option value="PRO">PRO (1 mois, 5 formateurs, 200 stagiaires) - 99€</option>
-                        <option value="BUSINESS">BUSINESS (1 an, 10 formateurs, 500 stagiaires) - 999€</option>
-                        <option value="ENTERPRISE">ENTERPRISE (1 an, illimité) - Sur devis</option>
-                    </select>
-                </div>
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Générateur de Licences</h1>
+    <p>Créez et gérez les licences d'accès pour les centres de formation SSIAP. Chaque licence génère une clé unique à transmettre au centre.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-total">—</div><div class="hero-stat-lbl">Licences créées</div></div>
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-actives">—</div><div class="hero-stat-lbl">Actives</div></div>
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-expires">—</div><div class="hero-stat-lbl">Expirent bientôt</div></div>
+    </div>
+  </div>
 
-                <button type="submit" class="btn">🎫 Générer la licence</button>
-            </form>
+  <div class="grid">
+    <!-- FORMULAIRE -->
+    <div>
+      <div class="card">
+        <div class="card-title"><span></span>Nouvelle licence</div>
 
-            <div id="result" class="result">
-                <h3 style="color: #16a34a; margin-bottom: 15px;">✅ Licence générée avec succès !</h3>
-                
-                <div class="license-key" id="license-key"></div>
-                
-                <button class="btn-copy" onclick="copyLicenseKey()">📋 Copier la clé</button>
+        <form id="form-generate">
+          <div class="form-group">
+            <label>Nom du centre *</label>
+            <input type="text" id="center-name" required placeholder="Centre SSIAP Paris">
+          </div>
+          <div class="form-group">
+            <label>Email du centre *</label>
+            <input type="email" id="center-email" required placeholder="contact@centre-ssiap.fr">
+          </div>
 
-                <div class="license-details" id="license-details"></div>
-
-                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 14px;">
-                    <strong>⚠️ Important :</strong> Communiquez cette clé de licence au client.<br>
-                    Il pourra créer son compte administrateur avec cette clé sur la page d'inscription.
-                </div>
+          <div class="form-group">
+            <label>Type de licence *</label>
+            <div class="plan-grid" id="plan-grid">
+              <label class="plan-card" onclick="selectPlan('DEMO',this)">
+                <input type="radio" name="plan" value="DEMO">
+                <div class="plan-name">DEMO</div>
+                <div class="plan-price free">Gratuit</div>
+                <div class="plan-desc">7 jours · 1 formateur · 10 stagiaires</div>
+              </label>
+              <label class="plan-card" onclick="selectPlan('STARTER',this)">
+                <input type="radio" name="plan" value="STARTER">
+                <div class="plan-name">STARTER</div>
+                <div class="plan-price">49 €/mois</div>
+                <div class="plan-desc">1 mois · 2 formateurs · 50 stagiaires</div>
+              </label>
+              <label class="plan-card" onclick="selectPlan('PRO',this)">
+                <input type="radio" name="plan" value="PRO">
+                <div class="plan-name">PRO</div>
+                <div class="plan-price">99 €/mois</div>
+                <div class="plan-desc">1 mois · 5 formateurs · 200 stagiaires</div>
+              </label>
+              <label class="plan-card" onclick="selectPlan('BUSINESS',this)">
+                <input type="radio" name="plan" value="BUSINESS">
+                <div class="plan-name">BUSINESS</div>
+                <div class="plan-price">999 €/an</div>
+                <div class="plan-desc">1 an · 10 formateurs · 500 stagiaires</div>
+              </label>
+              <label class="plan-card" onclick="selectPlan('ENTERPRISE',this)" style="grid-column:1/-1">
+                <input type="radio" name="plan" value="ENTERPRISE">
+                <div class="plan-name">ENTERPRISE</div>
+                <div class="plan-price">Sur devis</div>
+                <div class="plan-desc">1 an · Illimité · Support prioritaire · Personnalisation</div>
+              </label>
             </div>
-        </div>
+          </div>
 
-        <div class="card">
-            <h2 style="margin-bottom: 20px;">Types de licences disponibles</h2>
-            <div class="license-types">
-                <div class="license-type-card">
-                    <h4>DEMO</h4>
-                    <ul>
-                        <li>7 jours</li>
-                        <li>1 formateur</li>
-                        <li>10 stagiaires</li>
-                        <li>Gratuit</li>
-                    </ul>
-                </div>
-                <div class="license-type-card">
-                    <h4>STARTER</h4>
-                    <ul>
-                        <li>1 mois</li>
-                        <li>2 formateurs</li>
-                        <li>50 stagiaires</li>
-                        <li>Export CSV</li>
-                        <li>49€/mois</li>
-                    </ul>
-                </div>
-                <div class="license-type-card">
-                    <h4>PRO</h4>
-                    <ul>
-                        <li>1 mois</li>
-                        <li>5 formateurs</li>
-                        <li>200 stagiaires</li>
-                        <li>Import/Export CSV</li>
-                        <li>Stats avancées</li>
-                        <li>99€/mois</li>
-                    </ul>
-                </div>
-                <div class="license-type-card">
-                    <h4>BUSINESS</h4>
-                    <ul>
-                        <li>1 an</li>
-                        <li>10 formateurs</li>
-                        <li>500 stagiaires</li>
-                        <li>Toutes fonctionnalités</li>
-                        <li>API access</li>
-                        <li>999€/an</li>
-                    </ul>
-                </div>
-                <div class="license-type-card">
-                    <h4>ENTERPRISE</h4>
-                    <ul>
-                        <li>1 an</li>
-                        <li>Illimité</li>
-                        <li>Support prioritaire</li>
-                        <li>Personnalisation</li>
-                        <li>Sur devis</li>
-                    </ul>
-                </div>
-            </div>
+          <button type="submit" class="btn-generate" id="btn-generate">
+            🎫 Générer la licence
+          </button>
+        </form>
+
+        <!-- RÉSULTAT -->
+        <div class="result" id="result">
+          <div class="result-title">✅ Licence générée avec succès !</div>
+          <div class="license-key-box">
+            <div class="license-key" id="license-key">—</div>
+            <button class="btn-copy" onclick="copyKey()">📋 Copier la clé</button>
+          </div>
+          <div class="result-details" id="result-details"></div>
+          <div class="result-note">
+            <strong>⚠️ Important —</strong> Communiquez cette clé au centre.<br>
+            Il pourra créer son compte administrateur sur la page d'inscription avec cette clé.
+          </div>
         </div>
+      </div>
+
+      <!-- HISTORIQUE -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-title"><span></span>Licences récentes</div>
+        <div id="history-list">
+          <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">Chargement…</div>
+        </div>
+      </div>
     </div>
 
-    <script>
-        const API_URL = 'http://localhost:5000/api';
-        let lastGeneratedKey = '';
+    <!-- TYPES DE LICENCES -->
+    <div>
+      <div class="card">
+        <div class="card-title"><span></span>Détail des forfaits</div>
+        <div class="types-grid">
+          <div class="type-card">
+            <div class="type-name">DEMO</div>
+            <div class="type-price free">Gratuit</div>
+            <ul class="type-features">
+              <li>7 jours d'accès</li>
+              <li>1 formateur</li>
+              <li>10 stagiaires max</li>
+              <li>SSIAP 1, 2, 3</li>
+            </ul>
+          </div>
+          <div class="type-card">
+            <div class="type-name">STARTER</div>
+            <div class="type-price">49 €/mois</div>
+            <ul class="type-features">
+              <li>1 mois d'accès</li>
+              <li>2 formateurs</li>
+              <li>50 stagiaires max</li>
+              <li>Export CSV</li>
+            </ul>
+          </div>
+          <div class="type-card">
+            <div class="type-name">PRO</div>
+            <div class="type-price">99 €/mois</div>
+            <ul class="type-features">
+              <li>1 mois d'accès</li>
+              <li>5 formateurs</li>
+              <li>200 stagiaires max</li>
+              <li>Import/Export CSV</li>
+              <li>Stats avancées</li>
+            </ul>
+          </div>
+          <div class="type-card">
+            <div class="type-name">BUSINESS</div>
+            <div class="type-price">999 €/an</div>
+            <ul class="type-features">
+              <li>1 an d'accès</li>
+              <li>10 formateurs</li>
+              <li>500 stagiaires max</li>
+              <li>Toutes fonctions</li>
+              <li>Accès API</li>
+            </ul>
+          </div>
+        </div>
+        <div class="type-card" style="margin-top:10px;border-color:var(--terra-mid)">
+          <div class="type-name">ENTERPRISE</div>
+          <div class="type-price">Sur devis</div>
+          <ul class="type-features">
+            <li>1 an d'accès</li>
+            <li>Formateurs illimités</li>
+            <li>Stagiaires illimités</li>
+            <li>Support prioritaire 24/7</li>
+            <li>Personnalisation complète</li>
+            <li>Accès API étendu</li>
+          </ul>
+        </div>
+      </div>
 
-        document.getElementById('form-generate').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const centerName = document.getElementById('center-name').value.trim();
-            const email = document.getElementById('center-email').value.trim();
-            const type = document.getElementById('license-type').value;
-            
-            if (!centerName || !email || !type) {
-                alert('Veuillez remplir tous les champs');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_URL}/license/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ centerName, email, type })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    lastGeneratedKey = data.license.licenseKey;
-                    displayResult(data.license);
-                } else {
-                    alert(`Erreur: ${data.error}`);
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                alert('Erreur de connexion au serveur');
-            }
-        });
+      <div class="card" style="margin-top:16px;background:var(--terra-bg);border-color:var(--terra-mid)">
+        <div class="card-title" style="color:var(--terra)"><span></span>Processus d'activation</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--terra);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">1</div>
+            <div><div style="font-weight:700;font-size:12px;margin-bottom:2px">Générer la clé</div><div style="font-size:11px;color:var(--muted)">Remplissez le formulaire et générez la clé de licence</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--terra);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">2</div>
+            <div><div style="font-weight:700;font-size:12px;margin-bottom:2px">Transmettre au centre</div><div style="font-size:11px;color:var(--muted)">Copiez et envoyez la clé par email au responsable du centre</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--terra);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">3</div>
+            <div><div style="font-weight:700;font-size:12px;margin-bottom:2px">Activation du compte</div><div style="font-size:11px;color:var(--muted)">Le centre crée son compte sur la page d'inscription avec la clé</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">✓</div>
+            <div><div style="font-weight:700;font-size:12px;margin-bottom:2px;color:var(--green)">Opérationnel</div><div style="font-size:11px;color:var(--muted)">Le centre accède à toutes ses fonctionnalités</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        function displayResult(license) {
-            document.getElementById('license-key').textContent = license.licenseKey;
-            
-            document.getElementById('license-details').innerHTML = `
-                <div><strong>ID Centre :</strong> ${license.centerId}</div>
-                <div><strong>Type :</strong> ${license.type}</div>
-                <div><strong>Valide jusqu'au :</strong> ${license.validUntil}</div>
-                <div><strong>Max Formateurs :</strong> ${license.maxFormateurs}</div>
-                <div><strong>Max Stagiaires :</strong> ${license.maxStagiaires}</div>
-            `;
-            
-            document.getElementById('result').classList.add('show');
-        }
+<!-- ════════════════════════════════════════════════════
+     SECTION : CENTRES INSCRITS + RESET MOT DE PASSE
+     ════════════════════════════════════════════════════ -->
+<div style="max-width:1280px;margin:0 auto 40px;padding:0 24px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden">
 
-        function copyLicenseKey() {
-            navigator.clipboard.writeText(lastGeneratedKey).then(() => {
-                alert('Clé de licence copiée dans le presse-papier !');
-            });
-        }
+    <!-- En-tête section -->
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--text)">🏢 Centres inscrits</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Comptes activés · Identifiants de connexion · Réinitialisation mot de passe</div>
+      </div>
+      <button onclick="loadCenters()" style="background:var(--subtle);border:1.5px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">
+        ↻ Actualiser
+      </button>
+    </div>
 
-        console.log('🔥 Générateur de Licences SSIAP - Chargé');
-    </script>
+    <!-- Alerte reset -->
+    <div id="centers-alert" style="display:none;padding:10px 24px;font-size:12px;border-bottom:1px solid var(--border)"></div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:var(--subtle)">
+            <th style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;text-align:left;white-space:nowrap">Centre</th>
+            <th style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;text-align:left;white-space:nowrap">Email connexion</th>
+            <th style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;text-align:left;white-space:nowrap">Licence</th>
+            <th style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;text-align:left;white-space:nowrap">Statut</th>
+            <th style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;text-align:left;white-space:nowrap">Dernière connexion</th>
+            <th style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:10px 16px;text-align:center;white-space:nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="centers-tbody">
+          <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--muted);font-size:12px">⏳ Chargement des centres…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Message aucun compte -->
+    <div id="centers-empty" style="display:none;padding:32px;text-align:center">
+      <div style="font-size:32px;margin-bottom:12px">🏢</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Aucun centre inscrit</div>
+      <div style="font-size:12px;color:var(--muted)">Les centres apparaîtront ici après avoir activé leur clé de licence via <strong>center-register.html</strong></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ MODAL RESET MOT DE PASSE ════ -->
+<div id="modal-reset" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border-radius:16px;padding:32px;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,.2)">
+    <div style="font-size:32px;margin-bottom:12px">🔑</div>
+    <div style="font-family:'Lora',serif;font-size:20px;font-weight:700;margin-bottom:6px">Réinitialiser le mot de passe</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px" id="modal-center-name">Centre : —</div>
+
+    <div style="background:var(--subtle);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.7">
+      ⚠️ Cette action remplace le mot de passe actuel. Le centre devra utiliser ce nouveau mot de passe lors de sa prochaine connexion.
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label style="display:block;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px">Nouveau mot de passe</label>
+      <input type="text" id="modal-new-pwd" placeholder="Minimum 6 caractères"
+             style="width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:.15s"
+             onfocus="this.style.borderColor='var(--terra)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="closeModal()" style="flex:1;padding:11px;background:var(--subtle);border:1.5px solid var(--border);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)">Annuler</button>
+      <button onclick="doAdminReset()" id="btn-confirm-reset" style="flex:1;padding:11px;background:var(--terra);border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:#fff">Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ssiap-training-center.onrender.com/api';
+let _resetCenterId = null;
+let _resetCenterNom = null;
+let selectedPlan = '';
+let lastKey = '';
+
+function selectPlan(val, el) {
+  selectedPlan = val;
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+document.getElementById('form-generate').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const centerName = document.getElementById('center-name').value.trim();
+  const email = document.getElementById('center-email').value.trim();
+  const type = selectedPlan;
+  if (!centerName || !email || !type) { alert('Veuillez remplir tous les champs et sélectionner un forfait'); return; }
+
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Génération en cours…';
+
+  try {
+    const r = await fetch(`${API}/license/generate`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ centerName, email, type })
+    });
+    const data = await r.json();
+    if (data.success) {
+      lastKey = data.license.licenseKey;
+      showResult(data.license);
+      loadHistory();
+    } else {
+      alert(`Erreur: ${data.error}`);
+    }
+  } catch {
+    // Génération locale de démonstration
+    const key = `SSIAP-${Math.random().toString(36).slice(2,6).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+    lastKey = key;
+    const limits = {DEMO:{maxF:1,maxS:10,days:7},STARTER:{maxF:2,maxS:50,days:30},PRO:{maxF:5,maxS:200,days:30},BUSINESS:{maxF:10,maxS:500,days:365},ENTERPRISE:{maxF:9999,maxS:9999,days:365}};
+    const l = limits[type]||limits.DEMO;
+    const exp = new Date(Date.now()+l.days*86400000).toLocaleDateString('fr-FR');
+    showResult({licenseKey:key,centerId:`center_${Date.now()}`,type,validUntil:exp,maxFormateurs:l.maxF===9999?'Illimité':l.maxF,maxStagiaires:l.maxS===9999?'Illimité':l.maxS});
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🎫 Générer la licence';
+  }
+});
+
+function showResult(lic) {
+  document.getElementById('license-key').textContent = lic.licenseKey;
+  document.getElementById('result-details').innerHTML = `
+    <div class="detail-row"><span class="key">ID Centre</span><span class="val">${lic.centerId}</span></div>
+    <div class="detail-row"><span class="key">Type</span><span class="val">${lic.type}</span></div>
+    <div class="detail-row"><span class="key">Valide jusqu'au</span><span class="val">${lic.validUntil}</span></div>
+    <div class="detail-row"><span class="key">Max Formateurs</span><span class="val">${lic.maxFormateurs}</span></div>
+    <div class="detail-row"><span class="key">Max Stagiaires</span><span class="val">${lic.maxStagiaires}</span></div>
+  `;
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function copyKey() {
+  navigator.clipboard.writeText(lastKey).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ Copié !';
+    setTimeout(() => btn.innerHTML = '📋 Copier la clé', 2000);
+  });
+}
+
+async function loadHistory() {
+  try {
+    const r = await fetch(`${API}/license/list`).catch(()=>null);
+    if(!r||!r.ok) throw new Error();
+    const data = await r.json();
+    const lics = data.licenses||[];
+    document.getElementById('stat-total').textContent = lics.length;
+    document.getElementById('stat-actives').textContent = lics.filter(l=>l.active).length;
+    document.getElementById('stat-expires').textContent = lics.filter(l=>l.expiresAt&&Math.ceil((l.expiresAt-Date.now())/86400000)<30&&Math.ceil((l.expiresAt-Date.now())/86400000)>=0).length;
+    renderHistory(lics.slice(0,6));
+  } catch {
+    document.getElementById('stat-total').textContent = '—';
+    document.getElementById('stat-actives').textContent = '—';
+    document.getElementById('stat-expires').textContent = '—';
+    document.getElementById('history-list').innerHTML = '<div style="color:var(--muted);font-size:11px;text-align:center;padding:12px">Aucune licence chargée</div>';
+  }
+}
+
+function renderHistory(lics) {
+  const list = document.getElementById('history-list');
+  if(!lics.length) { list.innerHTML='<div style="color:var(--muted);font-size:11px;text-align:center;padding:12px">Aucune licence</div>'; return; }
+  list.innerHTML = lics.map(l=>{
+    const type = l.type||'DEMO';
+    const jours = l.expiresAt?Math.ceil((l.expiresAt-Date.now())/86400000):null;
+    const expired = jours!==null&&jours<0;
+    const urgent = !expired&&jours!==null&&jours<30;
+    return `<div class="history-item">
+      <div style="flex:1">
+        <div class="history-key">${l.key||l.licenseKey||'—'}</div>
+        <div class="history-meta">${l.centerId?.slice(0,20)||'—'}</div>
+      </div>
+      <span class="badge ${type==='ENTERPRISE'?'green':type==='PRO'||type==='PROFESSIONAL'?'gold':type==='STANDARD'||type==='BUSINESS'?'blue':'terra'}">${type}</span>
+      <span class="badge ${expired?'red':urgent?'gold':l.active?'green':'gray'}" style="margin-left:4px">${expired?'Exp.':urgent?`${jours}j`:l.active?'Active':'Off'}</span>
+    </div>`;
+  }).join('');
+}
+
+loadHistory();
+loadCenters();
+
+// ── Charger les centres inscrits ──
+async function loadCenters() {
+  const tbody = document.getElementById('centers-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--muted);font-size:12px">⏳ Chargement…</td></tr>';
+  try {
+    const r = await fetch(`${API}/center/list`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    const centers = data.centers || [];
+    if (!centers.length) {
+      tbody.innerHTML = '';
+      document.getElementById('centers-empty').style.display = 'block';
+      return;
+    }
+    document.getElementById('centers-empty').style.display = 'none';
+    renderCenters(centers);
+  } catch {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:24px;text-align:center">
+      <div style="font-size:12px;color:var(--muted)">⚠️ API hors ligne · Les centres s'inscrivent via <strong>center-register.html</strong></div>
+    </td></tr>`;
+  }
+}
+
+function renderCenters(centers) {
+  const tbody = document.getElementById('centers-tbody');
+  tbody.innerHTML = centers.map(c => {
+    const licType = c.license?.type || 'DEMO';
+    const licExp  = c.license?.expiresAt;
+    const jours   = licExp ? Math.ceil((licExp - Date.now()) / 86400000) : null;
+    const expired = jours !== null && jours < 0;
+    const urgent  = !expired && jours !== null && jours < 30;
+    const lastLog = c.lastLogin ? new Date(c.lastLogin).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'Jamais';
+    const hasEmail = c.info?.email && c.info.email !== '—';
+    const lcol = licType==='ENTERPRISE'?'var(--green)':licType==='PRO'?'#b8860b':licType==='BUSINESS'?'#2e5c8a':'var(--terra)';
+    const lbg  = licType==='ENTERPRISE'?'#e8f5ee':licType==='PRO'?'#fef9e7':licType==='BUSINESS'?'#e8f0f8':'var(--terra-bg)';
+    return `<tr style="border-bottom:1px solid var(--border)" onmouseenter="this.style.background='var(--subtle)'" onmouseleave="this.style.background=''">
+      <td style="padding:12px 16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${c.info?.nom||'—'}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px">${(c.centerId||'').slice(0,24)}</div>
+      </td>
+      <td style="padding:12px 16px">
+        ${hasEmail
+          ? `<div style="font-size:12px;color:var(--text)">${c.info.email}</div><div style="font-size:10px;color:var(--green);margin-top:2px">✅ Compte activé</div>`
+          : `<div style="font-size:12px;color:var(--red)">Non défini</div><div style="font-size:10px;color:var(--muted);margin-top:2px">⚠️ Pas encore inscrit</div>`}
+      </td>
+      <td style="padding:12px 16px">
+        <span style="display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;background:${lbg};color:${lcol}">${licType}</span>
+        <div style="font-size:10px;color:${expired?'var(--red)':urgent?'#b8860b':'var(--muted)'};margin-top:4px">
+          ${expired?'⛔ Expirée':jours===null?'Sans expiration':urgent?`⚠️ ${jours}j`:`${jours}j restants`}
+        </div>
+      </td>
+      <td style="padding:12px 16px;font-size:11px;font-weight:700;color:${c.status==='active'?'var(--green)':'var(--muted)'}">${c.status==='active'?'● Actif':'○ Inactif'}</td>
+      <td style="padding:12px 16px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${lastLog}</td>
+      <td style="padding:12px 16px;text-align:center">
+        <button onclick="openResetModal('${c.centerId}','${(c.info?.nom||'').replace(/'/g,"\\'")}','${c.info?.email||''}')"
+          style="background:var(--terra-bg);border:1px solid rgba(194,90,58,.3);color:var(--terra);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">
+          🔑 Reset pwd
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openResetModal(centerId, nom, email) {
+  _resetCenterId = centerId;
+  _resetCenterNom = nom;
+  document.getElementById('modal-center-name').textContent = `Centre : ${nom}${email?' · '+email:''}`;
+  document.getElementById('modal-new-pwd').value = '';
+  document.getElementById('modal-reset').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('modal-reset').style.display = 'none';
+}
+async function doAdminReset() {
+  const newPwd = document.getElementById('modal-new-pwd').value.trim();
+  if (!newPwd || newPwd.length < 6) {
+    document.getElementById('modal-new-pwd').style.borderColor='var(--red)'; return;
+  }
+  const btn = document.getElementById('btn-confirm-reset');
+  btn.disabled = true; btn.textContent = '⏳ En cours…';
+  try {
+    const r = await fetch(`${API}/center/admin-reset-password`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({centerId:_resetCenterId, newPassword:newPwd})
+    });
+    const data = await r.json();
+    closeModal();
+    const el = document.getElementById('centers-alert');
+    if (data.success) {
+      el.style.cssText='display:block;padding:10px 24px;font-size:12px;border-bottom:1px solid var(--border);background:var(--green-bg);color:var(--green)';
+      el.innerHTML = `✅ Mot de passe réinitialisé pour <strong>${_resetCenterNom||_resetCenterId}</strong> — À communiquer au centre : <strong style="font-family:DM Mono,monospace">${newPwd}</strong>`;
+    } else {
+      el.style.cssText='display:block;padding:10px 24px;font-size:12px;border-bottom:1px solid var(--border);background:var(--terra-bg);color:var(--terra)';
+      el.textContent = `⚠️ ${data.error||'Erreur'}`;
+    }
+    setTimeout(()=>el.style.display='none', 9000);
+  } catch {
+    closeModal();
+    const el = document.getElementById('centers-alert');
+    el.style.cssText='display:block;padding:10px 24px;font-size:12px;border-bottom:1px solid var(--border);background:var(--terra-bg);color:var(--terra)';
+    el.textContent='⚠️ API hors ligne — impossible de réinitialiser';
+    setTimeout(()=>el.style.display='none',5000);
+  } finally { btn.disabled=false; btn.textContent='Réinitialiser'; }
+}
+document.getElementById('modal-reset').addEventListener('click',(e)=>{if(e.target===document.getElementById('modal-reset'))closeModal();});
+</script>
 </body>
 </html>
