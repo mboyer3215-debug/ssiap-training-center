@@ -1,163 +1,118 @@
-console.log("VERSION SAAS ACTIVE");
-
+// backend/server.js - VERSION 2 avec Entraînement + Licences + Formateurs
 const express = require('express');
 const cors = require('cors');
-const admin = require('firebase-admin');
+require('dotenv').config();
 
+const qcmRoutes = require('./routes/qcm.routes');
+const stagiaireRoutes = require('./routes/stagiaire.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+const entrainementRoutes = require('./routes/entrainement.routes');
+const licenseRoutes = require('./routes/license.routes');
+const centerRoutes = require('./routes/center.routes');
+const formateurRoutes = require('./routes/formateur.routes');
+const sessionRoutes = require('./routes/session.routes');
+const demandesAvisRoutes = require('./routes/demandes_avis.routes');
+    
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// 🔐 Initialisation Firebase Admin (clé serveur)
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+// Routes
+app.use('/api/qcm', qcmRoutes);
+app.use('/api/stagiaire', stagiaireRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/entrainement', entrainementRoutes);
+app.use('/api/license', licenseRoutes);
+app.use('/api/center', centerRoutes);
+app.use('/api/formateur', formateurRoutes);
+app.use('/api/session', sessionRoutes);
+app.use('/api', demandesAvisRoutes);
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.FIREBASE_DB_URL
+// Route santé
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Server SSIAP Entraînement running',
+    timestamp: new Date().toISOString()
+  });
 });
 
-const db = admin.database();
-
-// ✅ Route test
+// Route racine
 app.get('/', (req, res) => {
-  res.send('SSI Training PRO API running ✅');
-});
-
-// ✅ Route création QCM
-app.post('/generate-qcm', async (req, res) => {
-  const { level, numberOfQuestions } = req.body;
-
-  const snapshot = await db.ref('questions/' + level).once('value');
-  const questions = Object.values(snapshot.val() || []);
-
-  const shuffled = questions.sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, numberOfQuestions);
-
-  res.json(selected);
-});
-
-// ✅ Route correction avec vraie correction
-app.post('/submit-qcm', async (req, res) => {
-  const { centerId, userId, level, answers } = req.body;
-
-  if (!centerId || !userId || !level || !answers) {
-    return res.status(400).json({ error: "Missing parameters" });
-  }
-
-  try {
-    // 1️⃣ Récupérer les questions du niveau
-    const questionsSnapshot = await db.ref(`questions/${level}`).once('value');
-    const allQuestions = questionsSnapshot.val();
-
-    if (!allQuestions) {
-      return res.status(404).json({ error: "Questions not found for this level" });
-    }
-
-    // 2️⃣ Créer un map des questions par ID pour comparaison rapide
-    const questionsMap = {};
-    Object.values(allQuestions).forEach(q => {
-      questionsMap[q.id] = q;
-    });
-
-    // 3️⃣ Calculer le score
-    let correctCount = 0;
-    const detailedResults = [];
-
-    answers.forEach(answer => {
-      const question = questionsMap[answer.questionId];
-      
-      if (question) {
-        const isCorrect = answer.selectedAnswer === question.correctAnswer;
-        
-        if (isCorrect) {
-          correctCount++;
-        }
-
-        detailedResults.push({
-          questionId: answer.questionId,
-          selectedAnswer: answer.selectedAnswer,
-          correctAnswer: question.correctAnswer,
-          isCorrect
-        });
+  res.json({
+    message: 'API SSIAP Training Center - VERSION MULTI-TENANT',
+    version: '2.1',
+    endpoints: {
+      health: '/api/health',
+      entrainement: {
+        config: 'GET /api/entrainement/config/:niveau',
+        start: 'POST /api/entrainement/start',
+        answer: 'POST /api/entrainement/answer',
+        finish: 'POST /api/entrainement/finish'
+      },
+      license: {
+        generate: 'POST /api/license/generate',
+        verify: 'POST /api/license/verify',
+        types: 'GET /api/license/types',
+        renew: 'PUT /api/license/renew/:centerId'
+      },
+      center: {
+        register: 'POST /api/center/register',
+        login: 'POST /api/center/login',
+        dashboard: 'GET /api/center/dashboard/:centerId',
+        update: 'PUT /api/center/update/:centerId'
+      },
+      formateur: {
+        create: 'POST /api/formateur/create',
+        list: 'GET /api/formateur/list/:centerId',
+        details: 'GET /api/formateur/:formateurId',
+        update: 'PUT /api/formateur/update/:formateurId',
+        delete: 'DELETE /api/formateur/delete/:formateurId',
+        login: 'POST /api/formateur/login'
+      },
+      qcm: {
+        start: 'POST /api/qcm/start',
+        answer: 'POST /api/qcm/answer',
+        finish: 'POST /api/qcm/finish',
+        history: 'GET /api/qcm/history/:userId'
+      },
+      stagiaires: {
+        create: 'POST /api/stagiaires',
+        list: 'GET /api/stagiaires',
+        detail: 'GET /api/stagiaires/:userId',
+        progression: 'GET /api/stagiaires/:userId/progression',
+        alertes: 'GET /api/stagiaires/alerte/list'
+      },
+      dashboard: {
+        stats: 'GET /api/dashboard/stats',
+        questionsDifficiles: 'GET /api/dashboard/questions-difficiles',
+        tableau: 'GET /api/dashboard/stagiaires-tableau',
+        statistiques: 'GET /api/dashboard/statistiques-globales',
+        evolution: 'GET /api/dashboard/evolution?jours=7',
+        synthese: 'GET /api/dashboard/synthese'
       }
-    });
-
-    const totalQuestions = answers.length;
-    const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
-
-    // 4️⃣ Enregistrer dans Firebase
-    const resultRef = db.ref(`centers/${centerId}/results/${userId}`).push();
-
-    await resultRef.set({
-      score: scorePercentage,
-      correctCount,
-      totalQuestions,
-      level,
-      detailedResults,
-      completedAt: Date.now()
-    });
-
-    // 5️⃣ Réponse
-    res.json({
-      success: true,
-      score: scorePercentage,
-      correctCount,
-      totalQuestions,
-      passed: scorePercentage >= 60, // SSIAP = 60% minimum
-      resultId: resultRef.key
-    });
-
-  } catch (error) {
-    console.error("Error in submit-qcm:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// ✅ Création d'un centre
-app.post('/create-center', async (req, res) => {
-  const { name } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: 'Center name is required' });
-  }
-
-  const newCenterRef = db.ref('centers').push();
-
-  await newCenterRef.set({
-    name,
-    createdAt: Date.now()
-  });
-
-  res.json({
-    success: true,
-    centerId: newCenterRef.key
+    }
   });
 });
 
-// ✅ Création d'une session
-app.post('/create-session', async (req, res) => {
-  const { centerId, name, level } = req.body;
-
-  if (!centerId || !name || !level) {
-    return res.status(400).json({ error: 'Missing parameters' });
-  }
-
-  const sessionRef = db.ref(`centers/${centerId}/sessions`).push();
-
-  await sessionRef.set({
-    name,
-    level,
-    startDate: Date.now()
-  });
-
-  res.json({
-    success: true,
-    sessionId: sessionRef.key
-  });
+// Démarrer serveur
+app.listen(PORT, () => {
+  console.log('='.repeat(60));
+  console.log(`✅ Serveur SSIAP ENTRAÎNEMENT lancé sur port ${PORT}`);
+  console.log(`📡 http://localhost:${PORT}`);
+  console.log('='.repeat(60));
+  console.log('📋 Endpoints disponibles:');
+  console.log('   - Entraînement: /api/entrainement/* (NOUVEAU)');
+  console.log('   - QCM: /api/qcm/*');
+  console.log('   - Stagiaires: /api/stagiaires/*');
+  console.log('   - Dashboard: /api/dashboard/*');
+  console.log('   - Licences: /api/license/*');
+  console.log('   - Centres: /api/center/*');
+  console.log('   - Formateurs: /api/formateur/* ← NOUVEAU');
+  console.log('='.repeat(60));
 });
 
-const PORT = process.env.PORT || 10000;
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log("SERVER STARTED ON PORT:", PORT);
-});
+module.exports = app;

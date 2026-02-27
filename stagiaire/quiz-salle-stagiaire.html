@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Quiz en Salle — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;
+  --bg:#f7f4f0;--surface:#fff;--card:#faf9f7;
+  --border:#e8e2db;--border2:#d4cdc5;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;
+  --gold:#d4960a;--gold-light:#fef7e0;
+  --green:#2e7d52;--green-light:#edf7f2;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── ATTENTE ── */
+#screen-attente{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:30px;text-align:center;
+}
+.attente-anim{font-size:60px;margin-bottom:20px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.attente-titre{font-family:'Lora',serif;font-size:24px;font-weight:600;color:var(--text);margin-bottom:8px}
+.attente-sub{font-size:14px;color:var(--muted);line-height:1.6;max-width:320px}
+
+.nom-badge{
+  background:var(--surface);border:2px solid var(--border);border-radius:16px;
+  padding:20px 28px;margin-top:28px;box-shadow:0 4px 16px rgba(0,0,0,.07);
+  min-width:280px;
+}
+.nb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.nb-nom{font-family:'Lora',serif;font-size:22px;font-weight:600;color:var(--text);margin-bottom:6px}
+.nb-pin{font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:var(--rouge)}
+
+/* ── QUESTION ── */
+#screen-question{display:none;min-height:100vh;flex-direction:column}
+.q-header{
+  background:var(--surface);padding:12px 18px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  border-bottom:2px solid var(--border);position:sticky;top:0;z-index:10;
+}
+.q-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+.q-progbar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.q-progfill{height:100%;background:var(--rouge);border-radius:3px;transition:width .5s}
+.q-nom-badge{font-size:12px;color:var(--muted);background:var(--subtle);padding:4px 10px;border-radius:20px;white-space:nowrap}
+
+.q-body{padding:22px 18px;flex:1;max-width:600px;margin:0 auto;width:100%}
+.q-texte{font-family:'Lora',serif;font-size:20px;font-weight:600;color:var(--text);line-height:1.55;margin-bottom:24px}
+.q-multi-hint{background:var(--gold-light);border:1px solid rgba(212,150,10,.25);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+
+.options-list{display:flex;flex-direction:column;gap:10px}
+.option-btn{
+  background:var(--surface);border:2px solid var(--border);border-radius:12px;
+  padding:14px 16px;cursor:pointer;text-align:left;transition:.18s;
+  display:flex;align-items:center;gap:13px;width:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+.option-btn:active{transform:scale(.98)}
+.option-btn.selected{border-color:var(--blue);background:var(--blue-light)}
+.option-btn.correct{border-color:var(--green);background:var(--green-light)}
+.option-btn.wrong{border-color:var(--rouge);background:var(--rouge-light)}
+.option-btn:disabled{cursor:default}
+.opt-letter{
+  width:34px;height:34px;border-radius:8px;background:var(--subtle);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-weight:700;font-size:14px;color:var(--muted);flex-shrink:0;
+  transition:.18s;
+}
+.option-btn.selected .opt-letter{background:var(--blue);color:#fff}
+.option-btn.correct .opt-letter{background:var(--green);color:#fff}
+.option-btn.wrong .opt-letter{background:var(--rouge);color:#fff}
+.opt-texte{font-size:15px;color:var(--text2);line-height:1.4}
+
+.btn-valider{
+  width:100%;padding:14px;margin-top:12px;
+  background:var(--green);color:#fff;border:none;border-radius:12px;
+  font-size:16px;font-weight:800;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;transition:.15s;
+  box-shadow:0 2px 10px rgba(46,125,82,.25);
+}
+.btn-valider:hover{background:#1a5235}
+
+.reponse-status{margin-top:16px;padding:14px;border-radius:12px;text-align:center;font-weight:700;font-size:14px;display:none}
+.reponse-status.enregistree{background:var(--blue-light);border:1.5px solid rgba(46,92,138,.2);color:var(--blue)}
+.reponse-status.en-attente{background:var(--subtle);border:1.5px solid var(--border);color:var(--muted)}
+
+/* ── CORRECTION ── */
+#screen-correction{display:none;min-height:100vh;padding:24px 18px;max-width:580px;margin:0 auto}
+.corr-header{text-align:center;margin-bottom:22px}
+.corr-icon{font-size:52px;margin-bottom:10px}
+.corr-titre{font-family:'Lora',serif;font-size:22px;font-weight:600}
+.corr-sous{font-size:12px;color:var(--muted);margin-top:4px}
+
+.ma-reponse{padding:12px 16px;border-radius:10px;text-align:center;font-weight:700;font-size:14px;margin-bottom:14px}
+.ma-reponse.bonne{background:var(--green-light);color:var(--green);border:1.5px solid rgba(46,125,82,.2)}
+.ma-reponse.mauvaise{background:var(--rouge-light);color:var(--rouge);border:1.5px solid var(--rouge-mid)}
+
+.bonne-rep-card{background:var(--green-light);border:2px solid rgba(46,125,82,.2);border-radius:14px;padding:18px;margin-bottom:14px}
+.bonne-rep-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:8px}
+.bonne-rep-texte{font-size:16px;font-weight:700;color:var(--text)}
+
+.expl-card{background:var(--blue-light);border:1.5px solid rgba(46,92,138,.15);border-radius:14px;padding:18px;margin-bottom:14px}
+.expl-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--blue);margin-bottom:8px}
+.expl-card p{font-size:14px;color:var(--text2);line-height:1.6}
+
+.attente-suivant{text-align:center;font-size:13px;color:var(--muted);margin-top:16px;display:flex;align-items:center;justify-content:center;gap:7px}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:pulse 1.5s ease-in-out infinite}
+
+/* ── RÉSULTATS ── */
+#screen-resultats{display:none;min-height:100vh;padding:28px 18px;max-width:580px;margin:0 auto}
+.score-hero{text-align:center;margin-bottom:28px}
+.score-hero h2{font-family:'Lora',serif;font-size:22px;font-weight:600;margin-bottom:16px}
+.score-grand{font-family:'DM Mono',monospace;font-size:64px;font-weight:700;line-height:1;margin-bottom:6px}
+.score-grand.excellent{color:var(--green)}
+.score-grand.bien{color:var(--gold)}
+.score-grand.insuffisant{color:var(--rouge)}
+.score-detail{font-size:14px;color:var(--muted)}
+
+.classement-box{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.classement-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)}
+.classement-item:last-child{border:none}
+.cl-rang{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--muted);width:26px;text-align:right}
+.cl-nom{flex:1;font-size:13px;font-weight:600}
+.cl-moi{background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-left:6px}
+.cl-score{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--green)}
+
+.btn-retour{width:100%;padding:14px;background:var(--rouge);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 2px 10px rgba(194,90,58,.25)}
+.btn-retour:hover{background:var(--rouge-hover)}
+</style>
+</head>
+<body>
+
+<!-- ATTENTE -->
+<div id="screen-attente">
+  <div class="attente-anim">⏳</div>
+  <div class="attente-titre">En attente du quiz…</div>
+  <div class="attente-sub">Le formateur va démarrer le quiz.<br>Tenez votre téléphone prêt !</div>
+  <div class="nom-badge">
+    <div class="nb-label">Connecté(e) en tant que</div>
+    <div class="nb-nom" id="mon-nom">Chargement…</div>
+    <div class="nb-pin" id="mon-pin"></div>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div id="screen-question" style="display:none;flex-direction:column">
+  <div class="q-header">
+    <span class="q-num" id="q-num">1/10</span>
+    <div class="q-progbar"><div class="q-progfill" id="q-progress"></div></div>
+    <span class="q-nom-badge" id="q-nom">—</span>
+  </div>
+  <div class="q-body">
+    <div class="q-texte" id="q-texte"></div>
+    <div class="options-list" id="options-list"></div>
+    <div class="reponse-status" id="reponse-status"></div>
+  </div>
+</div>
+
+<!-- CORRECTION -->
+<div id="screen-correction">
+  <div class="corr-header">
+    <div class="corr-icon" id="correction-icon">🔍</div>
+    <div class="corr-titre" id="correction-titre">Correction</div>
+    <div class="corr-sous" id="correction-sous">Question X/Y</div>
+  </div>
+  <div class="ma-reponse" id="ma-reponse-result"></div>
+  <div class="bonne-rep-card">
+    <div class="bonne-rep-label">✅ Bonne réponse</div>
+    <div class="bonne-rep-texte" id="bonne-reponse-texte"></div>
+  </div>
+  <div class="expl-card" id="explication-card">
+    <div class="expl-label">💡 Explication</div>
+    <p id="explication-texte"></p>
+  </div>
+  <div class="attente-suivant">
+    <div class="pulse-dot"></div>
+    En attente de la prochaine question…
+  </div>
+</div>
+
+<!-- RÉSULTATS -->
+<div id="screen-resultats">
+  <div class="score-hero">
+    <h2>🏁 Quiz terminé !</h2>
+    <div class="score-grand" id="mon-score-pct">0%</div>
+    <div class="score-detail" id="mon-score-detail">0 / 0 bonnes réponses</div>
+  </div>
+  <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px">Classement de la salle</div>
+  <div class="classement-box"><div id="classement-salle"></div></div>
+  <button class="btn-retour" onclick="fermerQuiz()">✅ Terminer et retourner à l'entraînement</button>
+  <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:10px">Fermeture automatique dans <span id="countdown-sec">30</span>s</p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../shared/firebase-client-config.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const centerId = params.get('centerId');
+const sessionId = params.get('sessionId');
+const stagiaireId = params.get('stagiaireId');
+const stagiaireNom = decodeURIComponent(params.get('nom')||'');
+const stagiairePrenom = decodeURIComponent(params.get('prenom')||'');
+const stagiairePin = params.get('pin')||'';
+const API_URL = params.get('api')||'http://localhost:5000/api';
+
+const monNomComplet = `${stagiaireNom} ${stagiairePrenom}`.trim();
+let db=null, quizRef=null;
+let maReponsesSelectionnees=[];
+let reponseValidee=false;
+let monScoreLocal=0;
+let totalQuestions=0;
+let questionIndexLocal=-1;
+let optionsCourantes=[];
+let bonnesReponsesCourantes=[];
+
+document.getElementById('mon-nom').textContent = monNomComplet||'Stagiaire';
+document.getElementById('mon-pin').textContent = stagiairePin;
+document.getElementById('q-nom').textContent = stagiairePrenom||monNomComplet;
+
+async function initFirebase() {
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CLIENT_CONFIG);
+        db = firebase.database();
+        connecterAuQuiz();
+    } catch(e) { console.error('Erreur Firebase:', e); }
+}
+
+function connecterAuQuiz() {
+    quizRef = db.ref(`centers/${centerId}/sessions/${sessionId}/quizSalle`);
+    quizRef.child(`stagiairesPrets/${stagiaireId}`).set({ nom:monNomComplet, stagiaireId });
+    quizRef.on('value', snap => {
+        const quiz = snap.val();
+        if (!quiz) return;
+        switch(quiz.status) {
+            case 'attente': afficherEcran('attente'); break;
+            case 'question':
+                if (quiz.questionIndex !== questionIndexLocal) {
+                    questionIndexLocal = quiz.questionIndex;
+                    totalQuestions = quiz.nbQuestions||10;
+                    maReponsesSelectionnees = [];
+                    reponseValidee = false;
+                    afficherQuestion(quiz.currentQuestion, quiz.questionIndex, quiz.nbQuestions);
+                }
+                break;
+            case 'correction':
+                afficherCorrectionStag(quiz.bonneReponse, quiz.explication, quiz.bonnesReponses, quiz.questionIndex, quiz.nbQuestions);
+                break;
+            case 'fin':
+                afficherResultats(quiz.scores);
+                break;
+        }
+    });
+}
+
+function afficherEcran(nom) {
+    ['attente','question','correction','resultats'].forEach(s => {
+        const el = document.getElementById(`screen-${s}`);
+        if (el) el.style.display = s===nom ? (s==='question'?'flex':'block') : 'none';
+    });
+}
+
+function afficherQuestion(q, idx, total) {
+    afficherEcran('question');
+    optionsCourantes = q.reponses||[];
+    bonnesReponsesCourantes = (q.bonnesReponses||[]).map(Number);
+    document.getElementById('q-num').textContent = `${idx+1}/${total}`;
+    document.getElementById('q-progress').style.width = `${((idx+1)/total)*100}%`;
+    document.getElementById('q-texte').textContent = q.texte;
+    document.getElementById('reponse-status').style.display = 'none';
+    const nbAttendu = bonnesReponsesCourantes.length||1;
+    const lettres = ['A','B','C','D'];
+    const list = document.getElementById('options-list');
+    let hint = nbAttendu>1 ? `<div class="q-multi-hint">⚠️ ${nbAttendu} réponses attendues — sélectionnez-les toutes puis validez</div>` : '';
+    list.innerHTML = hint + (q.reponses||[]).map((rep,i) => `
+        <button class="option-btn" id="opt-${i}" onclick="toggleReponse(${i},${nbAttendu})">
+            <div class="opt-letter">${lettres[i]}</div>
+            <div class="opt-texte">${rep}</div>
+        </button>`).join('') + `
+        <button id="btn-valider" class="btn-valider" onclick="validerReponses()" style="display:none">
+            ✅ Valider ma réponse
+        </button>`;
+}
+
+function toggleReponse(choix, nbAttendu) {
+    if (reponseValidee) return;
+    const btn = document.getElementById(`opt-${choix}`);
+    const idx = maReponsesSelectionnees.indexOf(choix);
+    if (idx>-1) {
+        maReponsesSelectionnees.splice(idx,1);
+        btn.classList.remove('selected');
+    } else {
+        if (nbAttendu===1) {
+            document.querySelectorAll('.option-btn').forEach(b=>b.classList.remove('selected'));
+            maReponsesSelectionnees=[];
+        } else if (maReponsesSelectionnees.length>=nbAttendu) return;
+        maReponsesSelectionnees.push(choix);
+        btn.classList.add('selected');
+    }
+    const bv = document.getElementById('btn-valider');
+    if (bv) bv.style.display = maReponsesSelectionnees.length>0?'block':'none';
+}
+
+function validerReponses() {
+    if (reponseValidee||maReponsesSelectionnees.length===0) return;
+    reponseValidee = true;
+    document.querySelectorAll('.option-btn').forEach(btn=>btn.disabled=true);
+    document.getElementById('btn-valider').style.display='none';
+    quizRef.child(`reponses/${stagiaireId}`).set({ choix:maReponsesSelectionnees[0], choixMultiples:maReponsesSelectionnees, nom:monNomComplet });
+    const status = document.getElementById('reponse-status');
+    status.style.display='block';
+    status.className='reponse-status enregistree';
+    status.textContent = `✅ ${maReponsesSelectionnees.length>1?maReponsesSelectionnees.length+' réponses':'Réponse'} enregistrée${maReponsesSelectionnees.length>1?'s':''} ! En attente…`;
+}
+
+function afficherCorrectionStag(bonneReponse, explication, bonnesReponsesFirebase, idx, total) {
+    afficherEcran('correction');
+    document.getElementById('correction-sous').textContent = `Question ${idx+1}/${total}`;
+    const bonnesReponses = (bonnesReponsesFirebase||bonnesReponsesCourantes||[parseInt(bonneReponse)]).map(Number);
+    const bonnesRepTextes = bonnesReponses.map(i=>optionsCourantes[i]).filter(Boolean).join(' + ');
+    document.getElementById('bonne-reponse-texte').textContent = bonnesRepTextes||`Option ${bonneReponse+1}`;
+    const maReponseDiv = document.getElementById('ma-reponse-result');
+    const userSorted = [...maReponsesSelectionnees].map(Number).sort((a,b)=>a-b);
+    const correctSorted = [...bonnesReponses].sort((a,b)=>a-b);
+    const correct = reponseValidee && userSorted.length===correctSorted.length && userSorted.every((v,i)=>v===correctSorted[i]);
+    if (!reponseValidee||maReponsesSelectionnees.length===0) {
+        maReponseDiv.className='ma-reponse mauvaise';
+        maReponseDiv.textContent='⏭️ Pas de réponse soumise';
+        document.getElementById('correction-icon').textContent='😶';
+        document.getElementById('correction-titre').textContent='Sans réponse';
+    } else if (correct) {
+        maReponseDiv.className='ma-reponse bonne';
+        maReponseDiv.textContent='🎉 Bonne réponse !';
+        monScoreLocal++;
+        document.getElementById('correction-icon').textContent='✅';
+        document.getElementById('correction-titre').textContent='Bonne réponse !';
+    } else {
+        maReponseDiv.className='ma-reponse mauvaise';
+        const mesRepTextes = maReponsesSelectionnees.map(i=>optionsCourantes[i]).filter(Boolean).join(' + ');
+        maReponseDiv.textContent=`❌ Votre réponse : ${mesRepTextes||'?'}`;
+        document.getElementById('correction-icon').textContent='❌';
+        document.getElementById('correction-titre').textContent='Mauvaise réponse';
+    }
+    const expCard = document.getElementById('explication-card');
+    if (explication&&explication.trim()) {
+        document.getElementById('explication-texte').textContent=explication;
+        expCard.style.display='block';
+    } else { expCard.style.display='none'; }
+}
+
+function afficherResultats(scores) {
+    afficherEcran('resultats');
+    const monScore = scores?.[stagiaireId];
+    if (monScore) {
+        const pct = monScore.pct||0;
+        const el = document.getElementById('mon-score-pct');
+        el.textContent=`${pct}%`;
+        el.className=`score-grand ${pct>=70?'excellent':pct>=50?'bien':'insuffisant'}`;
+        document.getElementById('mon-score-detail').textContent=`${monScore.score} / ${monScore.total} bonnes réponses`;
+    }
+    const classement = Object.entries(scores||{}).map(([id,s])=>({...s,id})).sort((a,b)=>b.score-a.score);
+    const medals = ['🥇','🥈','🥉'];
+    document.getElementById('classement-salle').innerHTML = classement.map((s,i) => `
+        <div class="classement-item">
+            <div class="cl-rang">${medals[i]||(i+1)}</div>
+            <div class="cl-nom">${s.nom}${s.id===stagiaireId?'<span class="cl-moi">moi</span>':''}</div>
+            <div class="cl-score">${s.score}/${s.total}</div>
+        </div>`).join('');
+    let secondes=30;
+    const timer = setInterval(()=>{
+        secondes--;
+        const el=document.getElementById('countdown-sec');
+        if(el) el.textContent=secondes;
+        if(secondes<=0){clearInterval(timer);fermerQuiz();}
+    },1000);
+    window._quizTimer=timer;
+}
+
+function fermerQuiz() {
+    if(window._quizTimer) clearInterval(window._quizTimer);
+    if(quizRef) quizRef.off();
+    window.location.href='../frontend-v2/index.html';
+}
+
+initFirebase();
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Formateur — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;
+  --bg:#f7f4f0;--surface:#fff;--card:#faf9f7;
+  --border:#e8e2db;--border2:#d4cdc5;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;
+  --gold:#d4960a;--gold-light:#fef7e0;
+  --green:#2e7d52;--green-light:#edf7f2;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07);--shadow:0 4px 12px rgba(0,0,0,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
+
+/* Header */
+.header{
+  background:linear-gradient(135deg,#2e5c8a 0%,#1e3f64 100%);
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;position:sticky;top:0;z-index:50;
+  box-shadow:0 3px 12px rgba(46,92,138,.3);
+}
+.header-brand{font-family:'Lora',serif;font-size:19px;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px}
+.header-brand span{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:400;opacity:.75;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;margin-left:4px}
+.header-nav{display:flex;gap:4px}
+.nav-btn{padding:7px 14px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.7);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.12s}
+.nav-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.nav-btn.active{background:rgba(255,255,255,.22);color:#fff}
+.header-right{display:flex;align-items:center;gap:10px}
+.formateur-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;font-size:11px;color:rgba(255,255,255,.85)}
+.btn-logout{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75);padding:6px 14px;border-radius:7px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:.12s}
+.btn-logout:hover{background:rgba(255,255,255,.15)}
+
+/* Container */
+.container{max-width:1280px;margin:0 auto;padding:28px 24px}
+.page{display:none}.page.active{display:block}
+.page-title{font-family:'Lora',serif;font-size:24px;font-weight:600;margin-bottom:24px;letter-spacing:-.3px}
+
+/* KPI grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.kpi-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-sm);transition:.2s}
+.kpi-card:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.kpi-icon{font-size:28px;flex-shrink:0}
+.kpi-val{font-size:28px;font-weight:800;line-height:1;margin-bottom:2px}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:500}
+
+/* Section card */
+.scard{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+.scard h3{font-size:15px;font-weight:700;margin-bottom:16px}
+.scard-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.scard-hdr h3{margin:0}
+
+/* Buttons */
+.btn{padding:9px 18px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;border:none;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(46,92,138,.2)}
+.btn-primary:hover{background:#1e3f64;transform:translateY(-1px)}
+.btn-rouge{background:var(--rouge);color:#fff}
+.btn-rouge:hover{background:var(--rouge-hover)}
+.btn-secondary{background:var(--subtle);color:var(--text2);border:1.5px solid var(--border)}
+.btn-export{background:var(--green);color:#fff}
+.btn-export:hover{background:#1a5235}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);background:var(--subtle)}
+td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--subtle)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-gold{background:var(--gold-light);color:var(--gold)}
+.badge-gray{background:var(--subtle);color:var(--muted);border:1px solid var(--border)}
+
+/* Chart */
+.chart-wrap{height:220px;position:relative}
+
+/* Sessions */
+.session-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;transition:.15s}
+.session-card:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+.session-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.session-name{font-size:14px;font-weight:700}
+.session-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.session-stats{display:flex;gap:16px;font-size:12px;color:var(--text2)}
+.session-stat span{font-weight:700;color:var(--text)}
+
+/* Loader */
+.loader{display:none;position:fixed;inset:0;background:rgba(247,244,240,.8);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty{text-align:center;padding:48px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    🔥 SSIAP Training
+    <span>Formateur</span>
+  </div>
+  <nav class="header-nav">
+    <button class="nav-btn active" data-page="overview">📊 Vue d'ensemble</button>
+    <button class="nav-btn" data-page="stagiaires">👥 Stagiaires</button>
+    <button class="nav-btn" data-page="questions">📚 Questions</button>
+  </nav>
+  <div class="header-right">
+    <div class="formateur-pill" id="formateur-name">Formateur</div>
+    <button class="btn btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn-logout" id="btn-logout">🚪 Déconnexion</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- VUE D'ENSEMBLE -->
+  <div id="page-overview" class="page active">
+    <h2 class="page-title">Vue d'ensemble</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div><div class="kpi-val" id="kpi-stag" style="color:var(--blue)">—</div><div class="kpi-lbl">Stagiaires actifs</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📅</div>
+        <div><div class="kpi-val" id="kpi-sessions" style="color:var(--green)">—</div><div class="kpi-lbl">Sessions réalisées</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">⭐</div>
+        <div><div class="kpi-val" id="kpi-score" style="color:var(--gold)">—</div><div class="kpi-lbl">Score moyen</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">✅</div>
+        <div><div class="kpi-val" id="kpi-taux" style="color:var(--rouge)">—</div><div class="kpi-lbl">Taux de réussite</div></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="scard">
+        <h3>📈 Sessions par niveau SSIAP</h3>
+        <div class="chart-wrap"><canvas id="chart-sessions"></canvas></div>
+      </div>
+      <div class="scard">
+        <h3>📊 Scores moyens</h3>
+        <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
+      </div>
+    </div>
+
+    <div class="scard">
+      <div class="scard-hdr">
+        <h3>📅 Sessions récentes</h3>
+        <button class="btn btn-primary" id="btn-new-session">+ Nouvelle session</button>
+      </div>
+      <div id="sessions-recent"></div>
+    </div>
+  </div>
+
+  <!-- STAGIAIRES -->
+  <div id="page-stagiaires" class="page">
+    <h2 class="page-title">Mes stagiaires</h2>
+    <div class="scard">
+      <div class="scard-hdr">
+        <h3>Liste des stagiaires</h3>
+        <div style="display:flex;gap:8px">
+          <input type="text" placeholder="🔍 Rechercher…" id="search-stag" oninput="filterStagiaires(this.value)"
+            style="border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);outline:none;color:var(--text)">
+          <button class="btn btn-export" onclick="exportCSV()">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stagiaire</th><th>Niveau</th><th>Sessions</th><th>Score moy.</th><th>Statut</th><th>Dernière activité</th></tr></thead>
+          <tbody id="stag-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div id="page-questions" class="page">
+    <h2 class="page-title">Statistiques questions</h2>
+    <div class="scard">
+      <div class="scard-hdr">
+        <h3>Questions les plus échouées</h3>
+        <div style="display:flex;gap:8px">
+          <select id="filter-niveau" onchange="loadQuestionStats(this.value)"
+            style="border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);outline:none">
+            <option value="1">SSIAP 1</option>
+            <option value="2">SSIAP 2</option>
+            <option value="3">SSIAP 3</option>
+          </select>
+        </div>
+      </div>
+      <div id="questions-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="loader" class="loader"><div class="spinner"></div><p style="font-size:13px;color:var(--muted)">Chargement…</p></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let formateurData = null;
+let allStagiaires = [];
+let chartSessions = null, chartScores = null;
+
+// Auth
+const stored = localStorage.getItem('ssiap_formateur');
+if (!stored) window.location.href = 'formateur-login.html';
+try {
+  formateurData = JSON.parse(stored);
+  document.getElementById('formateur-name').textContent = '👨‍🏫 ' + (formateurData.prenom||formateurData.nom||'Formateur');
+} catch {}
+
+// Nav
+document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+function showPage(id) {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-page="'+id+'"]')?.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  if(id==='overview') loadOverview();
+  if(id==='stagiaires') loadStagiaires();
+  if(id==='questions') loadQuestionStats(1);
+}
+
+// Overview
+async function loadOverview() {
+  if(!formateurData) return;
+  try {
+    const r = await fetch(`${API}/formateur/dashboard/${formateurData.formateurId||formateurData.id}`);
+    const d = await r.json();
+    if(d.success||d.stats) {
+      const s = d.stats||{};
+      document.getElementById('kpi-stag').textContent = s.nbStagiaires||'—';
+      document.getElementById('kpi-sessions').textContent = s.nbSessions||'—';
+      document.getElementById('kpi-score').textContent = s.scoreMoyen ? s.scoreMoyen+'%' : '—';
+      document.getElementById('kpi-taux').textContent = s.tauxReussite ? s.tauxReussite+'%' : '—';
+      allStagiaires = d.stagiaires||[];
+      renderSessionsRecent(d.sessions||[]);
+      buildCharts(d);
+    }
+  } catch {
+    // Données démo
+    document.getElementById('kpi-stag').textContent = '12';
+    document.getElementById('kpi-sessions').textContent = '8';
+    document.getElementById('kpi-score').textContent = '71%';
+    document.getElementById('kpi-taux').textContent = '75%';
+    renderSessionsRecent([
+      {nom:'Session SSIAP 1 - Mars',niveau:'1',nbStagiaires:8,scoreMoyen:72,date:Date.now()-86400000*2,statut:'terminée'},
+      {nom:'Session SSIAP 2 - Fév',niveau:'2',nbStagiaires:5,scoreMoyen:68,date:Date.now()-86400000*8,statut:'terminée'},
+    ]);
+    buildCharts({sessions:[{niveau:'1',count:4},{niveau:'2',count:3},{niveau:'3',count:1}]});
+  }
+}
+
+function renderSessionsRecent(sessions) {
+  const c = document.getElementById('sessions-recent');
+  if(!sessions.length){c.innerHTML='<div class="empty"><div class="empty-icon">📅</div><p>Aucune session</p></div>';return;}
+  c.innerHTML = sessions.slice(0,5).map(s => `
+    <div class="session-card">
+      <div class="session-top">
+        <div>
+          <div class="session-name">${s.nom||'Session sans nom'}</div>
+          <div class="session-meta">SSIAP ${s.niveau||'—'} · ${new Date(s.date||Date.now()).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <span class="badge ${s.statut==='terminée'?'badge-green':'badge-blue'}">${s.statut||'active'}</span>
+      </div>
+      <div class="session-stats">
+        <div>Stagiaires : <span>${s.nbStagiaires||0}</span></div>
+        <div>Score moyen : <span>${s.scoreMoyen||0}%</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function buildCharts(data) {
+  const ctx1 = document.getElementById('chart-sessions');
+  const ctx2 = document.getElementById('chart-scores');
+  const counts = [0,0,0];
+  (data.sessions||[]).forEach(s => { const n=parseInt(s.niveau)-1; if(n>=0&&n<=2) counts[n]++; });
+  const palette = ['#c25a3a','#2e5c8a','#2e7d52'];
+  if(chartSessions) chartSessions.destroy();
+  chartSessions = new Chart(ctx1, {
+    type:'bar', data:{labels:['SSIAP 1','SSIAP 2','SSIAP 3'],
+      datasets:[{data:counts,backgroundColor:palette,borderRadius:8}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#e8e2db'}},x:{grid:{display:false}}}}
+  });
+  if(chartScores) chartScores.destroy();
+  chartScores = new Chart(ctx2, {
+    type:'doughnut', data:{labels:['Réussite','Échec'],
+      datasets:[{data:[75,25],backgroundColor:['#2e7d52','#e8e2db'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},cutout:'65%'}
+  });
+}
+
+// Stagiaires
+async function loadStagiaires() {
+  if(!formateurData) return;
+  try {
+    const r = await fetch(`${API}/formateur/stagiaires/${formateurData.formateurId||formateurData.id}`);
+    const d = await r.json();
+    allStagiaires = d.stagiaires||[];
+  } catch {
+    allStagiaires = [
+      {prenom:'Alice',nom:'Martin',niveau:'1',nbSessions:5,scoreMoyen:74,statut:'actif',lastActivity:Date.now()-86400000},
+      {prenom:'Bob',nom:'Dupont',niveau:'2',nbSessions:3,scoreMoyen:61,statut:'actif',lastActivity:Date.now()-86400000*3},
+      {prenom:'Claire',nom:'Renard',niveau:'1',nbSessions:8,scoreMoyen:82,statut:'actif',lastActivity:Date.now()-86400000},
+    ];
+  }
+  renderStagiaires(allStagiaires);
+}
+function renderStagiaires(list) {
+  const tbody = document.getElementById('stag-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Aucun stagiaire</td></tr>';return;}
+  tbody.innerHTML = list.map(s => `<tr>
+    <td><div style="font-weight:700">${s.prenom||''} ${s.nom||''}</div></td>
+    <td><span class="badge badge-blue">SSIAP ${s.niveau||'—'}</span></td>
+    <td>${s.nbSessions||0}</td>
+    <td><span style="font-weight:700;color:${(s.scoreMoyen||0)>=70?'var(--green)':'var(--rouge)'}">${s.scoreMoyen||0}%</span></td>
+    <td><span class="badge ${s.statut==='actif'?'badge-green':'badge-gray'}">${s.statut||'—'}</span></td>
+    <td style="color:var(--muted);font-size:11px">${s.lastActivity?new Date(s.lastActivity).toLocaleDateString('fr-FR'):'—'}</td>
+  </tr>`).join('');
+}
+function filterStagiaires(q) {
+  const lq = q.toLowerCase();
+  renderStagiaires(allStagiaires.filter(s =>
+    (s.prenom+' '+s.nom).toLowerCase().includes(lq) ||
+    (s.niveau||'').includes(lq)
+  ));
+}
+
+// Questions
+async function loadQuestionStats(niveau) {
+  const c = document.getElementById('questions-list');
+  try {
+    const r = await fetch(`${API}/formateur/questions-stats/${formateurData?.formateurId||'demo'}?niveau=${niveau}`);
+    const d = await r.json();
+    renderQuestions(d.questions||[]);
+  } catch {
+    const demo = [
+      {texte:'Quel est le rôle du SSIAP 1 en cas d'alarme ?',tauxEchec:68,nTentatives:45},
+      {texte:'Quelle est la portée d'un extincteur CO2 ?',tauxEchec:55,nTentatives:38},
+      {texte:'Comment procéder à une évacuation partielle ?',tauxEchec:51,nTentatives:41},
+    ];
+    renderQuestions(demo);
+  }
+}
+function renderQuestions(list) {
+  const c = document.getElementById('questions-list');
+  if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon">📚</div><p>Aucune donnée</p></div>';return;}
+  c.innerHTML = list.map(q => `
+    <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+      <div style="flex:1;font-size:13px">${q.texte||q.question||''}</div>
+      <div style="flex-shrink:0;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:${q.tauxEchec>60?'var(--rouge)':'var(--gold)'}">${q.tauxEchec}%</div>
+        <div style="font-size:10px;color:var(--muted)">taux échec</div>
+      </div>
+      <div style="flex-shrink:0;font-size:11px;color:var(--muted)">${q.nTentatives||0} tentatives</div>
+    </div>`).join('');
+}
+
+function exportCSV() {
+  const rows = [['Prénom','Nom','Niveau','Sessions','Score','Statut','Dernière activité']];
+  allStagiaires.forEach(s => rows.push([s.prenom||'',s.nom||'',s.niveau||'',s.nbSessions||0,s.scoreMoyen||0,s.statut||'',s.lastActivity?new Date(s.lastActivity).toLocaleDateString('fr-FR'):'']));
+  const csv = rows.map(r=>r.map(c=>'"'+c+'"').join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv);
+  a.download = 'stagiaires_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+document.getElementById('btn-logout').addEventListener('click', () => {
+  if(confirm('Se déconnecter ?')) {
+    localStorage.removeItem('ssiap_formateur');
+    window.location.href = 'formateur-login.html';
+  }
+});
+
+document.getElementById('btn-new-session')?.addEventListener('click', () => {
+  if(typeof showAddSessionModal==='function') showAddSessionModal();
+});
+
+loadOverview();
+</script>
+<script src="formateur-sessions.js"></script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demandes — Espace Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --border: #e2ddd6;
+  --border-dark: #c8c0b4;
+  --text: #1a1714;
+  --muted: #7a736a;
+  --subtle: #ede9e3;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --green: #1a6b4a;
+  --green-light: #edf7f2;
+  --amber: #b45309;
+  --amber-light: #fef7ed;
+  --blue: #1d4ed8;
+  --blue-light: #eff6ff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Geist',sans-serif;font-size:14px;min-height:100vh}
+
+/* HEADER */
+.header{background:var(--text);color:#f7f5f0;padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.header-left{display:flex;align-items:center;gap:16px}
+.logo{font-family:'Instrument Serif',serif;font-size:20px;letter-spacing:-0.5px}
+.logo span{color:#e67e5a}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:#a09890;font-family:'Geist Mono',monospace}
+.header-right{display:flex;align-items:center;gap:10px}
+.centre-pill{background:#2a2420;border:1px solid #3a342e;padding:5px 12px;border-radius:20px;font-size:11px;font-family:'Geist Mono',monospace;color:#c8b89e}
+.btn-new{background:var(--red);color:#fff;border:none;padding:7px 16px;border-radius:6px;font-family:'Geist',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-new:hover{opacity:.85}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:260px 1fr;gap:0;min-height:calc(100vh - 56px)}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:4px}
+.sidebar-label{font-size:10px;font-family:'Geist Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:12px 10px 6px}
+.filter-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--muted);transition:.12s;border:1px solid transparent}
+.filter-item:hover{background:var(--subtle)}
+.filter-item.active{background:var(--text);color:#f7f5f0;border-color:var(--text)}
+.filter-count{font-family:'Geist Mono',monospace;font-size:10px;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:10px}
+.filter-item:not(.active) .filter-count{background:var(--subtle);color:var(--muted)}
+.sidebar-sep{height:1px;background:var(--border);margin:8px 0}
+.stat-mini{padding:10px;background:var(--subtle);border-radius:8px;margin-top:auto}
+.stat-mini-val{font-size:24px;font-weight:700;font-family:'Instrument Serif',serif}
+.stat-mini-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:'Geist Mono',monospace}
+
+/* MAIN */
+.main{padding:28px 32px}
+.page-title{font-family:'Instrument Serif',serif;font-size:28px;letter-spacing:-0.5px;margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+
+/* DEMANDE CARD */
+.demandes{display:flex;flex-direction:column;gap:12px}
+.dem-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:.2s;cursor:pointer}
+.dem-card:hover{border-color:var(--border-dark);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.dem-card.expanded .dem-body{display:block}
+.dem-header{display:flex;align-items:center;gap:14px;padding:16px 18px}
+.dem-type-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dem-type-icon.support{background:var(--blue-light)}
+.dem-type-icon.licence{background:var(--amber-light)}
+.dem-type-icon.technique{background:var(--red-light)}
+.dem-type-icon.info{background:var(--green-light)}
+.dem-meta{flex:1}
+.dem-title{font-size:14px;font-weight:600;margin-bottom:2px}
+.dem-sub{font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace}
+.dem-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;font-family:'Geist Mono',monospace;text-transform:uppercase}
+.badge.new{background:var(--red-light);color:var(--red)}
+.badge.pending{background:var(--amber-light);color:var(--amber)}
+.badge.done{background:var(--green-light);color:var(--green)}
+.badge.closed{background:var(--subtle);color:var(--muted)}
+.dem-arrow{color:var(--muted);transition:.2s;font-size:10px}
+.dem-card.expanded .dem-arrow{transform:rotate(180deg)}
+.dem-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border)}
+.dem-body-content{padding-top:14px}
+.dem-description{font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:14px}
+.dem-thread{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.thread-msg{display:flex;gap:10px}
+.thread-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.thread-avatar.admin{background:var(--text);color:#f7f5f0}
+.thread-avatar.centre{background:var(--subtle);color:var(--muted)}
+.thread-bubble{flex:1;background:var(--subtle);border-radius:0 8px 8px 8px;padding:10px 12px;font-size:12px;line-height:1.5}
+.thread-bubble.admin-msg{background:var(--text);color:#f7f5f0;border-radius:8px 0 8px 8px}
+.thread-time{font-size:10px;color:var(--muted);font-family:'Geist Mono',monospace;margin-top:3px}
+.dem-reply{display:flex;gap:8px}
+.dem-reply textarea{flex:1;border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:'Geist',sans-serif;font-size:12px;resize:none;height:60px;background:var(--bg);transition:.15s;outline:none}
+.dem-reply textarea:focus{border-color:var(--border-dark);background:#fff}
+.btn-send{background:var(--text);color:#f7f5f0;border:none;padding:8px 16px;border-radius:6px;font-family:'Geist',sans-serif;font-size:12px;font-weight:600;cursor:pointer;align-self:flex-end;transition:.15s}
+.btn-send:hover{opacity:.85}
+
+/* MODAL NOUVELLE DEMANDE */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:12px;width:100%;max-width:520px;overflow:hidden;animation:slideUp .2s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:20px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-title{font-family:'Instrument Serif',serif;font-size:22px}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);padding:4px;transition:.15s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px 24px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-family:'Geist Mono',monospace}
+.form-input,.form-select,.form-textarea{width:100%;border:1px solid var(--border);border-radius:7px;padding:10px 12px;font-family:'Geist',sans-serif;font-size:13px;background:var(--bg);transition:.15s;outline:none;color:var(--text)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--border-dark);background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
+.form-textarea{resize:vertical;height:100px}
+.form-select{appearance:none;cursor:pointer}
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-option{border:2px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:.15s;text-align:center}
+.type-option:hover{border-color:var(--border-dark)}
+.type-option.selected{border-color:var(--text);background:var(--subtle)}
+.type-option .t-icon{font-size:20px;margin-bottom:4px}
+.type-option .t-label{font-size:12px;font-weight:600}
+.modal-footer{padding:0 24px 20px;display:flex;gap:8px;justify-content:flex-end}
+.btn-cancel{background:var(--subtle);border:none;padding:9px 18px;border-radius:7px;font-family:'Geist',sans-serif;font-size:13px;cursor:pointer;color:var(--muted)}
+.btn-submit{background:var(--text);color:#f7f5f0;border:none;padding:9px 20px;border-radius:7px;font-family:'Geist',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-submit:hover{opacity:.85}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#f7f5f0;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:200;transform:translateY(80px);opacity:0;transition:.3s;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success::before{content:'✓';color:#4ade80;font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">🔥 SSIAP <span>Training</span></div>
+    <div class="breadcrumb">
+      <span>Espace Centre</span><span>›</span><span>Demandes</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="centre-pill" id="centre-pill">Chargement…</div>
+    <button class="btn-new" onclick="openModal()">+ Nouvelle demande</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Filtrer par statut</div>
+    <div class="filter-item active" onclick="filterBy('all',this)">
+      <span>Toutes</span><span class="filter-count" id="cnt-all">0</span>
+    </div>
+    <div class="filter-item" onclick="filterBy('new',this)">
+      <span>🔴 Nouvelles</span><span class="filter-count" id="cnt-new">0</span>
+    </div>
+    <div class="filter-item" onclick="filterBy('pending',this)">
+      <span>🟡 En cours</span><span class="filter-count" id="cnt-pending">0</span>
+    </div>
+    <div class="filter-item" onclick="filterBy('done',this)">
+      <span>🟢 Traitées</span><span class="filter-count" id="cnt-done">0</span>
+    </div>
+    <div class="filter-item" onclick="filterBy('closed',this)">
+      <span>⚫ Fermées</span><span class="filter-count" id="cnt-closed">0</span>
+    </div>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-label">Par type</div>
+    <div class="filter-item" onclick="filterType('support',this)">💬 Support technique</div>
+    <div class="filter-item" onclick="filterType('licence',this)">🔑 Licence / Facturation</div>
+    <div class="filter-item" onclick="filterType('technique',this)">⚙️ Problème technique</div>
+    <div class="filter-item" onclick="filterType('info',this)">ℹ️ Information</div>
+    <div class="sidebar-sep"></div>
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="stat-delai">—</div>
+      <div class="stat-mini-lbl">Délai moy. réponse</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <h1 class="page-title">Mes demandes</h1>
+    <p class="page-sub">Suivez vos demandes et échangez avec l'équipe SSIAP Training</p>
+    <div class="demandes" id="demandes-list">
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">Chargement des demandes…</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Nouvelle demande</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Type de demande</label>
+        <div class="type-grid">
+          <div class="type-option selected" onclick="selectType('support',this)">
+            <div class="t-icon">💬</div><div class="t-label">Support</div>
+          </div>
+          <div class="type-option" onclick="selectType('licence',this)">
+            <div class="t-icon">🔑</div><div class="t-label">Licence</div>
+          </div>
+          <div class="type-option" onclick="selectType('technique',this)">
+            <div class="t-icon">⚙️</div><div class="t-label">Technique</div>
+          </div>
+          <div class="type-option" onclick="selectType('info',this)">
+            <div class="t-icon">ℹ️</div><div class="t-label">Information</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Objet</label>
+        <input type="text" class="form-input" id="dem-objet" placeholder="Résumez votre demande en une phrase">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priorité</label>
+        <select class="form-select" id="dem-priorite">
+          <option value="normal">Normale</option>
+          <option value="high">Haute</option>
+          <option value="urgent">Urgente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="dem-desc" placeholder="Décrivez votre demande en détail…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-submit" onclick="submitDemande()">Envoyer la demande</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let selectedType = 'support';
+let currentFilter = 'all';
+let allDemandes = [];
+
+// Récupérer le centreId depuis l'URL ou localStorage
+const urlParams = new URLSearchParams(window.location.search);
+const centerId = urlParams.get('centerId') || localStorage.getItem('centerId') || 'center_default';
+document.getElementById('centre-pill').textContent = '🏢 ' + (localStorage.getItem('centreNom') || centerId.slice(0,16) + '…');
+
+async function loadDemandes() {
+  try {
+    const r = await fetch(`${API}/demandes/list/${centerId}`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    allDemandes = data.demandes || [];
+  } catch {
+    // Données démo si API non disponible
+    allDemandes = [
+      { id:'dem_001', type:'licence', objet:'Renouvellement licence STANDARD', description:'Notre licence expire dans 15 jours, pouvez-vous nous envoyer un devis pour un renouvellement en PROFESSIONAL ?', status:'pending', priorite:'high', createdAt:Date.now()-86400000*3, updatedAt:Date.now()-86400000*1,
+        messages:[
+          { auteur:'centre', texte:'Notre licence expire dans 15 jours, pouvez-vous nous envoyer un devis pour un renouvellement en PROFESSIONAL ?', timestamp:Date.now()-86400000*3 },
+          { auteur:'admin', texte:'Bonjour, votre devis est en cours de préparation. Vous recevrez une réponse sous 24h.', timestamp:Date.now()-86400000*1 }
+        ]},
+      { id:'dem_002', type:'technique', objet:'Problème de connexion formateur', description:'Un formateur n\'arrive pas à se connecter avec son PIN. Erreur : "PIN invalide" alors que le code est correct.', status:'done', priorite:'high', createdAt:Date.now()-86400000*7, updatedAt:Date.now()-86400000*5,
+        messages:[
+          { auteur:'centre', texte:'Un formateur n\'arrive pas à se connecter avec son PIN.', timestamp:Date.now()-86400000*7 },
+          { auteur:'admin', texte:'Problème résolu — le PIN avait été saisi avec des espaces. Merci de demander au formateur de ressaisir son PIN sans espace.', timestamp:Date.now()-86400000*5 }
+        ]},
+      { id:'dem_003', type:'info', objet:'Questions SSIAP 3 disponibles ?', description:'Bonjour, quand les questions SSIAP 3 seront-elles disponibles ?', status:'done', priorite:'normal', createdAt:Date.now()-86400000*10, updatedAt:Date.now()-86400000*8,
+        messages:[
+          { auteur:'centre', texte:'Bonjour, quand les questions SSIAP 3 seront-elles disponibles ?', timestamp:Date.now()-86400000*10 },
+          { auteur:'admin', texte:'Bonne nouvelle ! Les 200 questions SSIAP 3 sont maintenant disponibles et intégrées dans votre plateforme.', timestamp:Date.now()-86400000*8 }
+        ]},
+    ];
+  }
+  updateCounters();
+  renderDemandes();
+}
+
+function updateCounters() {
+  const c = { all:allDemandes.length, new:0, pending:0, done:0, closed:0 };
+  allDemandes.forEach(d => { if(c[d.status]!==undefined) c[d.status]++; });
+  Object.keys(c).forEach(k => { const el=document.getElementById('cnt-'+k); if(el) el.textContent=c[k]; });
+  const delais = allDemandes.filter(d=>d.status==='done'&&d.messages?.length>1).map(d=>Math.round((d.messages[1]?.timestamp-d.messages[0]?.timestamp)/3600000));
+  const moy = delais.length ? Math.round(delais.reduce((a,b)=>a+b,0)/delais.length) : null;
+  document.getElementById('stat-delai').textContent = moy ? moy + 'h' : '< 24h';
+}
+
+function renderDemandes(filter) {
+  const f = filter || currentFilter;
+  let liste = allDemandes;
+  if (f !== 'all') liste = allDemandes.filter(d => d.status === f);
+  const container = document.getElementById('demandes-list');
+  if (!liste.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Aucune demande ${f !== 'all' ? 'dans cette catégorie' : ''}</div></div>`;
+    return;
+  }
+  const typeIcons = { support:'💬', licence:'🔑', technique:'⚙️', info:'ℹ️' };
+  const statusLabels = { new:'Nouvelle', pending:'En cours', done:'Traitée', closed:'Fermée' };
+  container.innerHTML = liste.map(d => `
+    <div class="dem-card" id="card-${d.id}" onclick="toggleCard('${d.id}')">
+      <div class="dem-header">
+        <div class="dem-type-icon ${d.type}">${typeIcons[d.type]||'📋'}</div>
+        <div class="dem-meta">
+          <div class="dem-title">${d.objet}</div>
+          <div class="dem-sub">#${d.id} · ${new Date(d.createdAt).toLocaleDateString('fr-FR')} · ${d.priorite==='urgent'?'🔴 Urgente':d.priorite==='high'?'🟡 Haute':'⚪ Normale'}</div>
+        </div>
+        <div class="dem-right">
+          <span class="badge ${d.status}">${statusLabels[d.status]||d.status}</span>
+          <span class="dem-arrow">▼</span>
+        </div>
+      </div>
+      <div class="dem-body">
+        <div class="dem-body-content">
+          <div class="dem-description">${d.description}</div>
+          <div class="dem-thread">
+            ${(d.messages||[]).map(m => `
+              <div class="thread-msg">
+                <div class="thread-avatar ${m.auteur==='admin'?'admin':'centre'}">${m.auteur==='admin'?'A':'C'}</div>
+                <div>
+                  <div class="thread-bubble ${m.auteur==='admin'?'admin-msg':''}">${m.texte}</div>
+                  <div class="thread-time">${m.auteur==='admin'?'Admin SSIAP':'Votre centre'} · ${new Date(m.timestamp).toLocaleDateString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          ${d.status !== 'done' && d.status !== 'closed' ? `
+          <div class="dem-reply">
+            <textarea placeholder="Ajouter un message…" id="reply-${d.id}" onclick="event.stopPropagation()"></textarea>
+            <button class="btn-send" onclick="sendReply('${d.id}',event)">Envoyer</button>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-'+id);
+  const wasExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.dem-card').forEach(c => c.classList.remove('expanded'));
+  if (!wasExpanded) card.classList.add('expanded');
+}
+
+function filterBy(status, el) {
+  currentFilter = status;
+  document.querySelectorAll('.filter-item').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  renderDemandes(status);
+}
+
+function filterType(type, el) {
+  document.querySelectorAll('.filter-item').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  renderDemandes();
+  const filtered = allDemandes.filter(d => d.type === type);
+  const container = document.getElementById('demandes-list');
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Aucune demande de ce type</div></div>';
+    return;
+  }
+  const typeIcons = { support:'💬', licence:'🔑', technique:'⚙️', info:'ℹ️' };
+  const statusLabels = { new:'Nouvelle', pending:'En cours', done:'Traitée', closed:'Fermée' };
+  container.innerHTML = filtered.map(d => `<div class="dem-card" id="card-${d.id}" onclick="toggleCard('${d.id}')">
+    <div class="dem-header">
+      <div class="dem-type-icon ${d.type}">${typeIcons[d.type]||'📋'}</div>
+      <div class="dem-meta"><div class="dem-title">${d.objet}</div><div class="dem-sub">#${d.id}</div></div>
+      <div class="dem-right"><span class="badge ${d.status}">${statusLabels[d.status]}</span><span class="dem-arrow">▼</span></div>
+    </div>
+    <div class="dem-body"><div class="dem-body-content"><div class="dem-description">${d.description}</div></div></div>
+  </div>`).join('');
+}
+
+function selectType(type, el) {
+  selectedType = type;
+  document.querySelectorAll('.type-option').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function openModal() { document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+async function submitDemande() {
+  const objet = document.getElementById('dem-objet').value.trim();
+  const desc  = document.getElementById('dem-desc').value.trim();
+  const prio  = document.getElementById('dem-priorite').value;
+  if (!objet || !desc) { showToast('Veuillez remplir tous les champs', false); return; }
+  const demande = { centerId, type: selectedType, objet, description: desc, priorite: prio, status: 'new', createdAt: Date.now(), updatedAt: Date.now(), messages: [{ auteur:'centre', texte: desc, timestamp: Date.now() }] };
+  try {
+    const r = await fetch(`${API}/demandes/create`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(demande) });
+    if (!r.ok) throw new Error();
+  } catch {
+    demande.id = 'dem_' + Date.now();
+    allDemandes.unshift(demande);
+  }
+  closeModal();
+  document.getElementById('dem-objet').value = '';
+  document.getElementById('dem-desc').value = '';
+  updateCounters();
+  renderDemandes();
+  showToast('Demande envoyée avec succès');
+}
+
+async function sendReply(id, event) {
+  event.stopPropagation();
+  const textarea = document.getElementById('reply-' + id);
+  const texte = textarea.value.trim();
+  if (!texte) return;
+  const d = allDemandes.find(x => x.id === id);
+  if (!d) return;
+  const msg = { auteur: 'centre', texte, timestamp: Date.now() };
+  d.messages = d.messages || [];
+  d.messages.push(msg);
+  try {
+    await fetch(`${API}/demandes/reply/${id}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ centerId, message: texte }) });
+  } catch {}
+  textarea.value = '';
+  renderDemandes();
+  showToast('Message envoyé');
+}
+
+function showToast(msg, success=true) {
+  const t = document.getElementById('toast');
+  t.textContent = (success ? '✓ ' : '⚠ ') + msg;
+  t.className = 'toast show' + (success ? ' success' : '');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadDemandes();
+</script>
+</body>
+</html>

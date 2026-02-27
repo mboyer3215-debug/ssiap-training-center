@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entraînement SSIAP - Révisions</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<!-- Firebase pour détection quiz en salle -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../shared/firebase-client-config.js"></script>
+<script>
+(function() {
+    const stagData = localStorage.getItem('ssiap_stagiaire');
+    const centerData = localStorage.getItem('ssiap_stagiaire_center');
+    if (!stagData || !centerData) return;
+
+    const stagiaire = JSON.parse(stagData);
+    const center = JSON.parse(centerData);
+    if (!stagiaire.sessionId || !center.centerId) return;
+
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CLIENT_CONFIG);
+        const db = firebase.database();
+        const quizRef = db.ref(`centers/${center.centerId}/sessions/${stagiaire.sessionId}/quizSalle`);
+
+        quizRef.on('value', snap => {
+            const quiz = snap.val();
+            if (!quiz || (quiz.status !== 'attente' && quiz.status !== 'question')) return;
+
+            quizRef.off();
+
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                position:fixed;top:0;left:0;right:0;bottom:0;
+                background:rgba(0,0,0,0.9);z-index:99999;
+                display:flex;align-items:center;justify-content:center;
+            `;
+            banner.innerHTML = `
+                <div style="background:#0f172a;border:2px solid #16a34a;border-radius:20px;
+                    padding:40px;text-align:center;max-width:380px;margin:20px;
+                    animation:popIn 0.4s ease;">
+                    <div style="font-size:60px;margin-bottom:16px;">🎮</div>
+                    <h2 style="color:#f8fafc;font-size:22px;margin-bottom:10px;">Quiz en salle !</h2>
+                    <p style="color:#94a3b8;font-size:15px;margin-bottom:24px;line-height:1.5;">
+                        Votre formateur lance un quiz.<br>Rejoignez-le maintenant !
+                    </p>
+                    <button onclick="rejoindrequiz()" style="
+                        width:100%;padding:16px;background:#16a34a;color:white;
+                        border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;">
+                        ▶️ Rejoindre le quiz
+                    </button>
+                </div>
+                <style>@keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}</style>
+            `;
+            document.body.appendChild(banner);
+
+            window.rejoindrequiz = function() {
+                const url = `../stagiaire/quiz-salle-stagiaire.html`
+                    + `?centerId=${center.centerId}`
+                    + `&sessionId=${stagiaire.sessionId}`
+                    + `&stagiaireId=${stagiaire.stagiaireId}`
+                    + `&nom=${encodeURIComponent(stagiaire.nom)}`
+                    + `&prenom=${encodeURIComponent(stagiaire.prenom)}`
+                    + `&pin=${stagiaire.pin}`
+                    + `&api=http://localhost:5000/api`;
+                window.location.href = url;
+            };
+        });
+
+    } catch(e) { console.error('Quiz listener error:', e); }
+})();
+</script>
+
+<body>
+    <!-- PAGE CONNEXION -->
+    <div id="page-connexion" class="page active">
+        <div class="container">
+            <div class="logo-ssiap">
+                <div class="flame">🔥</div>
+                <h1>ENTRAÎNEMENT SSIAP</h1>
+                <p class="subtitle">Plateforme de Révision</p>
+            </div>
+            
+            <!-- Bandeau stagiaire connecté (affiché si connecté via login) -->
+            <div id="stagiaire-connecte-banner" style="display:none;
+                background:linear-gradient(135deg,#16a34a,#15803d);
+                color:white;border-radius:12px;padding:16px 20px;
+                margin-bottom:20px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+                <div>
+                    <div style="font-weight:700;font-size:16px;" id="banner-nom"></div>
+                    <div style="font-size:13px;opacity:0.85;" id="banner-session"></div>
+                </div>
+                <button onclick="deconnecterStagiaire()"
+                    style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);
+                    color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;">
+                    🚪 Changer
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>Configuration de votre session</h2>
+                
+                <form id="form-connexion">
+                    <div class="form-group">
+                        <label for="nom">Nom</label>
+                        <input type="text" id="nom" placeholder="Dupont" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prenom">Prénom</label>
+                        <input type="text" id="prenom" placeholder="Jean" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email (optionnel)</label>
+                        <input type="email" id="email" placeholder="jean.dupont@exemple.fr">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Niveau SSIAP</label>
+                        <div class="niveau-selector">
+                            <button type="button" class="btn-niveau" data-niveau="1">
+                                <span class="niveau-numero">1</span>
+                                <span class="niveau-label">Agent de sécurité</span>
+                            </button>
+                            <button type="button" class="btn-niveau" data-niveau="2">
+                                <span class="niveau-numero">2</span>
+                                <span class="niveau-label">Chef d'équipe</span>
+                            </button>
+                            <button type="button" class="btn-niveau" data-niveau="3">
+                                <span class="niveau-numero">3</span>
+                                <span class="niveau-label">Chef de service</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="groupe-partie" style="display: none;">
+                        <label>Thématique à réviser</label>
+                        <div class="partie-selector">
+                            <label class="partie-option">
+                                <input type="radio" name="partie" value="toutes" checked>
+                                <span>✨ Toutes les parties</span>
+                            </label>
+                            <div id="parties-list"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="groupe-nombre" style="display: none;">
+                        <label>Nombre de questions</label>
+                        <div class="nombre-selector">
+                            <button type="button" class="btn-nombre" data-nombre="5">5</button>
+                            <button type="button" class="btn-nombre" data-nombre="10">10</button>
+                            <button type="button" class="btn-nombre" data-nombre="15">15</button>
+                            <button type="button" class="btn-nombre" data-nombre="20">20</button>
+                            <button type="button" class="btn-nombre" data-nombre="25">25</button>
+                            <button type="button" class="btn-nombre" data-nombre="30">30</button>
+                            <button type="button" class="btn-nombre" data-nombre="40">40</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" disabled id="btn-demarrer">
+                        🚀 Démarrer l'entraînement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE ENTRAÎNEMENT -->
+    <div id="page-entrainement" class="page">
+        <div class="entrainement-header">
+            <div class="entrainement-info">
+                <span id="entrainement-stagiaire"></span>
+                <span class="separator">•</span>
+                <span>SSIAP <span id="entrainement-niveau"></span></span>
+                <span class="separator">•</span>
+                <span id="entrainement-partie"></span>
+            </div>
+            <div class="entrainement-progress">
+                <span>Question <span id="question-numero">1</span> / <span id="question-total">30</span></span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card question-card">
+                <div class="question-header">
+                    <span class="question-badge">Question <span id="current-question-num">1</span></span>
+                </div>
+                <h2 class="question-text" id="question-text"></h2>
+                <div class="options-container" id="options-container"></div>
+                <div class="question-actions">
+                    <button class="btn btn-secondary" id="btn-precedent" style="visibility: hidden;">← Précédent</button>
+                    <button class="btn btn-primary" id="btn-suivant">Suivant →</button>
+                    <button class="btn btn-success" id="btn-terminer" style="display: none;">✓ Terminer l'entraînement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE RÉSULTATS -->
+    <div id="page-resultats" class="page">
+        <div class="container">
+            <div class="card results-card">
+                <div class="results-header">
+                    <div class="score-circle" id="score-circle">
+                        <svg viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="90" class="score-bg"/>
+                            <circle cx="100" cy="100" r="90" class="score-fill" id="score-svg"/>
+                        </svg>
+                        <div class="score-content">
+                            <span class="score-value" id="score-value">0</span>
+                            <span class="score-total">/ <span id="score-total">30</span></span>
+                            <span class="score-percentage" id="score-percentage">0%</span>
+                        </div>
+                    </div>
+                    <div class="results-info">
+                        <h2 id="results-title">Résultats de votre entraînement</h2>
+                        <p id="results-message"></p>
+                        <div class="results-stats">
+                            <div class="stat"><span class="stat-label">Bonnes réponses</span><span class="stat-value correct" id="stat-correct">0</span></div>
+                            <div class="stat"><span class="stat-label">Erreurs</span><span class="stat-value incorrect" id="stat-incorrect">0</span></div>
+                            <div class="stat"><span class="stat-label">Temps</span><span class="stat-value" id="stat-time">0 min</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="results-details" id="results-details"></div>
+                <div class="results-actions">
+                    <button class="btn btn-primary" id="btn-nouvel-entrainement">🔄 Nouvel entraînement</button>
+                    <button class="btn btn-secondary" id="btn-voir-historique">📊 Voir mon historique</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader" class="loader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Préparation de votre entraînement...</p>
+    </div>
+
+    <script src="app.js"></script>
+
+    <!-- AUTO-REMPLISSAGE si stagiaire connecté via login -->
+    <script>
+    (function() {
+        const stagRaw = localStorage.getItem('ssiap_stagiaire');
+        if (!stagRaw) return;
+
+        const stag = JSON.parse(stagRaw);
+        if (!stag.stagiaireId) return; // pas un vrai stagiaire connecté
+
+        // Extraire le niveau depuis la session (ex: "SSIAP1" → "1")
+        const niveauStr = stag.session?.niveau || '';
+        const niveauNum = niveauStr.replace(/[^0-9]/g, '') || '1';
+
+        // Afficher le bandeau
+        const banner = document.getElementById('stagiaire-connecte-banner');
+        if (banner) {
+            banner.style.display = 'flex';
+            document.getElementById('banner-nom').textContent =
+                `👤 ${stag.nom} ${stag.prenom}`;
+            document.getElementById('banner-session').textContent =
+                stag.session?.titre
+                    ? `${stag.session.titre} • SSIAP ${niveauNum}`
+                    : `SSIAP ${niveauNum}`;
+        }
+
+        // Remplir les champs cachés (app.js les lira)
+        window.STAGIAIRE_CONNECTE = {
+            nom: stag.nom,
+            prenom: stag.prenom,
+            email: stag.email || '',
+            niveau: niveauNum,
+            stagiaireId: stag.stagiaireId,
+            sessionId: stag.sessionId,
+            centerId: JSON.parse(localStorage.getItem('ssiap_stagiaire_center') || '{}').centerId
+        };
+
+        // Attendre que app.js soit chargé puis auto-remplir
+        window.addEventListener('load', () => {
+            const nomEl = document.getElementById('nom');
+            const prenomEl = document.getElementById('prenom');
+            const emailEl = document.getElementById('email');
+
+            if (nomEl) { nomEl.value = stag.nom; nomEl.readOnly = true; }
+            if (prenomEl) { prenomEl.value = stag.prenom; prenomEl.readOnly = true; }
+            if (emailEl && stag.email) emailEl.value = stag.email;
+
+            // Cliquer sur le bon bouton niveau
+            const btnNiveau = document.querySelector(`.btn-niveau[data-niveau="${niveauNum}"]`);
+            if (btnNiveau) btnNiveau.click();
+
+            // Donner le focus sur nombre de questions si disponible
+            setTimeout(() => {
+                // Sélectionner 10 questions par défaut
+                const btn10 = document.querySelector('.btn-nombre[data-nombre="10"]');
+                if (btn10) btn10.click();
+            }, 300);
+        });
+    })();
+
+    window.deconnecterStagiaire = function() {
+        if (confirm('Se déconnecter et revenir au formulaire libre ?')) {
+            localStorage.removeItem('ssiap_stagiaire');
+            localStorage.removeItem('ssiap_stagiaire_center');
+            window.location.reload();
+        }
+    };
+    </script>
+</body>
+</html>

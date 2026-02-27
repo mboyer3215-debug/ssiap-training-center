@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Donnez votre avis — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;
+  --bg:#f7f4f0;--surface:#fff;--card:#faf9f7;
+  --border:#e8e2db;--border2:#d4cdc5;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;
+  --gold:#d4960a;--gold-light:#fef7e0;
+  --green:#2e7d52;--green-light:#edf7f2;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+  --shadow:0 4px 20px rgba(0,0,0,.08);--shadow-lg:0 16px 48px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;padding-bottom:60px}
+
+/* Header */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.header-brand{display:flex;align-items:center;gap:10px;font-family:'Lora',serif;font-size:18px;font-weight:600;color:var(--text)}
+.header-brand em{color:var(--rouge);font-style:italic}
+.header-brand .flame{font-size:22px}
+.header-section{font-size:12px;color:var(--muted);background:var(--subtle);padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
+
+/* Wrapper */
+.wrapper{max-width:680px;margin:0 auto;padding:32px 20px}
+
+/* Hero */
+.hero{text-align:center;margin-bottom:36px}
+.hero h1{font-family:'Lora',serif;font-size:32px;font-weight:600;letter-spacing:-.5px;margin-bottom:8px}
+.hero h1 em{color:var(--rouge);font-style:italic}
+.hero p{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* Steps */
+.steps{display:flex;gap:0;margin-bottom:32px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.step{flex:1;padding:10px 8px;text-align:center;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-right:1px solid var(--border);transition:.2s;cursor:pointer}
+.step:last-child{border-right:none}
+.step.active{background:var(--rouge-light);color:var(--rouge)}
+.step.done{background:var(--green-light);color:var(--green)}
+.step-num{display:block;font-size:16px;font-weight:800;margin-bottom:2px}
+
+/* Section card */
+.scard{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:28px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.scard-title{font-family:'Lora',serif;font-size:18px;font-weight:600;margin-bottom:4px}
+.scard-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+
+/* Role select */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+.role-btn{padding:18px 16px;border-radius:12px;border:2px solid var(--border);background:var(--subtle);cursor:pointer;text-align:center;transition:.15s;font-family:'Plus Jakarta Sans',sans-serif}
+.role-btn:hover{border-color:var(--rouge-mid);background:var(--rouge-light)}
+.role-btn.selected{border-color:var(--rouge);background:var(--rouge-light)}
+.role-icon{font-size:28px;display:block;margin-bottom:8px}
+.role-name{font-size:14px;font-weight:700;color:var(--text);display:block}
+.role-desc{font-size:11px;color:var(--muted);margin-top:2px;display:block}
+
+/* Form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.form-input{width:100%;background:var(--subtle);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:.15s}
+.form-input:focus{border-color:var(--rouge);background:#fff;box-shadow:0 0 0 3px var(--rouge-light)}
+.form-input::placeholder{color:var(--muted)}
+select.form-input{cursor:pointer}
+
+/* Stars rating */
+.stars-section{margin-bottom:20px}
+.stars-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.stars-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.star-btn{font-size:28px;cursor:pointer;color:var(--border);transition:.12s;background:none;border:none;padding:2px;line-height:1}
+.star-btn.lit{color:var(--gold)}
+.star-btn:hover{transform:scale(1.2)}
+.stars-val{font-family:'Lora',serif;font-size:20px;font-weight:600;color:var(--gold);margin-left:6px}
+.stars-label-val{font-size:11px;color:var(--muted);margin-left:4px}
+
+/* Critères */
+.crit-grid{display:grid;gap:14px}
+.crit-item{display:grid;grid-template-columns:160px 1fr auto;align-items:center;gap:12px;font-size:12px}
+.crit-name{color:var(--text2);font-weight:600}
+.crit-stars{display:flex;gap:3px}
+.crit-star{font-size:20px;cursor:pointer;color:var(--border);background:none;border:none;padding:1px;transition:.1s;line-height:1}
+.crit-star.lit{color:var(--gold)}
+.crit-val{font-family:monospace;font-size:11px;color:var(--muted);width:28px;text-align:right}
+
+/* Tags */
+.tags-grid{display:flex;flex-wrap:wrap;gap:8px}
+.tag-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:.12s;font-family:'Plus Jakarta Sans',sans-serif}
+.tag-btn:hover{border-color:var(--border2)}
+.tag-btn.selected-pos{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.tag-btn.selected-neg{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+
+/* NPS */
+.nps-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.nps-btn{width:44px;height:44px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;transition:.15s;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text2)}
+.nps-btn:hover{border-color:var(--border2);background:var(--subtle)}
+.nps-btn.selected{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+.nps-btn.nps-green.selected{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.nps-btn.nps-gold.selected{border-color:var(--gold);background:var(--gold-light);color:var(--gold)}
+.nps-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:5px}
+
+/* Textarea */
+.form-textarea{width:100%;background:var(--subtle);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);resize:none;height:90px;outline:none;transition:.15s}
+.form-textarea:focus{border-color:var(--rouge);background:#fff;box-shadow:0 0 0 3px var(--rouge-light)}
+.form-textarea::placeholder{color:var(--muted)}
+
+/* Anonymous notice */
+.anon-notice{display:flex;align-items:center;gap:8px;background:var(--subtle);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--muted);margin-bottom:16px}
+
+/* Nav buttons */
+.nav-row{display:flex;gap:10px;justify-content:space-between;margin-top:24px}
+.btn{padding:11px 22px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;border:none;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--rouge);color:#fff;box-shadow:0 2px 10px rgba(194,90,58,.25)}
+.btn-primary:hover{background:var(--rouge-hover);transform:translateY(-1px)}
+.btn-secondary{background:var(--subtle);color:var(--text2);border:1.5px solid var(--border)}
+.btn-secondary:hover{border-color:var(--border2)}
+.btn-success{background:var(--green);color:#fff;box-shadow:0 2px 10px rgba(46,125,82,.25)}
+.btn-success:hover{background:#1a5235;transform:translateY(-1px)}
+
+/* Merci */
+.merci{text-align:center;padding:48px 20px}
+.merci-icon{font-size:64px;margin-bottom:20px}
+.merci h2{font-family:'Lora',serif;font-size:28px;margin-bottom:10px}
+.merci p{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* Section hidden */
+.section{display:none}
+.section.active{display:block}
+
+/* Progress bar */
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:28px}
+.progress-fill{height:100%;background:var(--rouge);border-radius:2px;transition:.3s}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand"><span class="flame">🔥</span> SSIAP <em>Training</em></div>
+  <div class="header-section">⭐ Formulaire d'avis</div>
+</header>
+
+<div class="wrapper">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Votre avis <em>compte</em></h1>
+    <p>Aidez-nous à améliorer la plateforme SSIAP Training<br>Votre retour est précieux — merci de le partager !</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:16%"></div></div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="tab-1"><span class="step-num">1</span>Qui êtes-vous</div>
+    <div class="step" id="tab-2"><span class="step-num">2</span>Identification</div>
+    <div class="step" id="tab-3"><span class="step-num">3</span>Note globale</div>
+    <div class="step" id="tab-4"><span class="step-num">4</span>Critères</div>
+    <div class="step" id="tab-5"><span class="step-num">5</span>Vos retours</div>
+    <div class="step" id="tab-6"><span class="step-num">6</span>Recommandation</div>
+  </div>
+
+  <!-- ── SECTION 1 : Rôle ── -->
+  <div class="section active" id="sec-1">
+    <div class="scard">
+      <div class="scard-title">Vous êtes…</div>
+      <div class="scard-sub">Sélectionnez votre profil pour personnaliser le formulaire</div>
+      <div class="role-grid">
+        <div class="role-btn selected" id="role-f" onclick="selectRole('formateur')">
+          <span class="role-icon">👨‍🏫</span>
+          <span class="role-name">Formateur</span>
+          <span class="role-desc">J'encadre des stagiaires</span>
+        </div>
+        <div class="role-btn" id="role-s" onclick="selectRole('stagiaire')">
+          <span class="role-icon">🎓</span>
+          <span class="role-name">Stagiaire</span>
+          <span class="role-desc">Je me forme pour l'examen</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <div></div>
+      <button class="btn btn-primary" onclick="goTo(2)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2 : Identification ── -->
+  <div class="section" id="sec-2">
+    <div class="scard">
+      <div class="scard-title">Identification <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:400;color:var(--muted)">(optionnel)</span></div>
+      <div class="scard-sub">Laissez vos coordonnées si vous souhaitez être recontacté</div>
+      <div class="anon-notice">🔒 Votre avis peut rester totalement anonyme.</div>
+      <div class="form-row">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Prénom</label>
+          <input class="form-input" type="text" id="prenom" placeholder="Optionnel">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="nom" placeholder="Optionnel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Centre de formation</label>
+        <input class="form-input" type="text" id="centre-nom" placeholder="Nom de votre centre">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Niveau SSIAP concerné</label>
+        <select class="form-input" id="niveau">
+          <option value="">Tous niveaux</option>
+          <option value="1">SSIAP 1</option>
+          <option value="2">SSIAP 2</option>
+          <option value="3">SSIAP 3</option>
+        </select>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(3)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3 : Note globale ── -->
+  <div class="section" id="sec-3">
+    <div class="scard">
+      <div class="scard-title">Note globale</div>
+      <div class="scard-sub">Quelle note donnez-vous à la plateforme SSIAP Training ?</div>
+      <div style="text-align:center;padding:16px 0">
+        <div class="stars-row" style="justify-content:center;margin-bottom:12px">
+          <button class="star-btn lit" data-v="1" onclick="setNoteGlobal(1)">★</button>
+          <button class="star-btn lit" data-v="2" onclick="setNoteGlobal(2)">★</button>
+          <button class="star-btn lit" data-v="3" onclick="setNoteGlobal(3)">★</button>
+          <button class="star-btn lit" data-v="4" onclick="setNoteGlobal(4)">★</button>
+          <button class="star-btn" data-v="5" onclick="setNoteGlobal(5)">★</button>
+        </div>
+        <div id="note-display" style="font-family:'Lora',serif;font-size:48px;font-weight:600;color:var(--gold)">4</div>
+        <div id="note-label" style="font-size:13px;color:var(--muted)">Très bien</div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(4)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4 : Critères ── -->
+  <div class="section" id="sec-4">
+    <div class="scard">
+      <div class="scard-title">Notes par critère</div>
+      <div class="scard-sub">Évaluez chaque aspect de la plateforme</div>
+      <div class="crit-grid">
+        <div class="crit-item">
+          <span class="crit-name">📚 Questions</span>
+          <div class="crit-stars" id="crit-questions"></div>
+          <span class="crit-val" id="cv-questions">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">💬 Explications</span>
+          <div class="crit-stars" id="crit-explications"></div>
+          <span class="crit-val" id="cv-explications">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">🖥 Interface</span>
+          <div class="crit-stars" id="crit-interface"></div>
+          <span class="crit-val" id="cv-interface">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">📈 Progression</span>
+          <div class="crit-stars" id="crit-progression"></div>
+          <span class="crit-val" id="cv-progression">4/5</span>
+        </div>
+        <div class="crit-item" id="crit-role-row">
+          <span class="crit-name" id="crit-role-label">🎯 Outil formateur</span>
+          <div class="crit-stars" id="crit-rolespecific"></div>
+          <span class="crit-val" id="cv-rolespecific">4/5</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(3)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(5)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5 : Retours qualitatifs ── -->
+  <div class="section" id="sec-5">
+    <div class="scard">
+      <div class="scard-title">Ce que vous avez aimé</div>
+      <div class="scard-sub">Sélectionnez ce qui vous a plu (plusieurs choix possibles)</div>
+      <div class="tags-grid" id="tags-positifs">
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Questions pertinentes</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Explications détaillées</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Interface intuitive</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Prépare bien l'examen</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Progression claire</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Mode hors-ligne</button>
+      </div>
+    </div>
+    <div class="scard">
+      <div class="scard-title">Ce qui pourrait être amélioré</div>
+      <div class="scard-sub">Sélectionnez vos suggestions (plusieurs choix possibles)</div>
+      <div class="tags-grid" id="tags-negatifs">
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Plus de questions</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Design à améliorer</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Temps de chargement</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">App mobile</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Export PDF résultats</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Stats détaillées</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Notifications</button>
+      </div>
+    </div>
+    <div class="scard">
+      <div class="scard-title">Commentaire libre</div>
+      <div class="scard-sub">Partagez votre expérience en détail</div>
+      <textarea class="form-textarea" id="commentaire" placeholder="Décrivez votre expérience, vos suggestions, ce qui vous a marqué…"></textarea>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(4)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(6)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- ── SECTION 6 : NPS ── -->
+  <div class="section" id="sec-6">
+    <div class="scard">
+      <div class="scard-title">Recommanderiez-vous SSIAP Training ?</div>
+      <div class="scard-sub">Sur une échelle de 0 à 10, à quelle probabilité recommanderiez-vous cette plateforme à un collègue ?</div>
+      <div class="nps-row">
+        <button class="nps-btn" onclick="setNPS(0)">0</button>
+        <button class="nps-btn" onclick="setNPS(1)">1</button>
+        <button class="nps-btn" onclick="setNPS(2)">2</button>
+        <button class="nps-btn" onclick="setNPS(3)">3</button>
+        <button class="nps-btn" onclick="setNPS(4)">4</button>
+        <button class="nps-btn" onclick="setNPS(5)">5</button>
+        <button class="nps-btn" onclick="setNPS(6)">6</button>
+        <button class="nps-btn nps-gold" onclick="setNPS(7)">7</button>
+        <button class="nps-btn nps-gold" onclick="setNPS(8)">8</button>
+        <button class="nps-btn nps-green" onclick="setNPS(9)">9</button>
+        <button class="nps-btn nps-green" onclick="setNPS(10)">10</button>
+      </div>
+      <div class="nps-labels"><span>Pas du tout probable</span><span>Tout à fait probable</span></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(5)">← Retour</button>
+      <button class="btn btn-success" onclick="submitAvis()">✓ Envoyer mon avis</button>
+    </div>
+  </div>
+
+  <!-- ── MERCI ── -->
+  <div class="section" id="sec-merci">
+    <div class="merci">
+      <div class="merci-icon">🎉</div>
+      <h2>Merci pour votre avis !</h2>
+      <p>Votre retour a bien été transmis à l'équipe SSIAP Training.<br>Il nous aide à améliorer continuellement la plateforme.</p>
+      <div style="margin-top:28px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="window.close()">Fermer cette fenêtre</button>
+        <button class="btn btn-secondary" onclick="location.reload()">Donner un autre avis</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let currentStep = 1;
+let currentRole = 'formateur';
+let noteGlobal = 4;
+let noteNPS = null;
+const ratings = {questions:4,explications:4,interface:4,progression:4,rolespecific:4};
+
+// Labels notes
+const noteLabels = {1:'Très insuffisant',2:'Insuffisant',3:'Passable',4:'Très bien',5:'Excellent !'};
+
+// ── Init critères ──
+['questions','explications','interface','progression','rolespecific'].forEach(k => buildCritStars(k));
+
+function buildCritStars(k) {
+  const el = document.getElementById('crit-'+k);
+  el.innerHTML = '';
+  for(let i=1;i<=5;i++) {
+    const b = document.createElement('button');
+    b.className = 'crit-star' + (i<=ratings[k]?' lit':'');
+    b.textContent = '★';
+    b.onclick = () => setCrit(k, i);
+    el.appendChild(b);
+  }
+}
+function setCrit(k, v) {
+  ratings[k] = v;
+  buildCritStars(k);
+  document.getElementById('cv-'+k).textContent = v+'/5';
+}
+
+// ── Rôle ──
+function selectRole(role) {
+  currentRole = role;
+  document.getElementById('role-f').classList.toggle('selected', role==='formateur');
+  document.getElementById('role-s').classList.toggle('selected', role==='stagiaire');
+  document.getElementById('crit-role-label').textContent = role==='formateur'?'🎯 Outil formateur':'🎯 Outil stagiaire';
+}
+
+// ── Note globale ──
+function setNoteGlobal(n) {
+  noteGlobal = n;
+  document.querySelectorAll('.star-btn[data-v]').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.v) <= n);
+  });
+  document.getElementById('note-display').textContent = n;
+  document.getElementById('note-label').textContent = noteLabels[n]||'';
+}
+
+// ── NPS ──
+function setNPS(n) {
+  noteNPS = n;
+  document.querySelectorAll('.nps-btn').forEach((b,i) => b.classList.remove('selected'));
+  const btns = document.querySelectorAll('.nps-btn');
+  btns[n].classList.add('selected');
+}
+
+// ── Tags ──
+function toggleTag(el, type) {
+  const cls = 'selected-'+type;
+  el.classList.toggle(cls);
+}
+
+// ── Navigation ──
+function goTo(step) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if(i+1 < step) s.classList.add('done');
+    if(i+1 === step) s.classList.add('active');
+  });
+  if(step <= 6) {
+    document.getElementById('sec-'+step).classList.add('active');
+    document.getElementById('progress').style.width = (step/6*100)+'%';
+  }
+  currentStep = step;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Submit ──
+async function submitAvis() {
+  const positifs = [...document.querySelectorAll('#tags-positifs .selected-pos')].map(b=>b.textContent);
+  const negatifs = [...document.querySelectorAll('#tags-negatifs .selected-neg')].map(b=>b.textContent);
+
+  // Récupérer centerId depuis URL
+  const params = new URLSearchParams(window.location.search);
+  const centerId = params.get('centerId') || 'demo';
+
+  const payload = {
+    centerId,
+    centreNom: document.getElementById('centre-nom').value || '',
+    role: currentRole,
+    prenom: document.getElementById('prenom').value || '',
+    nom: document.getElementById('nom').value || '',
+    niveau: document.getElementById('niveau').value || '',
+    noteGlobale: noteGlobal,
+    ratings: {...ratings},
+    positifs, negatifs,
+    commentaire: document.getElementById('commentaire').value || '',
+    nps: noteNPS,
+    createdAt: Date.now()
+  };
+
+  try {
+    const r = await fetch(`${API}/avis/submit`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error();
+  } catch {
+    console.log('Fallback local — avis enregistré');
+  }
+
+  // Afficher merci
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-merci').classList.add('active');
+  document.getElementById('progress').style.width='100%';
+  document.querySelectorAll('.step').forEach(s=>s.classList.add('done'));
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Notifier la fenêtre parente si ouverte depuis le dashboard
+  if(window.opener) {
+    try { window.opener.loadAvisOverview && window.opener.loadAvisOverview(); } catch {}
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avis & Retours — Admin SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--surface:#0d1018;--card:#111520;--border:#1a2035;--border2:#242d48;
+  --text:#dce4f8;--muted:#42506e;--subtle:#141929;
+  --red:#e84060;--red-d:#2a0d15;
+  --gold:#f5c842;--gold-d:#251e08;
+  --green:#30d990;--green-d:#082a1a;
+  --blue:#5ca8ff;--blue-d:#0a1a30;
+  --purple:#b07ef8;--purple-d:#1a0d30;
+  --orange:#ff8c42;--orange-d:#2a150a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:60}
+.topbar-brand{font-family:'DM Serif Display',serif;font-size:19px;display:flex;align-items:center;gap:10px}
+.topbar-brand span{color:var(--gold)}
+.topbar-nav{display:flex;gap:2px}
+.tnav{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:.12s;border:none;background:none;font-family:'DM Sans',sans-serif}
+.tnav:hover{color:var(--text);background:var(--card)}
+.tnav.active{color:var(--gold);background:var(--gold-d)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.btn-back{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.12s}
+.btn-back:hover{color:var(--text)}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 52px)}
+
+/* ── SIDEBAR FILTRES ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;overflow-y:auto}
+.sf-title{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;padding:10px 8px 6px}
+.sf-divider{height:1px;background:var(--border);margin:8px 0}
+
+/* Filtre item */
+.fi{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:.12s;border:1px solid transparent}
+.fi:hover{background:var(--card);color:var(--text)}
+.fi.active{background:var(--gold-d);color:var(--gold);border-color:rgba(245,200,66,.12)}
+.fi-left{display:flex;align-items:center;gap:8px}
+.fi-icon{font-size:14px;width:18px;text-align:center}
+.fi-cnt{font-family:'DM Mono',monospace;font-size:10px;background:var(--subtle);color:var(--muted);padding:1px 6px;border-radius:10px;margin-left:auto}
+.fi.active .fi-cnt{background:rgba(245,200,66,.15);color:var(--gold)}
+
+/* Filtre géo hiérarchique */
+.geo-section{margin-bottom:4px}
+.geo-header{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;cursor:pointer;border-radius:6px;transition:.12s;font-size:12px;font-weight:600;color:var(--muted)}
+.geo-header:hover{background:var(--card)}
+.geo-header.expanded{color:var(--text)}
+.geo-toggle{font-size:10px;transition:.2s;margin-left:4px}
+.geo-header.expanded .geo-toggle{transform:rotate(90deg)}
+.geo-children{display:none;padding-left:16px}
+.geo-header.expanded + .geo-children{display:block}
+.geo-child{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--muted);transition:.12s}
+.geo-child:hover{background:var(--card);color:var(--text)}
+.geo-child.active{color:var(--blue);background:var(--blue-d)}
+.geo-cnt{margin-left:auto;font-family:'DM Mono',monospace;font-size:10px}
+
+/* Score sidebar */
+.score-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:16px;text-align:center}
+.score-big{font-family:'DM Serif Display',serif;font-size:44px;color:var(--gold);line-height:1}
+.score-stars{color:var(--gold);font-size:15px;letter-spacing:2px;margin:4px 0}
+.score-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.score-from{font-size:11px;color:var(--text);margin-top:4px;font-weight:600}
+
+/* NPS sidebar */
+.nps-panel{background:var(--green-d);border:1px solid rgba(48,217,144,.15);border-radius:10px;padding:12px;margin-top:10px;text-align:center}
+.nps-val{font-size:32px;font-weight:700;color:var(--green)}
+.nps-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── MAIN ── */
+.main{display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOOLBAR ── */
+.toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search-box{flex:1;min-width:200px;max-width:300px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;transition:.15s}
+.search-box:focus{border-color:var(--border2)}
+.search-box::placeholder{color:var(--muted)}
+.chip{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:.12s;white-space:nowrap}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.active{background:var(--gold-d);border-color:rgba(245,200,66,.25);color:var(--gold)}
+.toolbar-right{margin-left:auto;display:flex;gap:8px}
+.btn-export{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.12s}
+.btn-export:hover{color:var(--text)}
+.sort-select{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;outline:none}
+
+/* ── STATS BAR ── */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat-cell{background:var(--surface);padding:12px 16px;text-align:center}
+.stat-val{font-size:20px;font-weight:700;line-height:1;margin-bottom:2px}
+.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace}
+
+/* ── AVIS GRID ── */
+.avis-area{flex:1;overflow-y:auto;padding:16px 20px}
+.view-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.view-list{display:flex;flex-direction:column;gap:8px}
+
+/* ── AVIS CARD ── */
+.avis-card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;transition:.15s;cursor:pointer;position:relative}
+.avis-card:hover{border-color:var(--border2);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.avis-card.has-reply{border-left:3px solid var(--blue)}
+.avis-card.pending-reply{border-left:3px solid var(--orange)}
+.card-top{padding:14px 14px 10px}
+.card-who{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.who-left{display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.avatar.f{background:var(--blue-d);color:var(--blue)}
+.avatar.s{background:var(--green-d);color:var(--green)}
+.who-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.who-meta{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.who-right{text-align:right;flex-shrink:0}
+.card-note{font-size:22px;font-weight:700;color:var(--gold);line-height:1}
+.card-stars{color:var(--gold);font-size:11px;letter-spacing:1px}
+.card-centre{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-bottom:8px}
+.centre-tag{background:var(--subtle);border:1px solid var(--border);padding:2px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px}
+.geo-tag{background:var(--blue-d);border:1px solid rgba(92,168,255,.15);color:var(--blue);padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;font-size:9px}
+.card-comment{font-size:12px;color:var(--muted);line-height:1.5;font-style:italic;margin-bottom:10px;padding:8px 10px;background:var(--subtle);border-radius:6px;border-left:2px solid var(--gold)}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.tag{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.tag.pos{background:var(--green-d);color:var(--green)}
+.tag.neg{background:var(--red-d);color:var(--red)}
+.tag.niv{background:var(--purple-d);color:var(--purple);border:1px solid rgba(176,126,248,.1)}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--border);background:var(--subtle)}
+.card-footer-left{display:flex;align-items:center;gap:8px}
+.nps-bubble{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.nps-bubble.p{background:var(--green-d);color:var(--green)}
+.nps-bubble.n{background:var(--gold-d);color:var(--gold)}
+.nps-bubble.d{background:var(--red-d);color:var(--red)}
+.card-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+.reply-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;font-family:'DM Mono',monospace}
+.reply-badge.replied{background:var(--blue-d);color:var(--blue)}
+.reply-badge.pending{background:var(--orange-d);color:var(--orange)}
+.btn-reply{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.12s}
+.btn-reply:hover{border-color:var(--blue);color:var(--blue)}
+.btn-reply.replied{border-color:var(--green);color:var(--green)}
+
+/* ── PANEL DETAIL / REPLY ── */
+.panel{position:fixed;right:0;top:52px;bottom:0;width:420px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transform:translateX(100%);transition:.25s ease}
+.panel.open{transform:none}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-title{font-family:'DM Serif Display',serif;font-size:18px}
+.panel-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:.12s}
+.panel-close:hover{background:var(--card);color:var(--text)}
+.panel-body{flex:1;overflow-y:auto;padding:20px}
+.panel-footer{padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* Panel sections */
+.ps-label{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.ps-block{margin-bottom:18px}
+.big-note{font-family:'DM Serif Display',serif;font-size:52px;color:var(--gold);text-align:center;line-height:1}
+.big-stars{text-align:center;color:var(--gold);font-size:18px;letter-spacing:3px;margin:4px 0 16px}
+.crit-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.crit-lbl{color:var(--muted);width:130px;flex-shrink:0}
+.crit-prog{flex:1;height:4px;background:var(--subtle);border-radius:2px;overflow:hidden}
+.crit-fill{height:100%;border-radius:2px;background:var(--gold)}
+.crit-val{font-weight:600;font-size:10px;width:24px;text-align:right;color:var(--text)}
+.comment-bubble{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);line-height:1.6;font-style:italic;border-left:3px solid var(--gold)}
+
+/* Reply thread */
+.reply-thread{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.rm{display:flex;gap:8px}
+.rm-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rm-av.admin{background:var(--gold-d);color:var(--gold)}
+.rm-av.user{background:var(--subtle);color:var(--muted)}
+.rm-body{flex:1}
+.rm-name{font-size:10px;color:var(--muted);margin-bottom:3px;font-family:'DM Mono',monospace}
+.rm-bubble{background:var(--card);border:1px solid var(--border);border-radius:0 8px 8px 8px;padding:8px 12px;font-size:12px;line-height:1.5}
+.rm-bubble.admin-bubble{background:var(--gold-d);border-color:rgba(245,200,66,.2);color:var(--text);border-radius:8px 0 8px 8px}
+.reply-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);resize:none;height:80px;outline:none;transition:.15s}
+.reply-input:focus{border-color:var(--border2)}
+.reply-input::placeholder{color:var(--muted)}
+.reply-actions{display:flex;gap:8px;margin-top:8px;align-items:center}
+.notif-check{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);flex:1;cursor:pointer}
+.notif-check input{accent-color:var(--gold);cursor:pointer}
+.btn-send{background:var(--gold);color:#0a0b0f;border:none;padding:8px 18px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
+.btn-send:hover{opacity:.85}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:20px;font-size:12px;font-weight:500;z-index:200;opacity:0;transition:.3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    🔥 SSIAP <span>Training</span>
+    <span style="font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;margin-left:4px">/ Admin Avis</span>
+  </div>
+  <nav class="topbar-nav">
+    <button class="tnav" onclick="window.location='admin-dashboard.html'">⬡ Dashboard</button>
+    <button class="tnav active">⭐ Avis</button>
+    <button class="tnav" onclick="window.location='admin-dashboard.html#demandes'">📨 Demandes</button>
+  </nav>
+  <div class="topbar-right">
+    <button class="btn-back" onclick="window.location='admin-dashboard.html'">← Retour dashboard</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ═══ SIDEBAR FILTRES ═══ -->
+  <aside class="sidebar">
+    <div class="sf-title">Filtres</div>
+
+    <!-- Statut réponse -->
+    <div class="fi active" onclick="setFilter('all',this)" id="fi-all">
+      <div class="fi-left"><span class="fi-icon">⬡</span> Tous les avis</div>
+      <span class="fi-cnt" id="cnt-all">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('noreplied',this)" id="fi-noreplied">
+      <div class="fi-left"><span class="fi-icon">⏳</span> Sans réponse</div>
+      <span class="fi-cnt" id="cnt-noreplied">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('replied',this)" id="fi-replied">
+      <div class="fi-left"><span class="fi-icon">✅</span> Avec réponse</div>
+      <span class="fi-cnt" id="cnt-replied">0</span>
+    </div>
+
+    <div class="sf-divider"></div>
+    <div class="sf-title">Par rôle</div>
+    <div class="fi" onclick="setFilter('formateur',this)">
+      <div class="fi-left"><span class="fi-icon">👨‍🏫</span> Formateurs</div>
+      <span class="fi-cnt" id="cnt-form">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('stagiaire',this)">
+      <div class="fi-left"><span class="fi-icon">🎓</span> Stagiaires</div>
+      <span class="fi-cnt" id="cnt-stag">0</span>
+    </div>
+
+    <div class="sf-divider"></div>
+    <div class="sf-title">Par niveau</div>
+    <div class="fi" onclick="setFilter('n1',this)">
+      <div class="fi-left"><span class="fi-icon">①</span> SSIAP 1</div>
+      <span class="fi-cnt" id="cnt-n1">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('n2',this)">
+      <div class="fi-left"><span class="fi-icon">②</span> SSIAP 2</div>
+      <span class="fi-cnt" id="cnt-n2">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('n3',this)">
+      <div class="fi-left"><span class="fi-icon">③</span> SSIAP 3</div>
+      <span class="fi-cnt" id="cnt-n3">0</span>
+    </div>
+
+    <div class="sf-divider"></div>
+    <div class="sf-title">Par note</div>
+    <div class="fi" onclick="setFilter('note5',this)">
+      <div class="fi-left"><span style="color:var(--gold)">★★★★★</span></div>
+      <span class="fi-cnt" id="cnt-5">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('note4',this)">
+      <div class="fi-left"><span style="color:var(--gold)">★★★★</span><span style="color:var(--muted)">☆</span></div>
+      <span class="fi-cnt" id="cnt-4">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('note3',this)">
+      <div class="fi-left"><span style="color:var(--gold)">★★★</span><span style="color:var(--muted)">☆☆</span></div>
+      <span class="fi-cnt" id="cnt-3">0</span>
+    </div>
+    <div class="fi" onclick="setFilter('noteminus',this)">
+      <div class="fi-left"><span style="color:var(--red)">★★</span><span style="color:var(--muted)">☆☆☆</span> et -</div>
+      <span class="fi-cnt" id="cnt-low">0</span>
+    </div>
+
+    <div class="sf-divider"></div>
+    <div class="sf-title">Géographie</div>
+
+    <!-- National -->
+    <div class="fi" onclick="setGeoFilter('national',null,this)">
+      <div class="fi-left"><span class="fi-icon">🇫🇷</span> National</div>
+      <span class="fi-cnt" id="cnt-national">0</span>
+    </div>
+
+    <!-- Par région (généré dynamiquement) -->
+    <div id="geo-tree">
+      <!-- Peuplé par JS -->
+    </div>
+
+    <!-- Score global -->
+    <div class="score-panel">
+      <div class="score-big" id="sb-note">—</div>
+      <div class="score-stars" id="sb-stars">☆☆☆☆☆</div>
+      <div class="score-sub">Note moyenne</div>
+      <div class="score-from" id="sb-from">sur 0 avis</div>
+    </div>
+    <div class="nps-panel">
+      <div class="nps-val" id="sb-nps">—</div>
+      <div class="nps-label">Score NPS</div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+      <div class="stat-cell">
+        <div class="stat-val" id="sv-total" style="color:var(--gold)">0</div>
+        <div class="stat-lbl">Total avis</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="sv-note" style="color:var(--gold)">—</div>
+        <div class="stat-lbl">Note moy.</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="sv-nps" style="color:var(--green)">—</div>
+        <div class="stat-lbl">NPS</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="sv-sansr" style="color:var(--orange)">0</div>
+        <div class="stat-lbl">Sans réponse</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="sv-centres" style="color:var(--blue)">0</div>
+        <div class="stat-lbl">Centres actifs</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input type="text" class="search-box" placeholder="🔍 Rechercher…" oninput="searchAvis(this.value)">
+      <div class="chip active" onclick="setChip('all',this)">Tous</div>
+      <div class="chip" onclick="setChip('formateur',this)">👨‍🏫 Formateurs</div>
+      <div class="chip" onclick="setChip('stagiaire',this)">🎓 Stagiaires</div>
+      <div class="chip" onclick="setChip('noreplied',this)">⏳ À traiter</div>
+      <div class="chip" onclick="setChip('low',this)">⚠️ Notes basses</div>
+      <div class="toolbar-right">
+        <select class="sort-select" onchange="sortAvis(this.value)">
+          <option value="recent">Plus récents</option>
+          <option value="note-asc">Note croissante</option>
+          <option value="note-desc">Note décroissante</option>
+          <option value="nps">NPS décroissant</option>
+        </select>
+        <button class="btn-export" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn-export" onclick="toggleView()" id="view-btn">⊞ Grille</button>
+      </div>
+    </div>
+
+    <!-- AVIS GRID -->
+    <div class="avis-area">
+      <div class="view-grid" id="avis-container">
+        <div class="empty"><div class="empty-icon">⏳</div><div>Chargement…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANEL DETAIL / RÉPONSE ═══ -->
+<div class="panel" id="panel">
+  <div class="panel-header">
+    <div class="panel-title">Détail & Réponse</div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body">
+    <!-- Contenu généré -->
+  </div>
+  <div class="panel-footer">
+    <div class="ps-label">Répondre à cet avis</div>
+    <div class="reply-thread" id="reply-thread"></div>
+    <textarea class="reply-input" id="reply-input" placeholder="Écrivez votre réponse… Elle sera visible dans le dashboard du centre et envoyée par email si activé."></textarea>
+    <div class="reply-actions">
+      <label class="notif-check">
+        <input type="checkbox" id="notify-email" checked>
+        Notifier par email
+      </label>
+      <label class="notif-check">
+        <input type="checkbox" id="notify-dashboard" checked>
+        Dashboard centre
+      </label>
+      <button class="btn-send" onclick="sendReply()">Envoyer ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let allAvis = [], displayed = [], currentAvisId = null;
+let geoFilter = null; // { type:'region'|'dept'|'ville'|'centre', value }
+let activeFilter = 'all';
+let isGridView = true;
+
+// ── Géographie simulée (à remplacer par vraies données Firebase) ──
+const GEO_DATA = {
+  'Île-de-France': { villes: ['Paris','Versailles','Boulogne'], centres: [] },
+  'Auvergne-Rhône-Alpes': { villes: ['Lyon','Grenoble','Clermont-Ferrand'], centres: [] },
+  'Nouvelle-Aquitaine': { villes: ['Bordeaux','Toulouse'], centres: [] },
+  'Provence-Alpes-Côte d\'Azur': { villes: ['Marseille','Nice','Toulon'], centres: [] },
+  'Occitanie': { villes: ['Toulouse','Montpellier','Nîmes'], centres: [] },
+};
+
+// ── Load ──
+async function loadAvis() {
+  try {
+    const r = await fetch(`${API}/avis/list?limit=200`);
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    allAvis = d.avis || [];
+  } catch {
+    allAvis = [
+      { id:'a1', role:'formateur', prenom:'Marie', nom:'Dupont', centreNom:'Centre SSIAP Paris', centreVille:'Paris', centreRegion:'Île-de-France', centreDept:'75', niveau:'2', noteGlobale:4.6, ratings:{questions:5,explications:5,interface:4,progression:4,rolespecific:5}, positifs:['Questions pertinentes','Explications détaillées','Dashboard formateur'], negatifs:['Export PDF résultats'], nps:9, commentaire:'Excellent outil, mes stagiaires progressent nettement plus vite. Les explications sont vraiment un plus pédagogique.', adminReplies:[], createdAt:Date.now()-86400000*2 },
+      { id:'a2', role:'stagiaire', prenom:'Thomas', nom:'Martin', centreNom:'Centre SSIAP Lyon', centreVille:'Lyon', centreRegion:'Auvergne-Rhône-Alpes', centreDept:'69', niveau:'1', noteGlobale:4.2, ratings:{questions:4,explications:4,interface:5,progression:4,rolespecific:4}, positifs:['Interface intuitive','Accessible partout','Prépare bien l\'examen'], negatifs:['Mode hors-ligne','Plus de questions'], nps:8, commentaire:'Très pratique pour réviser dans le métro.', adminReplies:[], createdAt:Date.now()-86400000*4 },
+      { id:'a3', role:'stagiaire', prenom:'Lucie', nom:'Bernard', centreNom:'Centre SSIAP Paris', centreVille:'Paris', centreRegion:'Île-de-France', centreDept:'75', niveau:'1', noteGlobale:5, ratings:{questions:5,explications:5,interface:5,progression:5,rolespecific:5}, positifs:['Questions pertinentes','Prépare bien l\'examen'], negatifs:[], nps:10, commentaire:'J\'ai eu 18/20 à mon examen SSIAP 1 !', adminReplies:[{texte:'Félicitations Lucie ! Votre réussite nous rend fiers 🎉', timestamp:Date.now()-86400000*5}], createdAt:Date.now()-86400000*6 },
+      { id:'a4', role:'formateur', prenom:'Jean-Pierre', nom:'Lebrun', centreNom:'Centre SSIAP Lyon', centreVille:'Lyon', centreRegion:'Auvergne-Rhône-Alpes', centreDept:'69', niveau:'3', noteGlobale:3.8, ratings:{questions:4,explications:4,interface:3,progression:4,rolespecific:3}, positifs:['Questions pertinentes'], negatifs:['Temps de chargement','App mobile'], nps:7, commentaire:'Bon outil, manque quelques fonctionnalités SSIAP 3.', adminReplies:[], createdAt:Date.now()-86400000*10 },
+      { id:'a5', role:'stagiaire', prenom:'Sophie', nom:'Renard', centreNom:'Centre SSIAP Bordeaux', centreVille:'Bordeaux', centreRegion:'Nouvelle-Aquitaine', centreDept:'33', niveau:'2', noteGlobale:4.8, ratings:{questions:5,explications:5,interface:5,progression:4,rolespecific:5}, positifs:['Questions pertinentes','Interface intuitive'], negatifs:['Notifications'], nps:10, commentaire:'Vraiment bien fait. Les questions sont dures mais c\'est exactement ce qu\'il faut.', adminReplies:[], createdAt:Date.now()-86400000*12 },
+      { id:'a6', role:'formateur', prenom:'Marc', nom:'', centreNom:'Centre SSIAP Marseille', centreVille:'Marseille', centreRegion:'Provence-Alpes-Côte d\'Azur', centreDept:'13', niveau:'2', noteGlobale:2.5, ratings:{questions:3,explications:2,interface:2,progression:3,rolespecific:2}, positifs:[], negatifs:['Temps de chargement','Design à moderniser','Stats plus détaillées','App mobile'], nps:3, commentaire:'L\'outil est encore trop basique pour nos besoins. Espérons des améliorations rapides.', adminReplies:[], createdAt:Date.now()-86400000*15 },
+    ];
+  }
+  buildGeoTree();
+  updateCounts();
+  applyFilter();
+}
+
+// ── Arbre géo ──
+function buildGeoTree() {
+  // Extraire régions/villes/centres des données réelles
+  const regions = {};
+  allAvis.forEach(a => {
+    const reg = a.centreRegion || 'Autre';
+    const vil = a.centreVille  || '—';
+    const cen = a.centreNom    || '—';
+    if (!regions[reg]) regions[reg] = { villes: {}, centres: new Set() };
+    if (!regions[reg].villes[vil]) regions[reg].villes[vil] = new Set();
+    regions[reg].villes[vil].add(cen);
+    regions[reg].centres.add(cen);
+  });
+
+  const tree = document.getElementById('geo-tree');
+  tree.innerHTML = Object.entries(regions).map(([reg, data]) => {
+    const regCount = allAvis.filter(a => (a.centreRegion||'Autre') === reg).length;
+    const villesHtml = Object.entries(data.villes).map(([vil, centres]) => {
+      const vilCount = allAvis.filter(a => a.centreVille === vil).length;
+      const centresHtml = [...centres].map(c => {
+        const cCnt = allAvis.filter(a => a.centreNom === c).length;
+        return `<div class="geo-child" onclick="setGeoFilter('centre','${c.replace(/'/g,"\\'")}',this)" style="padding-left:8px">
+          <span style="font-size:10px">🏢</span> ${c.slice(0,22)} <span class="geo-cnt">${cCnt}</span>
+        </div>`;
+      }).join('');
+      return `<div class="geo-child" onclick="setGeoFilter('ville','${vil}',this)">
+        <span style="font-size:12px">📍</span> ${vil}
+        <span class="geo-cnt">${vilCount}</span>
+      </div>${centresHtml}`;
+    }).join('');
+    return `<div class="geo-section">
+      <div class="geo-header" onclick="this.classList.toggle('expanded')">
+        <span>🗺 ${reg}</span><span class="geo-cnt" style="font-size:10px;color:var(--muted)">${regCount}</span><span class="geo-toggle">›</span>
+      </div>
+      <div class="geo-children">${villesHtml}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cnt-national').textContent = allAvis.length;
+}
+
+// ── Filtres ──
+function setFilter(f, el) {
+  activeFilter = f;
+  geoFilter = null;
+  document.querySelectorAll('.fi,.geo-child').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilter();
+}
+
+function setGeoFilter(type, val, el) {
+  geoFilter = val ? { type, val } : null;
+  activeFilter = 'all';
+  document.querySelectorAll('.fi,.geo-child').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  applyFilter();
+}
+
+function setChip(f, el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = f; geoFilter = null;
+  applyFilter();
+}
+
+function applyFilter() {
+  let list = [...allAvis];
+  if (geoFilter) {
+    if (geoFilter.type === 'centre')  list = list.filter(a => a.centreNom === geoFilter.val);
+    if (geoFilter.type === 'ville')   list = list.filter(a => a.centreVille === geoFilter.val);
+    if (geoFilter.type === 'dept')    list = list.filter(a => a.centreDept === geoFilter.val);
+    if (geoFilter.type === 'region')  list = list.filter(a => a.centreRegion === geoFilter.val);
+  } else {
+    if (activeFilter === 'formateur')  list = list.filter(a => a.role === 'formateur');
+    if (activeFilter === 'stagiaire')  list = list.filter(a => a.role === 'stagiaire');
+    if (activeFilter === 'replied')    list = list.filter(a => (a.adminReplies||[]).length > 0);
+    if (activeFilter === 'noreplied')  list = list.filter(a => !(a.adminReplies||[]).length);
+    if (activeFilter === 'n1')         list = list.filter(a => a.niveau === '1');
+    if (activeFilter === 'n2')         list = list.filter(a => a.niveau === '2');
+    if (activeFilter === 'n3')         list = list.filter(a => a.niveau === '3');
+    if (activeFilter === 'note5')      list = list.filter(a => Math.round(a.noteGlobale) === 5);
+    if (activeFilter === 'note4')      list = list.filter(a => Math.round(a.noteGlobale) === 4);
+    if (activeFilter === 'note3')      list = list.filter(a => Math.round(a.noteGlobale) === 3);
+    if (activeFilter === 'noteminus'||activeFilter === 'low') list = list.filter(a => a.noteGlobale < 3);
+  }
+  displayed = list;
+  updateStatsBar(list);
+  renderAvis(list);
+}
+
+function searchAvis(q) {
+  if (!q) { applyFilter(); return; }
+  const lq = q.toLowerCase();
+  const list = allAvis.filter(a =>
+    (a.commentaire||'').toLowerCase().includes(lq) ||
+    (a.prenom||'').toLowerCase().includes(lq) ||
+    (a.nom||'').toLowerCase().includes(lq) ||
+    (a.centreNom||'').toLowerCase().includes(lq) ||
+    (a.centreVille||'').toLowerCase().includes(lq) ||
+    (a.positifs||[]).some(p => p.toLowerCase().includes(lq)) ||
+    (a.negatifs||[]).some(n => n.toLowerCase().includes(lq))
+  );
+  displayed = list;
+  updateStatsBar(list);
+  renderAvis(list);
+}
+
+function sortAvis(val) {
+  const list = [...displayed];
+  if (val === 'note-asc')  list.sort((a,b) => a.noteGlobale - b.noteGlobale);
+  if (val === 'note-desc') list.sort((a,b) => b.noteGlobale - a.noteGlobale);
+  if (val === 'recent')    list.sort((a,b) => b.createdAt - a.createdAt);
+  if (val === 'nps')       list.sort((a,b) => (b.nps||0) - (a.nps||0));
+  displayed = list;
+  renderAvis(list);
+}
+
+// ── Stats ──
+function updateCounts() {
+  const c = {
+    all: allAvis.length,
+    replied: allAvis.filter(a => (a.adminReplies||[]).length>0).length,
+    noreplied: allAvis.filter(a => !(a.adminReplies||[]).length).length,
+    form: allAvis.filter(a => a.role==='formateur').length,
+    stag: allAvis.filter(a => a.role==='stagiaire').length,
+    n1: allAvis.filter(a => a.niveau==='1').length,
+    n2: allAvis.filter(a => a.niveau==='2').length,
+    n3: allAvis.filter(a => a.niveau==='3').length,
+    5: allAvis.filter(a => Math.round(a.noteGlobale)===5).length,
+    4: allAvis.filter(a => Math.round(a.noteGlobale)===4).length,
+    3: allAvis.filter(a => Math.round(a.noteGlobale)===3).length,
+    low: allAvis.filter(a => a.noteGlobale < 3).length,
+  };
+  Object.entries(c).forEach(([k,v]) => { const el = document.getElementById('cnt-'+k); if(el) el.textContent = v; });
+
+  const moy = allAvis.length ? (allAvis.reduce((s,a) => s+a.noteGlobale,0)/allAvis.length).toFixed(1) : '—';
+  const withNps = allAvis.filter(a => a.nps!=null);
+  const prom = withNps.filter(a => a.nps>=9).length;
+  const detr = withNps.filter(a => a.nps<7).length;
+  const nps  = withNps.length ? Math.round(((prom-detr)/withNps.length)*100) : null;
+  const centres = [...new Set(allAvis.map(a => a.centreNom||a.centerId).filter(Boolean))].length;
+
+  document.getElementById('sb-note').textContent  = moy;
+  document.getElementById('sb-stars').textContent = starsStr(parseFloat(moy)||0);
+  document.getElementById('sb-from').textContent  = allAvis.length + ' avis';
+  document.getElementById('sb-nps').textContent   = nps!==null ? (nps>=0?'+':'')+nps : '—';
+}
+
+function updateStatsBar(list) {
+  const total = list.length;
+  const moy = total ? (list.reduce((s,a) => s+a.noteGlobale,0)/total).toFixed(1) : '—';
+  const withNps = list.filter(a => a.nps!=null);
+  const prom = withNps.filter(a => a.nps>=9).length;
+  const detr = withNps.filter(a => a.nps<7).length;
+  const nps  = withNps.length ? Math.round(((prom-detr)/withNps.length)*100) : null;
+  const sansr = list.filter(a => !(a.adminReplies||[]).length).length;
+  const centres = [...new Set(list.map(a => a.centreNom||a.centerId).filter(Boolean))].length;
+
+  document.getElementById('sv-total').textContent  = total;
+  document.getElementById('sv-note').textContent   = moy;
+  document.getElementById('sv-nps').textContent    = nps!==null ? (nps>=0?'+':'')+nps : '—';
+  document.getElementById('sv-sansr').textContent  = sansr;
+  document.getElementById('sv-centres').textContent = centres;
+}
+
+// ── Render ──
+function starsStr(n) {
+  let s = '';
+  for(let i=1;i<=5;i++) s += i<=n ? '★' : '☆';
+  return s;
+}
+
+function renderAvis(list) {
+  const container = document.getElementById('avis-container');
+  if (!list.length) {
+    container.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>Aucun avis correspondant</div></div>';
+    return;
+  }
+  container.innerHTML = list.map(a => buildCard(a)).join('');
+}
+
+function buildCard(a) {
+  const note   = parseFloat(a.noteGlobale||0).toFixed(1);
+  const nom    = [a.prenom,a.nom].filter(Boolean).join(' ') || (a.role==='formateur'?'Formateur':'Stagiaire') + ' anonyme';
+  const init   = (a.prenom?.[0]||a.role?.[0]||'?').toUpperCase();
+  const hasR   = (a.adminReplies||[]).length > 0;
+  const npsC   = a.nps>=9?'p':a.nps>=7?'n':'d';
+  const date   = new Date(a.createdAt).toLocaleDateString('fr-FR');
+  const posT   = (a.positifs||[]).slice(0,2).map(t=>`<span class="tag pos">${t}</span>`).join('');
+  const negT   = (a.negatifs||[]).slice(0,1).map(t=>`<span class="tag neg">${t}</span>`).join('');
+  const nivT   = a.niveau ? `<span class="tag niv">SSIAP ${a.niveau}</span>` : '';
+
+  return `<div class="avis-card ${hasR?'has-reply':'pending-reply'}" id="card-${a.id}">
+    <div class="card-top">
+      <div class="card-who">
+        <div class="who-left">
+          <div class="avatar ${a.role==='formateur'?'f':'s'}">${init}</div>
+          <div>
+            <div class="who-name">${nom}</div>
+            <div class="who-meta">${a.role==='formateur'?'👨‍🏫 Formateur':'🎓 Stagiaire'}</div>
+          </div>
+        </div>
+        <div class="who-right">
+          <div class="card-note">${note}</div>
+          <div class="card-stars">${starsStr(parseFloat(note))}</div>
+        </div>
+      </div>
+      <div class="card-centre">
+        <span class="centre-tag">🏢 ${(a.centreNom||'—').slice(0,20)}</span>
+        ${a.centreVille?`<span class="geo-tag">📍 ${a.centreVille}</span>`:''}
+        ${a.centreRegion?`<span class="geo-tag" style="background:var(--purple-d);color:var(--purple);border-color:rgba(176,126,248,.1)">🗺 ${a.centreRegion.split('-')[0]}</span>`:''}
+      </div>
+      ${a.commentaire?`<div class="card-comment">${a.commentaire.slice(0,120)}${a.commentaire.length>120?'…':''}</div>`:''}
+      ${(posT||negT||nivT)?`<div class="card-tags">${nivT}${posT}${negT}</div>`:''}
+    </div>
+    <div class="card-footer">
+      <div class="card-footer-left">
+        ${a.nps!=null?`<div class="nps-bubble ${npsC}" title="NPS: ${a.nps}/10">${a.nps}</div>`:''}
+        <span class="card-date">${date}</span>
+        ${hasR?`<span class="reply-badge replied">✓ Répondu</span>`:`<span class="reply-badge pending">⏳ À traiter</span>`}
+      </div>
+      <button class="btn-reply ${hasR?'replied':''}" onclick="openPanel('${a.id}',event)">
+        ${hasR?'✉ Voir réponse':'✉ Répondre'}
+      </button>
+    </div>
+  </div>`;
+}
+
+// ── Panel ──
+function openPanel(id, evt) {
+  if(evt) evt.stopPropagation();
+  currentAvisId = id;
+  const a = allAvis.find(x => x.id === id);
+  if (!a) return;
+
+  const note = parseFloat(a.noteGlobale||0).toFixed(1);
+  const nom  = [a.prenom,a.nom].filter(Boolean).join(' ') || 'Anonyme';
+  const labels = {questions:'Questions',explications:'Explications',interface:'Interface',progression:'Progression',rolespecific:'Outil rôle'};
+
+  document.getElementById('panel-body').innerHTML = `
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:52px;height:52px;border-radius:50%;background:${a.role==='formateur'?'var(--blue-d)':'var(--green-d)'};color:${a.role==='formateur'?'var(--blue)':'var(--green)'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;margin:0 auto 8px">${(a.prenom?.[0]||'?').toUpperCase()}</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:18px">${nom}</div>
+      <div style="font-size:11px;color:var(--muted)">${a.role==='formateur'?'👨‍🏫 Formateur':'🎓 Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">🏢 ${a.centreNom||'—'}${a.centreVille?' · 📍 '+a.centreVille:''}</div>
+    </div>
+    <div class="big-note">${note}/5</div>
+    <div class="big-stars">${starsStr(parseFloat(note))}</div>
+
+    ${a.ratings ? `<div class="ps-block">
+      <div class="ps-label">Notes par critère</div>
+      ${Object.entries(a.ratings).filter(([,v])=>v>0).map(([k,v]) => `
+        <div class="crit-row">
+          <span class="crit-lbl">${labels[k]||k}</span>
+          <div class="crit-prog"><div class="crit-fill" style="width:${v/5*100}%"></div></div>
+          <span class="crit-val">${v}/5</span>
+        </div>`).join('')}
+    </div>` : ''}
+
+    ${a.commentaire ? `<div class="ps-block">
+      <div class="ps-label">Commentaire</div>
+      <div class="comment-bubble">${a.commentaire}</div>
+    </div>` : ''}
+
+    ${(a.positifs||[]).length ? `<div class="ps-block">
+      <div class="ps-label">Points appréciés</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${a.positifs.map(p=>`<span class="tag pos">${p}</span>`).join('')}</div>
+    </div>` : ''}
+
+    ${(a.negatifs||[]).length ? `<div class="ps-block">
+      <div class="ps-label">À améliorer</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${a.negatifs.map(n=>`<span class="tag neg">${n}</span>`).join('')}</div>
+    </div>` : ''}
+
+    ${a.nps!=null ? `<div class="ps-block">
+      <div class="ps-label">NPS</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="nps-bubble ${a.nps>=9?'p':a.nps>=7?'n':'d'}" style="width:36px;height:36px;font-size:14px">${a.nps}</div>
+        <div style="font-size:12px;color:var(--muted)">${a.nps>=9?'Promoteur 🟢':a.nps>=7?'Passif 🟡':'Détracteur 🔴'} · ${a.nps}/10</div>
+      </div>
+    </div>` : ''}
+
+    <div style="font-size:10px;color:var(--muted);margin-top:8px">Soumis le ${new Date(a.createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
+  `;
+
+  // Thread réponses
+  const thread = document.getElementById('reply-thread');
+  const replies = a.adminReplies || [];
+  thread.innerHTML = replies.length ? replies.map(r => `
+    <div class="rm">
+      <div class="rm-av admin">A</div>
+      <div class="rm-body">
+        <div class="rm-name">Admin SSIAP Training · ${new Date(r.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        <div class="rm-bubble admin-bubble">${r.texte}</div>
+        ${r.sentEmail?`<div style="font-size:9px;color:var(--muted);margin-top:2px">✉ Email envoyé</div>`:''}
+        ${r.sentDashboard?`<div style="font-size:9px;color:var(--muted);">📊 Dashboard notifié</div>`:''}
+      </div>
+    </div>`).join('') : `<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px">Aucune réponse pour le moment</div>`;
+
+  document.getElementById('reply-input').value = '';
+  document.getElementById('panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  currentAvisId = null;
+}
+
+// ── Envoi réponse ──
+async function sendReply() {
+  const texte = document.getElementById('reply-input').value.trim();
+  if (!texte) return;
+  const notifEmail     = document.getElementById('notify-email').checked;
+  const notifDashboard = document.getElementById('notify-dashboard').checked;
+
+  const avis = allAvis.find(a => a.id === currentAvisId);
+  if (!avis) return;
+
+  const reply = { texte, timestamp: Date.now(), sentEmail: notifEmail, sentDashboard: notifDashboard };
+
+  try {
+    const r = await fetch(`${API}/avis/reply/${currentAvisId}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ texte, notifEmail, notifDashboard, centerId: avis.centerId })
+    });
+    if (!r.ok) throw new Error();
+  } catch {
+    // Mise à jour locale si API non dispo
+    avis.adminReplies = avis.adminReplies || [];
+    avis.adminReplies.push(reply);
+  }
+
+  document.getElementById('reply-input').value = '';
+  openPanel(currentAvisId, null);
+  updateCounts();
+  applyFilter();
+
+  const msgs = [`Réponse envoyée`];
+  if (notifEmail) msgs.push('✉ email');
+  if (notifDashboard) msgs.push('📊 dashboard');
+  showToast(msgs.join(' · '));
+}
+
+// ── Vue ──
+function toggleView() {
+  isGridView = !isGridView;
+  const c = document.getElementById('avis-container');
+  const b = document.getElementById('view-btn');
+  c.className = isGridView ? 'view-grid' : 'view-list';
+  b.textContent = isGridView ? '⊞ Grille' : '☰ Liste';
+}
+
+// ── Export CSV ──
+function exportCSV() {
+  const rows = [['Prénom','Nom','Rôle','Centre','Ville','Région','Niveau','Note','NPS','Positifs','Négatifs','Commentaire','Répondu','Date']];
+  displayed.forEach(a => rows.push([
+    a.prenom||'', a.nom||'', a.role, a.centreNom||'', a.centreVille||'', a.centreRegion||'',
+    a.niveau||'', a.noteGlobale, a.nps??'',
+    (a.positifs||[]).join('|'), (a.negatifs||[]).join('|'),
+    (a.commentaire||'').replace(/"/g,"''"),
+    (a.adminReplies||[]).length > 0 ? 'Oui' : 'Non',
+    new Date(a.createdAt).toLocaleDateString('fr-FR')
+  ]));
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+  a.download = `avis_ssiap_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('Export CSV téléchargé');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadAvis();
+</script>
+</body>
+</html>

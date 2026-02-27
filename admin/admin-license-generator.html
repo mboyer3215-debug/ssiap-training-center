@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Licences - ADMIN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #b91c1c;
+        }
+
+        .result {
+            background: #d1fae5;
+            border: 2px solid #16a34a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .license-key {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc2626;
+            font-family: monospace;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .license-details {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .license-details div {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .license-details div:last-child {
+            border-bottom: none;
+        }
+
+        .btn-copy {
+            background: #2563eb;
+            padding: 10px 20px;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .btn-copy:hover {
+            background: #1d4ed8;
+        }
+
+        .license-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .license-type-card {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .license-type-card h4 {
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+
+        .license-type-card ul {
+            font-size: 13px;
+            color: #6b7280;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Générateur de Licences SSIAP</h1>
+            <p>Administration - Création de licences pour les centres de formation</p>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Créer une nouvelle licence</h2>
+            
+            <form id="form-generate">
+                <div class="form-group">
+                    <label for="center-name">Nom du centre *</label>
+                    <input type="text" id="center-name" required placeholder="Centre SSIAP Paris">
+                </div>
+
+                <div class="form-group">
+                    <label for="center-email">Email du centre *</label>
+                    <input type="email" id="center-email" required placeholder="contact@centre-ssiap.fr">
+                </div>
+
+                <div class="form-group">
+                    <label for="license-type">Type de licence *</label>
+                    <select id="license-type" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="DEMO">DEMO (7 jours, 1 formateur, 10 stagiaires)</option>
+                        <option value="STARTER">STARTER (1 mois, 2 formateurs, 50 stagiaires) - 49€</option>
+                        <option value="PRO">PRO (1 mois, 5 formateurs, 200 stagiaires) - 99€</option>
+                        <option value="BUSINESS">BUSINESS (1 an, 10 formateurs, 500 stagiaires) - 999€</option>
+                        <option value="ENTERPRISE">ENTERPRISE (1 an, illimité) - Sur devis</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">🎫 Générer la licence</button>
+            </form>
+
+            <div id="result" class="result">
+                <h3 style="color: #16a34a; margin-bottom: 15px;">✅ Licence générée avec succès !</h3>
+                
+                <div class="license-key" id="license-key"></div>
+                
+                <button class="btn-copy" onclick="copyLicenseKey()">📋 Copier la clé</button>
+
+                <div class="license-details" id="license-details"></div>
+
+                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 14px;">
+                    <strong>⚠️ Important :</strong> Communiquez cette clé de licence au client.<br>
+                    Il pourra créer son compte administrateur avec cette clé sur la page d'inscription.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Types de licences disponibles</h2>
+            <div class="license-types">
+                <div class="license-type-card">
+                    <h4>DEMO</h4>
+                    <ul>
+                        <li>7 jours</li>
+                        <li>1 formateur</li>
+                        <li>10 stagiaires</li>
+                        <li>Gratuit</li>
+                    </ul>
+                </div>
+                <div class="license-type-card">
+                    <h4>STARTER</h4>
+                    <ul>
+                        <li>1 mois</li>
+                        <li>2 formateurs</li>
+                        <li>50 stagiaires</li>
+                        <li>Export CSV</li>
+                        <li>49€/mois</li>
+                    </ul>
+                </div>
+                <div class="license-type-card">
+                    <h4>PRO</h4>
+                    <ul>
+                        <li>1 mois</li>
+                        <li>5 formateurs</li>
+                        <li>200 stagiaires</li>
+                        <li>Import/Export CSV</li>
+                        <li>Stats avancées</li>
+                        <li>99€/mois</li>
+                    </ul>
+                </div>
+                <div class="license-type-card">
+                    <h4>BUSINESS</h4>
+                    <ul>
+                        <li>1 an</li>
+                        <li>10 formateurs</li>
+                        <li>500 stagiaires</li>
+                        <li>Toutes fonctionnalités</li>
+                        <li>API access</li>
+                        <li>999€/an</li>
+                    </ul>
+                </div>
+                <div class="license-type-card">
+                    <h4>ENTERPRISE</h4>
+                    <ul>
+                        <li>1 an</li>
+                        <li>Illimité</li>
+                        <li>Support prioritaire</li>
+                        <li>Personnalisation</li>
+                        <li>Sur devis</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let lastGeneratedKey = '';
+
+        document.getElementById('form-generate').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const centerName = document.getElementById('center-name').value.trim();
+            const email = document.getElementById('center-email').value.trim();
+            const type = document.getElementById('license-type').value;
+            
+            if (!centerName || !email || !type) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/license/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ centerName, email, type })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    lastGeneratedKey = data.license.licenseKey;
+                    displayResult(data.license);
+                } else {
+                    alert(`Erreur: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur de connexion au serveur');
+            }
+        });
+
+        function displayResult(license) {
+            document.getElementById('license-key').textContent = license.licenseKey;
+            
+            document.getElementById('license-details').innerHTML = `
+                <div><strong>ID Centre :</strong> ${license.centerId}</div>
+                <div><strong>Type :</strong> ${license.type}</div>
+                <div><strong>Valide jusqu'au :</strong> ${license.validUntil}</div>
+                <div><strong>Max Formateurs :</strong> ${license.maxFormateurs}</div>
+                <div><strong>Max Stagiaires :</strong> ${license.maxStagiaires}</div>
+            `;
+            
+            document.getElementById('result').classList.add('show');
+        }
+
+        function copyLicenseKey() {
+            navigator.clipboard.writeText(lastGeneratedKey).then(() => {
+                alert('Clé de licence copiée dans le presse-papier !');
+            });
+        }
+
+        console.log('🔥 Générateur de Licences SSIAP - Chargé');
+    </script>
+</body>
+</html>

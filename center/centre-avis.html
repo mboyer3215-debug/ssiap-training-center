@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avis & Retours — Espace Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rouge:       #c25a3a;
+  --rouge-hover: #aa4a2c;
+  --rouge-light: #fdf2ee;
+  --rouge-mid:   #ecc4b4;
+  --bg:          #f7f4f0;
+  --surface:     #ffffff;
+  --card:        #faf9f7;
+  --border:      #e8e2db;
+  --border2:     #d4cdc5;
+  --text:        #1e1a17;
+  --text2:       #4a4340;
+  --muted:       #8c8078;
+  --subtle:      #f0ece7;
+  --gold:        #d4960a;
+  --gold-light:  #fef7e0;
+  --green:       #2e7d52;
+  --green-light: #edf7f2;
+  --blue:        #2e5c8a;
+  --blue-light:  #eef4fb;
+  --orange:      #c27a2e;
+  --orange-light:#fef4e8;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.07);
+  --shadow:      0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg:   0 12px 32px rgba(0,0,0,.10);
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; min-height: 100vh; }
+
+
+/* ── TOPBAR CENTRE AVIS ── */
+.topbar{
+  height:64px;
+  background:var(--surface);
+  border-bottom:none;
+  border-bottom:3px solid var(--rouge);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;position:sticky;top:0;z-index:60;
+  box-shadow:0 2px 10px rgba(0,0,0,.07);
+}
+.topbar-brand{
+  display:flex;align-items:center;gap:12px;
+}
+.topbar-flame{
+  width:42px;height:42px;background:var(--rouge-light);
+  border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  border:1.5px solid var(--rouge-mid);
+}
+.topbar-name{
+  font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+  color:var(--text);letter-spacing:-.3px;
+}
+.topbar-name em{font-style:italic;color:var(--rouge)}
+.topbar-sub{font-family:'Outfit',sans-serif;font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-section{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;background:var(--rouge-light);
+  border-radius:20px;border:1px solid var(--rouge-mid);
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--rouge);
+}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.centre-badge-pill{
+  background:var(--subtle);border:1px solid var(--border);
+  padding:6px 14px;border-radius:20px;
+  font-family:'Outfit',sans-serif;font-size:11px;color:var(--text2);
+}
+.btn-link-share{
+  background:var(--rouge);color:#fff;border:none;
+  padding:8px 16px;border-radius:8px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:.15s;
+  box-shadow:0 2px 8px rgba(194,90,58,.25);
+}
+.btn-link-share:hover{background:var(--rouge-hover);transform:translateY(-1px)}
+
+/* ── LAYOUT ── */
+.layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 54px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 20px 14px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sidebar-section { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; padding: 12px 8px 6px; font-family: 'Outfit', monospace; }
+.sitem {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  cursor: pointer; font-size: 12px; font-weight: 500;
+  color: var(--muted); transition: .13s; border: 1px solid transparent;
+}
+.sitem:hover { background: var(--card); color: var(--text); }
+.sitem.active { background: var(--gold-dim); color: var(--gold); border-color: rgba(232,197,71,.15); }
+.sitem-icon { font-size: 15px; width: 18px; text-align: center; }
+.sitem-badge {
+  margin-left: auto; font-size: 10px; background: var(--subtle);
+  color: var(--muted); padding: 1px 6px; border-radius: 10px;
+}
+.sitem.active .sitem-badge { background: rgba(232,197,71,.2); color: var(--gold); }
+
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+/* Score box sidebar */
+.score-box {
+  margin-top: auto; padding: 14px;
+  background: var(--gold-dim); border: 1px solid rgba(232,197,71,.2);
+  border-radius: 10px; text-align: center;
+}
+.score-big { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 700; color: var(--gold); line-height: 1; }
+.score-stars { color: var(--gold); letter-spacing: 2px; font-size: 14px; margin: 4px 0; }
+.score-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── MAIN ── */
+.main { padding: 28px 32px; overflow-x: hidden; }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px;
+  position: relative; overflow: hidden;
+}
+.kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--kpi-color, var(--gold)); }
+.kpi-val { font-size: 28px; font-weight: 700; color: var(--kpi-color, var(--gold)); line-height: 1; margin-bottom: 4px; }
+.kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.kpi-sub { font-size: 10px; color: var(--muted); margin-top: 6px; }
+
+/* ── SECTIONS ── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── GRID ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+}
+.card-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.card-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+.card-sub { font-size: 10px; color: var(--muted); }
+
+/* ── AVIS CARD ── */
+.avis-list { display: flex; flex-direction: column; gap: 10px; }
+.avis-card {
+  background: var(--subtle); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  transition: .15s; cursor: pointer;
+  position: relative; overflow: hidden;
+}
+.avis-card:hover { border-color: var(--border-light); }
+.avis-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.avis-card.role-formateur::before { background: var(--blue); }
+.avis-card.role-stagiaire::before { background: var(--green); }
+.avis-hd { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.avis-who { display: flex; align-items: center; gap: 8px; }
+.avis-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.avis-avatar.formateur { background: var(--blue-dim); color: var(--blue); }
+.avis-avatar.stagiaire { background: var(--green-dim); color: var(--green); }
+.avis-name { font-size: 13px; font-weight: 600; }
+.avis-meta { font-size: 10px; color: var(--muted); }
+.avis-stars { color: var(--gold); font-size: 13px; letter-spacing: 1px; }
+.avis-note { font-family: 'Outfit', monospace; font-size: 11px; color: var(--gold); font-weight: 600; }
+.avis-comment { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; font-style: italic; }
+.avis-comment::before { content: '"'; color: var(--gold); font-size: 16px; }
+.avis-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.tag { font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+.tag.pos { background: var(--green-dim); color: var(--green); }
+.tag.neg { background: var(--red-dim); color: var(--red); }
+.tag.neutral { background: var(--subtle); color: var(--muted); border: 1px solid var(--border); }
+.avis-ratings-mini { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.rating-pill { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; font-size: 10px; display: flex; align-items: center; gap: 4px; }
+.rating-pill-val { color: var(--gold); font-weight: 600; }
+
+/* ── FILTRES ── */
+.filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--card); color: var(--muted); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: .13s;
+}
+.filter-chip:hover { border-color: var(--border-light); color: var(--text); }
+.filter-chip.active { background: var(--gold-dim); border-color: rgba(232,197,71,.3); color: var(--gold); }
+.filter-search {
+  flex: 1; max-width: 240px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 14px;
+  font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--text);
+  outline: none; transition: .15s;
+}
+.filter-search:focus { border-color: var(--border-light); }
+.filter-search::placeholder { color: var(--muted); }
+
+/* ── PROGRESS BARS ── */
+.prog-item { margin-bottom: 10px; }
+.prog-hd { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+.prog-label { color: var(--muted); }
+.prog-val { font-weight: 600; }
+.prog-bar { height: 5px; background: var(--subtle); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+/* ── RADAR ── */
+.radar-wrap { display: flex; align-items: center; justify-content: center; }
+
+/* ── TOP THEMES ── */
+.theme-list { display: flex; flex-direction: column; gap: 8px; }
+.theme-row { display: flex; align-items: center; gap: 10px; }
+.theme-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
+.theme-name { font-size: 12px; flex: 1; }
+.theme-bar { flex: 2; height: 4px; background: var(--subtle); border-radius: 2px; overflow: hidden; }
+.theme-fill { height: 100%; border-radius: 2px; }
+.theme-cnt { font-size: 10px; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; }
+
+/* ── DETAIL PANEL ── */
+.detail-panel {
+  display: none; position: fixed; right: 0; top: 54px; bottom: 0;
+  width: 380px; background: var(--surface); border-left: 1px solid var(--border);
+  overflow-y: auto; z-index: 40; padding: 24px;
+  animation: slideIn .2s ease;
+}
+.detail-panel.open { display: block; }
+@keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.panel-close { background: var(--subtle); border: none; color: var(--muted); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; transition: .15s; }
+.panel-close:hover { color: var(--text); }
+.panel-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; margin: 0 auto 12px; }
+.panel-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; text-align: center; margin-bottom: 4px; }
+.panel-role { text-align: center; font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.panel-stars { text-align: center; color: var(--gold); font-size: 20px; letter-spacing: 3px; margin-bottom: 4px; }
+.panel-note { text-align: center; font-size: 28px; font-weight: 700; color: var(--gold); margin-bottom: 20px; }
+.panel-section { margin-bottom: 16px; }
+.panel-section-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.detail-ratings { display: flex; flex-direction: column; gap: 6px; }
+.dr-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.dr-label { color: var(--muted); width: 120px; flex-shrink: 0; }
+.dr-stars { color: var(--gold); }
+.dr-val { font-weight: 600; font-size: 10px; }
+.panel-comment { font-size: 12px; color: var(--muted); line-height: 1.6; font-style: italic; padding: 12px; background: var(--card); border-radius: 8px; border-left: 3px solid var(--gold); }
+.nps-bubble { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-weight: 700; font-size: 14px; }
+.nps-bubble.promoteur { background: var(--green-dim); color: var(--green); }
+.nps-bubble.passif { background: var(--gold-dim); color: var(--gold); }
+.nps-bubble.detracteur { background: var(--red-dim); color: var(--red); }
+
+/* ── SHARE LINK ── */
+.share-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 16px;
+}
+.share-icon { font-size: 28px; flex-shrink: 0; }
+.share-text h3 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.share-text p { font-size: 11px; color: var(--muted); }
+.share-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+.btn-copy {
+  background: var(--subtle); border: 1px solid var(--border);
+  color: var(--text); padding: 7px 14px; border-radius: 7px;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s;
+  font-family: 'Outfit', sans-serif;
+}
+.btn-copy:hover { border-color: var(--border-light); }
+.share-url { font-family: monospace; font-size: 11px; color: var(--muted); background: var(--subtle); padding: 6px 10px; border-radius: 5px; word-break: break-all; margin-top: 8px; }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: 500; z-index: 200; opacity: 0; transition: .3s; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-flame">🔥</div>
+    <div>
+      <div class="topbar-name">SSIAP <em>Training</em></div>
+      <div class="topbar-sub">Espace Centre</div>
+    </div>
+  </div>
+  <div class="topbar-section">⭐ Avis & Retours</div>
+  <div class="topbar-right">
+    <div class="centre-badge-pill" id="centre-badge">🏢 Centre</div>
+    <button class="btn-link-share" onclick="copyShareLink(event)">🔗 Partager le formulaire</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Navigation</div>
+    <div class="sitem active" onclick="showSection('vue-ensemble',this)">
+      <span class="sitem-icon">⬡</span> Vue d'ensemble
+    </div>
+    <div class="sitem" onclick="showSection('tous-avis',this)">
+      <span class="sitem-icon">💬</span> Tous les avis
+      <span class="sitem-badge" id="badge-total">0</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Par rôle</div>
+    <div class="sitem" onclick="filterAndShow('formateur')">
+      <span class="sitem-icon">👨‍🏫</span> Formateurs
+      <span class="sitem-badge" id="badge-form">0</span>
+    </div>
+    <div class="sitem" onclick="filterAndShow('stagiaire')">
+      <span class="sitem-icon">🎓</span> Stagiaires
+      <span class="sitem-badge" id="badge-stag">0</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Par niveau</div>
+    <div class="sitem" onclick="filterByNiveau('1')">
+      <span class="sitem-icon">①</span> SSIAP 1
+      <span class="sitem-badge" id="badge-n1">0</span>
+    </div>
+    <div class="sitem" onclick="filterByNiveau('2')">
+      <span class="sitem-icon">②</span> SSIAP 2
+      <span class="sitem-badge" id="badge-n2">0</span>
+    </div>
+    <div class="sitem" onclick="filterByNiveau('3')">
+      <span class="sitem-icon">③</span> SSIAP 3
+      <span class="sitem-badge" id="badge-n3">0</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <!-- Score global -->
+    <div class="score-box">
+      <div class="score-big" id="sidebar-note">—</div>
+      <div class="score-stars" id="sidebar-stars">☆☆☆☆☆</div>
+      <div class="score-label">Note globale<br><span id="sidebar-count" style="color:var(--gold)">0 avis</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main-content">
+
+    <!-- ══ VUE D'ENSEMBLE ══ -->
+    <div id="sec-vue-ensemble" class="section active">
+
+      <!-- Lien partage -->
+      <div class="share-box">
+        <div class="share-icon">📋</div>
+        <div class="share-text">
+          <h3>Lien de collecte d'avis</h3>
+          <p>Partagez ce lien à vos formateurs et stagiaires pour recueillir leurs retours</p>
+          <div class="share-url" id="share-url-display">http://localhost:5000/formulaire-avis.html?centerId=…</div>
+        </div>
+        <div class="share-actions">
+          <button class="btn-copy" onclick="copyToClipboard()">📋 Copier</button>
+          <button class="btn-copy" onclick="openShareEmail()">✉️ Email</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi" style="--kpi-color: var(--gold)">
+          <div class="kpi-val" id="kpi-total">0</div>
+          <div class="kpi-label">Avis reçus</div>
+          <div class="kpi-sub" id="kpi-total-sub">—</div>
+        </div>
+        <div class="kpi" style="--kpi-color: var(--gold)">
+          <div class="kpi-val" id="kpi-note">—</div>
+          <div class="kpi-label">Note moyenne</div>
+          <div class="kpi-sub" id="kpi-note-sub">sur 5</div>
+        </div>
+        <div class="kpi" style="--kpi-color: var(--blue)">
+          <div class="kpi-val" id="kpi-form">0</div>
+          <div class="kpi-label">Formateurs</div>
+          <div class="kpi-sub">ont répondu</div>
+        </div>
+        <div class="kpi" style="--kpi-color: var(--green)">
+          <div class="kpi-val" id="kpi-stag">0</div>
+          <div class="kpi-label">Stagiaires</div>
+          <div class="kpi-sub">ont répondu</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Critères -->
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title"><span class="card-dot"></span> Notes par critère</div>
+          </div>
+          <div id="criteres-bars">
+            <div class="prog-item">
+              <div class="prog-hd"><span class="prog-label">Qualité des questions</span><span class="prog-val" id="crit-questions">—</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="bar-questions" style="background:var(--gold);width:0%"></div></div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-hd"><span class="prog-label">Clarté des explications</span><span class="prog-val" id="crit-explications">—</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="bar-explications" style="background:var(--gold);width:0%"></div></div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-hd"><span class="prog-label">Facilité d'utilisation</span><span class="prog-val" id="crit-interface">—</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="bar-interface" style="background:var(--blue);width:0%"></div></div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-hd"><span class="prog-label">Suivi de progression</span><span class="prog-val" id="crit-progression">—</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="bar-progression" style="background:var(--green);width:0%"></div></div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-hd"><span class="prog-label">Outil spécifique rôle</span><span class="prog-val" id="crit-rolespecific">—</span></div>
+              <div class="prog-bar"><div class="prog-fill" id="bar-rolespecific" style="background:var(--purple);width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NPS -->
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title"><span class="card-dot"></span> Recommandation (NPS)</div>
+          </div>
+          <div style="text-align:center;padding:10px 0">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;color:var(--green);line-height:1" id="nps-score">—</div>
+            <div style="font-size:11px;color:var(--muted);margin:4px 0 16px">Score NPS</div>
+            <div style="display:flex;justify-content:center;gap:12px">
+              <div style="text-align:center">
+                <div style="font-size:20px;font-weight:700;color:var(--green)" id="nps-prom">—</div>
+                <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Promoteurs</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:20px;font-weight:700;color:var(--gold)" id="nps-pass">—</div>
+                <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Passifs</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:20px;font-weight:700;color:var(--red)" id="nps-detr">—</div>
+                <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Détracteurs</div>
+              </div>
+            </div>
+          </div>
+          <!-- NPS bar -->
+          <div style="margin-top:16px;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:2px">
+            <div id="nps-bar-prom" style="background:var(--green);border-radius:4px;transition:flex 1s;flex:0"></div>
+            <div id="nps-bar-pass" style="background:var(--gold);border-radius:4px;transition:flex 1s;flex:0"></div>
+            <div id="nps-bar-detr" style="background:var(--red);border-radius:4px;transition:flex 1s;flex:1"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Points forts -->
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title"><span class="card-dot" style="background:var(--green)"></span> Ce qui plaît 💚</div>
+          </div>
+          <div class="theme-list" id="top-positifs">
+            <div style="color:var(--muted);font-size:11px">Chargement…</div>
+          </div>
+        </div>
+
+        <!-- Points à améliorer -->
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title"><span class="card-dot" style="background:var(--red)"></span> À améliorer 🔧</div>
+          </div>
+          <div class="theme-list" id="top-negatifs">
+            <div style="color:var(--muted);font-size:11px">Chargement…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derniers avis -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-title"><span class="card-dot"></span> Derniers avis reçus</div>
+          <span class="card-sub" style="cursor:pointer;color:var(--gold)" onclick="showSection('tous-avis',null)">Voir tout →</span>
+        </div>
+        <div class="avis-list" id="derniers-avis">
+          <div class="empty"><div class="empty-icon">💬</div><div>Aucun avis reçu pour le moment</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TOUS LES AVIS ══ -->
+    <div id="sec-tous-avis" class="section">
+      <div class="filter-bar">
+        <input type="text" class="filter-search" placeholder="🔍 Rechercher dans les avis…" oninput="searchAvis(this.value)">
+        <div class="filter-chip active" onclick="filterChip('all',this)">Tous</div>
+        <div class="filter-chip" onclick="filterChip('formateur',this)">👨‍🏫 Formateurs</div>
+        <div class="filter-chip" onclick="filterChip('stagiaire',this)">🎓 Stagiaires</div>
+        <div class="filter-chip" onclick="filterChip('5',this)">★★★★★</div>
+        <div class="filter-chip" onclick="filterChip('4',this)">★★★★</div>
+        <div class="filter-chip" onclick="filterChip('low',this)">★★★ et -</div>
+      </div>
+      <div class="avis-list" id="tous-avis-list">
+        <div class="empty"><div class="empty-icon">⏳</div><div>Chargement…</div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detail-panel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div id="panel-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+const urlParams = new URLSearchParams(window.location.search);
+const centerId  = urlParams.get('centerId') || localStorage.getItem('centerId') || 'center_default';
+const centreNom = localStorage.getItem('centreNom') || 'Mon Centre';
+
+let allAvis    = [];
+let filteredAvis = [];
+let activeFilter = 'all';
+
+// Init
+document.getElementById('centre-badge').textContent = '🏢 ' + centreNom;
+const shareUrl = `${window.location.origin}/formulaire-avis.html?centerId=${centerId}`;
+document.getElementById('share-url-display').textContent = shareUrl;
+
+// ── Navigation ──
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sitem').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'tous-avis') renderAvisList(filteredAvis.length ? filteredAvis : allAvis);
+}
+
+function filterAndShow(role) {
+  filteredAvis = allAvis.filter(a => a.role === role);
+  showSection('tous-avis', null);
+  document.querySelectorAll('.sitem').forEach(s => s.classList.remove('active'));
+  renderAvisList(filteredAvis);
+}
+
+function filterByNiveau(n) {
+  filteredAvis = allAvis.filter(a => a.niveau === n);
+  showSection('tous-avis', null);
+  renderAvisList(filteredAvis);
+}
+
+// ── Load ──
+async function loadAvis() {
+  try {
+    const r = await fetch(`${API}/avis/centre/${centerId}`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    allAvis = data.avis || [];
+  } catch {
+    // Données démo
+    allAvis = [
+      { id:'a1', role:'formateur', prenom:'Marie', nom:'Dupont', niveau:'2', noteGlobale:4.6, ratings:{ questions:5, explications:5, interface:4, progression:4, rolespecific:5 }, positifs:['Questions pertinentes','Explications détaillées','Dashboard formateur'], negatifs:['Export PDF résultats'], nps:9, commentaire:'Excellent outil, mes stagiaires progressent nettement plus vite depuis qu\'on utilise cette plateforme. Les explications détaillées après chaque question sont vraiment un plus pédagogique.', createdAt: Date.now()-86400000*2 },
+      { id:'a2', role:'stagiaire', prenom:'Thomas', nom:'Martin', niveau:'1', noteGlobale:4.2, ratings:{ questions:4, explications:4, interface:5, progression:4, rolespecific:4 }, positifs:['Interface intuitive','Accessible partout','Prépare bien l\'examen'], negatifs:['Mode hors-ligne','Plus de questions'], nps:8, commentaire:'Très pratique pour réviser dans le métro. L\'interface est claire et les questions ressemblent vraiment à l\'examen officiel.', createdAt: Date.now()-86400000*4 },
+      { id:'a3', role:'stagiaire', prenom:'Lucie', nom:'Bernard', niveau:'1', noteGlobale:5, ratings:{ questions:5, explications:5, interface:5, progression:5, rolespecific:5 }, positifs:['Questions pertinentes','Explications détaillées','Prépare bien l\'examen','Rapide à utiliser'], negatifs:[], nps:10, commentaire:'J\'ai eu 18/20 à mon examen SSIAP 1 ! Je suis convaincue que cette plateforme m\'a vraiment aidée à me préparer efficacement.', createdAt: Date.now()-86400000*6 },
+      { id:'a4', role:'formateur', prenom:'Jean-Pierre', nom:'', niveau:'3', noteGlobale:3.8, ratings:{ questions:4, explications:4, interface:3, progression:4, rolespecific:3 }, positifs:['Questions pertinentes','Suivi de progression'], negatifs:['Temps de chargement','App mobile dédiée','Stats plus détaillées'], nps:7, commentaire:'Bon outil dans l\'ensemble. Il manque quelques fonctionnalités pour le SSIAP 3 mais la base est là. J\'attends la version mobile.', createdAt: Date.now()-86400000*10 },
+      { id:'a5', role:'stagiaire', prenom:'', nom:'', niveau:'2', noteGlobale:4.8, ratings:{ questions:5, explications:5, interface:5, progression:4, rolespecific:5 }, positifs:['Questions pertinentes','Explications détaillées','Interface intuitive','Prépare bien l\'examen'], negatifs:['Notifications'], nps:10, commentaire:'Anonyme — Vraiment très bien fait. Les questions sont dures mais c\'est exactement ce qu\'il faut pour être prêt le jour J.', createdAt: Date.now()-86400000*12 },
+    ];
+  }
+
+  filteredAvis = [...allAvis];
+  updateBadges();
+  updateKPIs();
+  renderDerniersAvis();
+  renderAvisList(allAvis);
+}
+
+// ── Stats ──
+function updateBadges() {
+  const form = allAvis.filter(a => a.role === 'formateur').length;
+  const stag = allAvis.filter(a => a.role === 'stagiaire').length;
+  const n1   = allAvis.filter(a => a.niveau === '1').length;
+  const n2   = allAvis.filter(a => a.niveau === '2').length;
+  const n3   = allAvis.filter(a => a.niveau === '3').length;
+  document.getElementById('badge-total').textContent = allAvis.length;
+  document.getElementById('badge-form').textContent  = form;
+  document.getElementById('badge-stag').textContent  = stag;
+  document.getElementById('badge-n1').textContent    = n1;
+  document.getElementById('badge-n2').textContent    = n2;
+  document.getElementById('badge-n3').textContent    = n3;
+}
+
+function updateKPIs() {
+  const total = allAvis.length;
+  if (!total) return;
+
+  const moy = (allAvis.reduce((s,a) => s + (a.noteGlobale || 0), 0) / total).toFixed(1);
+  const form = allAvis.filter(a => a.role === 'formateur').length;
+  const stag = allAvis.filter(a => a.role === 'stagiaire').length;
+
+  document.getElementById('kpi-total').textContent    = total;
+  document.getElementById('kpi-total-sub').textContent = form + ' formateurs, ' + stag + ' stagiaires';
+  document.getElementById('kpi-note').textContent     = moy;
+  document.getElementById('kpi-form').textContent     = form;
+  document.getElementById('kpi-stag').textContent     = stag;
+
+  // Sidebar
+  const stars = starsHtml(parseFloat(moy));
+  document.getElementById('sidebar-note').textContent = moy;
+  document.getElementById('sidebar-stars').innerHTML  = stars;
+  document.getElementById('sidebar-count').textContent = total + ' avis';
+
+  // Critères
+  const cles = ['questions','explications','interface','progression','rolespecific'];
+  cles.forEach(c => {
+    const vals = allAvis.map(a => a.ratings?.[c]).filter(v => v > 0);
+    if (!vals.length) return;
+    const m = (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1);
+    document.getElementById('crit-' + c).textContent = m + '/5';
+    document.getElementById('bar-' + c).style.width   = (m/5*100) + '%';
+  });
+
+  // NPS
+  const withNps = allAvis.filter(a => a.nps !== null && a.nps !== undefined);
+  if (withNps.length) {
+    const prom = withNps.filter(a => a.nps >= 9).length;
+    const pass = withNps.filter(a => a.nps >= 7 && a.nps < 9).length;
+    const detr = withNps.filter(a => a.nps < 7).length;
+    const nps  = Math.round(((prom - detr) / withNps.length) * 100);
+    document.getElementById('nps-score').textContent = (nps >= 0 ? '+' : '') + nps;
+    document.getElementById('nps-prom').textContent = prom;
+    document.getElementById('nps-pass').textContent = pass;
+    document.getElementById('nps-detr').textContent = detr;
+    document.getElementById('nps-bar-prom').style.flex = prom;
+    document.getElementById('nps-bar-pass').style.flex = pass;
+    document.getElementById('nps-bar-detr').style.flex = Math.max(detr, 0.5);
+  }
+
+  // Top positifs / négatifs
+  const posCount = {}, negCount = {};
+  allAvis.forEach(a => {
+    (a.positifs||[]).forEach(p => { posCount[p] = (posCount[p]||0)+1; });
+    (a.negatifs||[]).forEach(n => { negCount[n] = (negCount[n]||0)+1; });
+  });
+  renderThemes('top-positifs', posCount, true);
+  renderThemes('top-negatifs', negCount, false);
+}
+
+function renderThemes(containerId, counts, pos) {
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const max = sorted[0]?.[1] || 1;
+  const icons = {'Questions pertinentes':'❓','Explications détaillées':'📖','Interface intuitive':'🖥️','Suivi de progression':'📊','Questions aléatoires':'🔀','Accessible partout':'📱','Prépare bien l\'examen':'🎯','Rapide à utiliser':'⚡','Temps de chargement':'🐌','App mobile dédiée':'📱','Export PDF résultats':'📄','Mode hors-ligne':'🌐','Plus de questions':'❓','Design à moderniser':'🎨','Stats plus détaillées':'📊','Notifications':'🔔','Dashboard formateur':'👨‍🏫'};
+  document.getElementById(containerId).innerHTML = sorted.length
+    ? sorted.map(([label, cnt]) => `
+      <div class="theme-row">
+        <span class="theme-icon">${icons[label]||'•'}</span>
+        <span class="theme-name">${label}</span>
+        <div class="theme-bar"><div class="theme-fill" style="width:${cnt/max*100}%;background:${pos?'var(--green)':'var(--red)'}"></div></div>
+        <span class="theme-cnt">${cnt}</span>
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:11px">Pas encore de données</div>';
+}
+
+// ── Render ──
+function starsHtml(note) {
+  let s = '';
+  for (let i = 1; i <= 5; i++) {
+    s += i <= note ? '★' : (i - 0.5 <= note ? '⯨' : '☆');
+  }
+  return s;
+}
+
+function renderAvisCard(a, mini = false) {
+  const role = a.role || 'stagiaire';
+  const initiale = (a.prenom?.[0] || a.role?.[0] || '?').toUpperCase();
+  const nom = [a.prenom, a.nom].filter(Boolean).join(' ') || (role === 'formateur' ? 'Formateur' : 'Stagiaire') + ' anonyme';
+  const note = parseFloat(a.noteGlobale || 0).toFixed(1);
+  const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR') : '—';
+  const possTags = (a.positifs||[]).slice(0,3).map(t => `<span class="tag pos">${t}</span>`).join('');
+  const negsTags = (a.negatifs||[]).slice(0,2).map(t => `<span class="tag neg">${t}</span>`).join('');
+  const niv = a.niveau ? `SSIAP ${a.niveau}` : '';
+  const comment = a.commentaire ? `<div class="avis-comment">${a.commentaire.slice(0,mini?100:200)}${mini && a.commentaire.length > 100 ? '…' : ''}</div>` : '';
+
+  const ratingsMini = !mini && a.ratings ? Object.entries(a.ratings).filter(([,v])=>v>0).map(([k,v]) => {
+    const labels = {questions:'Questions',explications:'Explications',interface:'Interface',progression:'Progression',rolespecific:'Outil rôle'};
+    return `<div class="rating-pill">${labels[k]||k} <span class="rating-pill-val">${v}/5</span></div>`;
+  }).join('') : '';
+
+  return `
+    <div class="avis-card role-${role}" onclick="openDetail('${a.id}')">
+      <div class="avis-hd">
+        <div class="avis-who">
+          <div class="avis-avatar ${role}">${initiale}</div>
+          <div>
+            <div class="avis-name">${nom}</div>
+            <div class="avis-meta">${role === 'formateur' ? '👨‍🏫 Formateur' : '🎓 Stagiaire'}${niv ? ' · ' + niv : ''} · ${date}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="avis-stars">${starsHtml(parseFloat(note))}</div>
+          <div class="avis-note">${note}/5</div>
+        </div>
+      </div>
+      ${comment}
+      ${(possTags || negsTags) ? `<div class="avis-tags">${possTags}${negsTags}</div>` : ''}
+      ${ratingsMini ? `<div class="avis-ratings-mini">${ratingsMini}</div>` : ''}
+    </div>`;
+}
+
+function renderDerniersAvis() {
+  const last = [...allAvis].sort((a,b) => b.createdAt - a.createdAt).slice(0,3);
+  document.getElementById('derniers-avis').innerHTML = last.length
+    ? last.map(a => renderAvisCard(a, true)).join('')
+    : '<div class="empty"><div class="empty-icon">💬</div><div>Partagez le lien formulaire pour recevoir vos premiers avis</div></div>';
+}
+
+function renderAvisList(list) {
+  document.getElementById('tous-avis-list').innerHTML = list.length
+    ? list.map(a => renderAvisCard(a, false)).join('')
+    : '<div class="empty"><div class="empty-icon">🔍</div><div>Aucun avis ne correspond à ce filtre</div></div>';
+}
+
+// ── Filtres ──
+function filterChip(filter, el) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  let list = [...allAvis];
+  if (activeFilter === 'formateur') list = list.filter(a => a.role === 'formateur');
+  else if (activeFilter === 'stagiaire') list = list.filter(a => a.role === 'stagiaire');
+  else if (activeFilter === '5') list = list.filter(a => Math.round(a.noteGlobale) === 5);
+  else if (activeFilter === '4') list = list.filter(a => Math.round(a.noteGlobale) === 4);
+  else if (activeFilter === 'low') list = list.filter(a => a.noteGlobale < 4);
+  filteredAvis = list;
+  renderAvisList(list);
+}
+
+function searchAvis(query) {
+  if (!query) { renderAvisList(allAvis); return; }
+  const q = query.toLowerCase();
+  const list = allAvis.filter(a =>
+    (a.commentaire||'').toLowerCase().includes(q) ||
+    (a.prenom||'').toLowerCase().includes(q) ||
+    (a.nom||'').toLowerCase().includes(q) ||
+    (a.positifs||[]).some(p => p.toLowerCase().includes(q)) ||
+    (a.negatifs||[]).some(n => n.toLowerCase().includes(q))
+  );
+  renderAvisList(list);
+}
+
+// ── Detail panel ──
+function openDetail(id) {
+  const a = allAvis.find(x => x.id === id);
+  if (!a) return;
+  const role = a.role || 'stagiaire';
+  const initiale = (a.prenom?.[0] || '?').toUpperCase();
+  const nom = [a.prenom, a.nom].filter(Boolean).join(' ') || (role === 'formateur' ? 'Formateur anonyme' : 'Stagiaire anonyme');
+  const note = parseFloat(a.noteGlobale||0).toFixed(1);
+  const npsClass = a.nps >= 9 ? 'promoteur' : a.nps >= 7 ? 'passif' : 'detracteur';
+  const npsLabel = a.nps >= 9 ? 'Promoteur' : a.nps >= 7 ? 'Passif' : 'Détracteur';
+  const labels = {questions:'Questions',explications:'Explications',interface:'Interface',progression:'Progression',rolespecific:'Outil rôle'};
+
+  document.getElementById('panel-content').innerHTML = `
+    <div class="panel-avatar ${role}">${initiale}</div>
+    <div class="panel-name">${nom}</div>
+    <div class="panel-role">${role === 'formateur' ? '👨‍🏫 Formateur' : '🎓 Stagiaire'}${a.niveau ? ' — SSIAP ' + a.niveau : ''}</div>
+    <div class="panel-stars">${starsHtml(parseFloat(note))}</div>
+    <div class="panel-note">${note}/5</div>
+    
+    ${a.ratings ? `<div class="panel-section">
+      <div class="panel-section-title">Notes par critère</div>
+      <div class="detail-ratings">
+        ${Object.entries(a.ratings).filter(([,v])=>v>0).map(([k,v]) => `
+          <div class="dr-row">
+            <span class="dr-label">${labels[k]||k}</span>
+            <span class="dr-stars">${starsHtml(v)}</span>
+            <span class="dr-val">${v}/5</span>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${a.commentaire ? `<div class="panel-section">
+      <div class="panel-section-title">Commentaire</div>
+      <div class="panel-comment">${a.commentaire}</div>
+    </div>` : ''}
+
+    ${(a.positifs||[]).length ? `<div class="panel-section">
+      <div class="panel-section-title">Points appréciés</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${a.positifs.map(p=>`<span class="tag pos">${p}</span>`).join('')}</div>
+    </div>` : ''}
+
+    ${(a.negatifs||[]).length ? `<div class="panel-section">
+      <div class="panel-section-title">À améliorer</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${a.negatifs.map(n=>`<span class="tag neg">${n}</span>`).join('')}</div>
+    </div>` : ''}
+
+    ${a.nps !== null && a.nps !== undefined ? `<div class="panel-section">
+      <div class="panel-section-title">Score de recommandation</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="nps-bubble ${npsClass}">${a.nps}</div>
+        <div>
+          <div style="font-size:12px;font-weight:600">${npsLabel}</div>
+          <div style="font-size:10px;color:var(--muted)">${a.nps}/10</div>
+        </div>
+      </div>
+    </div>` : ''}
+
+    <div style="margin-top:8px;font-size:10px;color:var(--muted)">Soumis le ${a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+// ── Share ──
+function copyToClipboard() {
+  navigator.clipboard.writeText(shareUrl).then(() => showToast('Lien copié dans le presse-papiers !'));
+}
+function copyShareLink(e) { e.preventDefault(); copyToClipboard(); }
+function openShareEmail() {
+  const subject = encodeURIComponent('Donnez votre avis sur SSIAP Training');
+  const body = encodeURIComponent(`Bonjour,\n\nNous vous invitons à partager votre retour d'expérience sur la plateforme SSIAP Training.\nCela ne prend que 2 minutes !\n\n👉 ${shareUrl}\n\nMerci pour votre contribution.`);
+  window.open(`mailto:?subject=${subject}&body=${body}`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Init ──
+loadAvis();
+</script>
+</body>
+</html>

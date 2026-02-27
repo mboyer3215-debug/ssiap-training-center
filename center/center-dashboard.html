@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Centre — SSIAP Training</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --rouge:       #c25a3a;
+        --rouge-hover: #aa4a2c;
+        --rouge-light: #fdf2ee;
+        --rouge-mid:   #ecc4b4;
+        --bg:          #f7f4f0;
+        --surface:     #ffffff;
+        --card:        #faf9f7;
+        --border:      #e8e2db;
+        --border2:     #d4cdc5;
+        --text:        #1e1a17;
+        --text2:       #4a4340;
+        --muted:       #8c8078;
+        --subtle:      #f0ece7;
+        --gold:        #d4960a;
+        --gold-light:  #fef7e0;
+        --green:       #2e7d52;
+        --green-light: #edf7f2;
+        --blue:        #2e5c8a;
+        --blue-light:  #eef4fb;
+        --shadow-sm:   0 1px 3px rgba(0,0,0,.07);
+        --shadow:      0 4px 12px rgba(0,0,0,.08);
+        --shadow-lg:   0 16px 40px rgba(0,0,0,.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    .dashboard-header {
+        background: var(--rouge);
+        background: linear-gradient(135deg, #c25a3a 0%, #aa4a2c 100%);
+        color: #fff;
+        box-shadow: 0 3px 14px rgba(194,90,58,.3);
+        position: sticky; top: 0; z-index: 50;
+    }
+    .header-content {
+        max-width: 1280px; margin: 0 auto;
+        padding: 0 24px;
+        display: flex; align-items: center; justify-content: space-between;
+        height: 60px; gap: 16px;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-flame {
+        width: 38px; height: 38px; background: rgba(255,255,255,.18);
+        border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        font-size: 20px; flex-shrink: 0;
+    }
+    .logo-text h1 { font-family: 'Lora', serif; font-size: 17px; font-weight: 600; color: #fff; }
+    .logo-text p { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 1px; }
+    .main-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-btn {
+        padding: 7px 14px; border-radius: 8px; border: none;
+        background: transparent; color: rgba(255,255,255,.7);
+        font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600;
+        cursor: pointer; transition: .15s; position: relative;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+    .nav-btn.active { background: rgba(255,255,255,.22); color: #fff; }
+    .notif-dot {
+        position: absolute; top: 4px; right: 6px;
+        width: 8px; height: 8px; background: #fbbf24;
+        border-radius: 50%; border: 2px solid var(--rouge);
+        display: none;
+    }
+    .notif-dot.visible { display: block; }
+    .btn-logout {
+        padding: 7px 14px; border-radius: 8px;
+        background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+        color: rgba(255,255,255,.8); font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; margin-left: 8px;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+    /* ── CONTAINER ── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 28px 24px; }
+
+    /* ── PAGES ── */
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-title {
+        font-family: 'Lora', serif; font-size: 24px; font-weight: 600;
+        color: var(--text); margin-bottom: 24px; letter-spacing: -.3px;
+    }
+
+    /* ── KPI GRID ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .kpi-card {
+        background: var(--surface); border: 1.5px solid var(--border);
+        border-radius: 14px; padding: 20px;
+        display: flex; align-items: center; gap: 16px;
+        box-shadow: var(--shadow-sm); transition: .2s;
+    }
+    .kpi-card:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+    .kpi-icon { font-size: 28px; flex-shrink: 0; }
+    .kpi-value { font-size: 28px; font-weight: 800; color: var(--rouge); line-height: 1; margin-bottom: 2px; }
+    .kpi-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .kpi-small { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+        background: var(--surface); border: 1.5px solid var(--border);
+        border-radius: 14px; padding: 22px;
+        box-shadow: var(--shadow-sm); margin-bottom: 16px;
+    }
+    .section-card h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-header h3 { margin-bottom: 0; }
+
+    /* ── BOUTONS ── */
+    .btn { padding: 9px 18px; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; border: none; }
+    .btn-primary { background: var(--rouge); color: #fff; box-shadow: 0 2px 8px rgba(194,90,58,.25); }
+    .btn-primary:hover { background: var(--rouge-hover); transform: translateY(-1px); }
+    .btn-secondary { background: var(--subtle); color: var(--text2); border: 1.5px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--border2); }
+    .btn-outline { background: transparent; color: var(--rouge); border: 1.5px solid var(--rouge); }
+    .btn-outline:hover { background: var(--rouge-light); }
+
+    /* ── ACTIONS RAPIDES ── */
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .qa-btn {
+        padding: 16px 18px; border-radius: 12px; border: none; cursor: pointer;
+        font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700;
+        color: #fff; text-align: left; transition: .18s; display: flex; align-items: center; gap: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .qa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.15); }
+    .qa-btn .qa-icon { font-size: 20px; }
+    .qa-btn.red { background: var(--rouge); }
+    .qa-btn.blue { background: var(--blue); }
+    .qa-btn.green { background: var(--green); }
+    .qa-btn.gold { background: var(--gold); }
+
+    /* ── BLOC AVIS OVERVIEW ── */
+    .avis-overview {
+        display: grid; grid-template-columns: auto 1fr auto; gap: 20px;
+        align-items: center;
+    }
+    .avis-score-big { text-align: center; }
+    .avis-note { font-family: 'Lora', serif; font-size: 48px; font-weight: 600; color: var(--gold); line-height: 1; }
+    .avis-stars { color: var(--gold); font-size: 16px; letter-spacing: 2px; margin: 4px 0; }
+    .avis-count { font-size: 11px; color: var(--muted); }
+    .avis-bars { flex: 1; }
+    .avis-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+    .avis-bar-lbl { width: 12px; color: var(--muted); text-align: right; }
+    .avis-bar-track { flex: 1; height: 6px; background: var(--subtle); border-radius: 3px; overflow: hidden; }
+    .avis-bar-fill { height: 100%; border-radius: 3px; background: var(--gold); }
+    .avis-bar-cnt { width: 20px; color: var(--muted); text-align: right; }
+    .avis-nps { text-align: center; padding: 12px 20px; background: var(--green-light); border-radius: 12px; border: 1px solid rgba(46,125,82,.15); }
+    .avis-nps-val { font-family: 'Lora', serif; font-size: 32px; font-weight: 600; color: var(--green); }
+    .avis-nps-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+    /* Derniers avis */
+    .avis-mini-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .avis-mini {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 12px; background: var(--card); border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+    .avis-mini-av {
+        width: 32px; height: 32px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .avis-mini-av.f { background: var(--blue-light); color: var(--blue); }
+    .avis-mini-av.s { background: var(--green-light); color: var(--green); }
+    .avis-mini-body { flex: 1; min-width: 0; }
+    .avis-mini-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+    .avis-mini-nom { font-size: 12px; font-weight: 700; }
+    .avis-mini-note { color: var(--gold); font-size: 11px; }
+    .avis-mini-comment { font-size: 11px; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .avis-reply-tag {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 9px; font-weight: 700; padding: 2px 8px;
+        border-radius: 5px; margin-top: 4px;
+    }
+    .avis-reply-tag.has { background: var(--blue-light); color: var(--blue); }
+    .avis-reply-tag.none { background: var(--subtle); color: var(--muted); }
+
+    /* ── NOTIFS PANEL ── */
+    .notif-panel {
+        background: var(--surface); border: 1.5px solid var(--border);
+        border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .notif-item {
+        display: flex; gap: 12px; padding: 14px 16px;
+        border-bottom: 1px solid var(--border); transition: .12s; cursor: pointer;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--subtle); }
+    .notif-item.unread { border-left: 3px solid var(--rouge); background: var(--rouge-light); }
+    .notif-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+    .notif-body { flex: 1; }
+    .notif-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .notif-sub { font-size: 11px; color: var(--muted); }
+    .notif-time { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: monospace; }
+    .notif-reply-bubble {
+        background: var(--rouge-light); border: 1px solid var(--rouge-mid);
+        border-radius: 8px; padding: 8px 12px; margin-top: 8px;
+        font-size: 12px; color: var(--rouge-hover); line-height: 1.5;
+        font-style: italic; border-left: 3px solid var(--rouge);
+    }
+
+    /* ── FORMULAIRE AVIS POPUP ── */
+    .modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(30,26,23,.5); backdrop-filter: blur(4px);
+        z-index: 100; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+        background: var(--surface); border-radius: 20px;
+        padding: 0; width: 480px; max-width: 95vw;
+        box-shadow: var(--shadow-lg); animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal-header {
+        padding: 24px 28px 0;
+        display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .modal-title { font-family: 'Lora', serif; font-size: 20px; font-weight: 600; }
+    .modal-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .modal-close {
+        background: var(--subtle); border: none; cursor: pointer;
+        width: 30px; height: 30px; border-radius: 50%;
+        color: var(--muted); font-size: 16px; transition: .12s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    .modal-body { padding: 20px 28px 28px; }
+
+    /* Sélecteur rôle */
+    .role-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .role-btn {
+        padding: 14px; border-radius: 12px; border: 2px solid var(--border);
+        background: var(--subtle); cursor: pointer; text-align: center;
+        font-family: 'Plus Jakarta Sans', sans-serif; transition: .15s;
+    }
+    .role-btn:hover { border-color: var(--rouge-mid); background: var(--rouge-light); }
+    .role-btn.selected { border-color: var(--rouge); background: var(--rouge-light); }
+    .role-btn .ri { font-size: 24px; display: block; margin-bottom: 6px; }
+    .role-btn .rn { font-size: 13px; font-weight: 700; color: var(--text); }
+    .role-btn .rs { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* Stars input */
+    .stars-input { display: flex; gap: 6px; margin-bottom: 16px; }
+    .star-btn { font-size: 24px; cursor: pointer; color: var(--border); transition: .12s; background: none; border: none; padding: 2px; }
+    .star-btn.lit { color: var(--gold); }
+    .star-btn:hover { transform: scale(1.15); }
+    .avis-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .avis-textarea {
+        width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+        padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px;
+        color: var(--text); background: var(--subtle); resize: none; height: 80px;
+        outline: none; transition: .15s;
+    }
+    .avis-textarea:focus { border-color: var(--rouge); background: #fff; box-shadow: 0 0 0 3px var(--rouge-light); }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── FORMULAIRE DANS PAGE ── */
+    #formateurs-list table, #sessions-container table {
+        width: 100%; border-collapse: collapse;
+    }
+    #formateurs-list th, #sessions-container th {
+        text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; color: var(--muted); padding: 8px 12px;
+        border-bottom: 1px solid var(--border); background: var(--subtle);
+    }
+    #formateurs-list td, #sessions-container td {
+        padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+
+    /* ── BADGE LICENCE ── */
+    .badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    }
+    .badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+    .badge-green { background: var(--green-light); color: var(--green); }
+    .badge-red { background: var(--rouge-light); color: var(--rouge); }
+    .badge-gold { background: var(--gold-light); color: var(--gold); }
+
+    /* ── LOADER ── */
+    .loader { display: none; position: fixed; inset: 0; background: rgba(247,244,240,.8); z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--rouge); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty p { font-size: 13px; }
+
+    /* Licence info */
+    .licence-grid { display: grid; gap: 10px; }
+    .licence-row { background: var(--subtle); padding: 12px 16px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); }
+    .licence-row strong { font-weight: 700; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--text); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: 500; z-index: 300; opacity: 0; transition: .3s; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="dashboard-header">
+    <div class="header-content">
+        <div class="logo">
+            <div class="logo-flame">🔥</div>
+            <div class="logo-text">
+                <h1 id="center-name">Mon Centre</h1>
+                <p>Administration du centre</p>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <button class="nav-btn active" data-page="overview">📊 Vue d'ensemble</button>
+            <button class="nav-btn" data-page="formateurs">👨‍🏫 Formateurs</button>
+            <button class="nav-btn" data-page="sessions">📅 Sessions</button>
+            <button class="nav-btn" data-page="avis">
+                ⭐ Avis
+                <span class="notif-dot" id="avis-dot"></span>
+            </button>
+            <button class="nav-btn" data-page="license">📜 Licence</button>
+            <button class="btn-logout" id="btn-logout">🚪 Déconnexion</button>
+        </nav>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- ═══ PAGE: VUE D'ENSEMBLE ═══ -->
+    <div id="page-overview" class="page active">
+        <h2 class="page-title">Vue d'ensemble</h2>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon">👨‍🏫</div>
+                <div>
+                    <div class="kpi-value" id="kpi-formateurs">—</div>
+                    <div class="kpi-label">Formateurs</div>
+                    <div class="kpi-small" id="usage-formateurs"></div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">📅</div>
+                <div>
+                    <div class="kpi-value" id="kpi-sessions">—</div>
+                    <div class="kpi-label">Sessions actives</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">👥</div>
+                <div>
+                    <div class="kpi-value" id="kpi-stagiaires">—</div>
+                    <div class="kpi-label">Stagiaires actifs</div>
+                    <div class="kpi-small" id="usage-stagiaires"></div>
+                </div>
+            </div>
+            <div class="kpi-card" id="license-card">
+                <div class="kpi-icon">📜</div>
+                <div>
+                    <div class="kpi-value" id="kpi-license-days">—</div>
+                    <div class="kpi-label">Jours restants</div>
+                    <div class="kpi-small" id="license-type"></div>
+                </div>
+            </div>
+            <div class="kpi-card" style="cursor:pointer" onclick="showPage('avis')">
+                <div class="kpi-icon">⭐</div>
+                <div>
+                    <div class="kpi-value" id="kpi-note" style="color:var(--gold)">—</div>
+                    <div class="kpi-label">Note moyenne</div>
+                    <div class="kpi-small" id="kpi-avis-count">0 avis</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="section-card">
+            <h3>Actions rapides</h3>
+            <div class="quick-actions">
+                <button class="qa-btn red" onclick="showPage('formateurs')">
+                    <span class="qa-icon">👨‍🏫</span><span>Gérer les formateurs</span>
+                </button>
+                <button class="qa-btn blue" onclick="showPage('sessions')">
+                    <span class="qa-icon">📅</span><span>Gérer les sessions</span>
+                </button>
+                <button class="qa-btn green" onclick="showPage('license')">
+                    <span class="qa-icon">📜</span><span>Voir ma licence</span>
+                </button>
+                <button class="qa-btn gold" onclick="openAvisModal()">
+                    <span class="qa-icon">⭐</span><span>Donner un avis</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Aperçu avis -->
+        <div class="section-card" id="avis-overview-card">
+            <div class="section-header">
+                <h3>⭐ Avis & Retours récents</h3>
+                <button class="btn btn-outline" onclick="showPage('avis')">Voir tout →</button>
+            </div>
+            <div class="avis-overview" id="avis-overview-content">
+                <div class="empty"><div class="empty-icon">⏳</div><p>Chargement…</p></div>
+            </div>
+            <div class="avis-mini-list" id="avis-mini-list"></div>
+        </div>
+    </div>
+
+    <!-- ═══ PAGE: FORMATEURS ═══ -->
+    <div id="page-formateurs" class="page">
+        <h2 class="page-title">Gestion des formateurs</h2>
+        <div class="section-card">
+            <div class="section-header">
+                <h3>Liste des formateurs</h3>
+                <button class="btn btn-primary" id="btn-add-formateur">➕ Ajouter un formateur</button>
+            </div>
+            <div id="formateurs-list"><div class="empty"><div class="empty-icon">👨‍🏫</div><p>Aucun formateur</p></div></div>
+        </div>
+    </div>
+
+    <!-- ═══ PAGE: SESSIONS ═══ -->
+    <div id="page-sessions" class="page">
+        <div class="section-header" style="margin-bottom:24px">
+            <h2 class="page-title" style="margin:0">Gestion des sessions</h2>
+            <button class="btn btn-primary" id="btn-add-session">📅 Nouvelle session</button>
+        </div>
+        <div id="sessions-container"><div class="empty"><div class="empty-icon">📅</div><p>Aucune session</p></div></div>
+    </div>
+
+    <!-- ═══ PAGE: AVIS ═══ -->
+    <div id="page-avis" class="page">
+        <div class="section-header" style="margin-bottom:24px">
+            <h2 class="page-title" style="margin:0">⭐ Avis & Retours</h2>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-outline" onclick="openAvisModal()">✍️ Donner un avis</button>
+                <button class="btn btn-primary" onclick="window.open('centre-avis.html','_blank')">📊 Vue détaillée →</button>
+            </div>
+        </div>
+
+        <!-- Stats avis -->
+        <div class="kpi-grid" style="margin-bottom:20px">
+            <div class="kpi-card"><div class="kpi-icon">⭐</div><div><div class="kpi-value" id="av-note" style="color:var(--gold)">—</div><div class="kpi-label">Note moyenne</div></div></div>
+            <div class="kpi-card"><div class="kpi-icon">📝</div><div><div class="kpi-value" id="av-total">0</div><div class="kpi-label">Total avis</div></div></div>
+            <div class="kpi-card"><div class="kpi-icon">👨‍🏫</div><div><div class="kpi-value" id="av-form" style="color:var(--blue)">0</div><div class="kpi-label">Formateurs</div></div></div>
+            <div class="kpi-card"><div class="kpi-icon">🎓</div><div><div class="kpi-value" id="av-stag" style="color:var(--green)">0</div><div class="kpi-label">Stagiaires</div></div></div>
+        </div>
+
+        <!-- Lien partage formulaire -->
+        <div class="section-card" style="background:var(--rouge-light);border-color:var(--rouge-mid)">
+            <h3 style="color:var(--rouge)">🔗 Partagez le formulaire d'avis</h3>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Envoyez ce lien à vos formateurs et stagiaires pour recueillir leurs retours</p>
+            <div style="display:flex;gap:10px;align-items:center">
+                <div style="flex:1;background:var(--surface);border:1.5px solid var(--rouge-mid);border-radius:8px;padding:9px 14px;font-family:monospace;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="share-url">Chargement…</div>
+                <button class="btn btn-primary" onclick="copyShareLink(event)">📋 Copier</button>
+                <button class="btn btn-secondary" onclick="sendShareEmail()">✉️ Email</button>
+            </div>
+        </div>
+
+        <!-- Notifications réponses admin -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>📬 Réponses de l'administration <span id="notif-badge" style="background:var(--rouge);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:8px;display:none"></span></h3>
+                <button class="btn btn-secondary" onclick="markAllRead()">Tout marquer lu</button>
+            </div>
+            <div id="notif-list"><div class="empty"><div class="empty-icon">📬</div><p>Aucune réponse pour le moment</p></div></div>
+        </div>
+
+        <!-- Tous les avis -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3>📋 Tous les avis reçus</h3>
+                <button class="btn btn-outline" onclick="window.open('centre-avis.html','_blank')">Voir en détail →</button>
+            </div>
+            <div id="avis-full-list"><div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu pour le moment.<br>Partagez le formulaire pour commencer !</p></div></div>
+        </div>
+    </div>
+
+    <!-- ═══ PAGE: LICENCE ═══ -->
+    <div id="page-license" class="page">
+        <h2 class="page-title">Ma licence</h2>
+        <div class="section-card">
+            <h3>Informations de licence</h3>
+            <div id="license-info" class="licence-grid" style="margin-top:16px"></div>
+        </div>
+        <div class="section-card" style="margin-top:16px">
+            <h3>Informations du centre</h3>
+            <div id="center-info" class="licence-grid" style="margin-top:16px"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL AVIS ═══ -->
+<div class="modal-overlay" id="modal-avis">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">✍️ Votre avis compte</div>
+                <div class="modal-sub">Aidez-nous à améliorer SSIAP Training</div>
+            </div>
+            <button class="modal-close" onclick="closeAvisModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="avis-label">Vous êtes</div>
+            <div class="role-select">
+                <div class="role-btn selected" id="role-f" onclick="selectRole('formateur')">
+                    <span class="ri">👨‍🏫</span>
+                    <div class="rn">Formateur</div>
+                    <div class="rs">J'encadre des stagiaires</div>
+                </div>
+                <div class="role-btn" id="role-s" onclick="selectRole('stagiaire')">
+                    <span class="ri">🎓</span>
+                    <div class="rn">Stagiaire</div>
+                    <div class="rs">Je me forme pour l'examen</div>
+                </div>
+            </div>
+            <div class="avis-label">Note globale</div>
+            <div class="stars-input" id="stars-input">
+                <button class="star-btn lit" data-v="1" onclick="setNote(1)">★</button>
+                <button class="star-btn lit" data-v="2" onclick="setNote(2)">★</button>
+                <button class="star-btn lit" data-v="3" onclick="setNote(3)">★</button>
+                <button class="star-btn lit" data-v="4" onclick="setNote(4)">★</button>
+                <button class="star-btn" data-v="5" onclick="setNote(5)">★</button>
+            </div>
+            <div class="avis-label">Commentaire <span style="font-weight:400;text-transform:none">(optionnel)</span></div>
+            <textarea class="avis-textarea" id="avis-comment" placeholder="Partagez votre expérience avec la plateforme…"></textarea>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAvisModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="submitAvisQuick()">Envoyer mon avis ✓</button>
+                <button class="btn btn-outline" onclick="openFullForm()">Formulaire complet →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" class="loader" style="display:none">
+    <div class="spinner"></div>
+    <p style="font-size:13px;color:var(--muted)">Chargement…</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = 'http://localhost:5000/api';
+let centerData = null;
+let currentNote = 4;
+let currentRole = 'formateur';
+let allAvisData = [];
+
+// ── Auth ──
+const token = localStorage.getItem('ssiap_token');
+if (!token) window.location.href = 'center-login.html';
+
+const centerStored = localStorage.getItem('ssiap_center');
+if (centerStored) {
+    centerData = JSON.parse(centerStored);
+    document.getElementById('center-name').textContent = centerData.nom || 'Mon Centre';
+}
+
+// ── Navigation ──
+document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+
+function showPage(pageId) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-page="${pageId}"]`)?.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${pageId}`)?.classList.add('active');
+    if (pageId === 'overview')   loadDashboard();
+    if (pageId === 'formateurs') loadFormateurs();
+    if (pageId === 'sessions')   initSessions();
+    if (pageId === 'license')    loadLicenseInfo();
+    if (pageId === 'avis')       loadAvisPage();
+}
+
+// ── Dashboard overview ──
+async function loadDashboard() {
+    if (!centerData) return;
+    showLoader();
+    try {
+        const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+        const d = await r.json();
+        if (d.success) {
+            document.getElementById('kpi-formateurs').textContent = d.stats.nbFormateurs;
+            document.getElementById('kpi-stagiaires').textContent = d.stats.nbStagiaires;
+            document.getElementById('kpi-sessions').textContent = d.stats.nbSessions || '—';
+            document.getElementById('kpi-license-days').textContent = d.license.daysRemaining;
+            document.getElementById('usage-formateurs').textContent = d.stats.usageFormateurs;
+            document.getElementById('usage-stagiaires').textContent = d.stats.usageStagiaires;
+            document.getElementById('license-type').textContent = `Licence ${d.license.type}`;
+            const lc = document.getElementById('license-card');
+            if (d.license.daysRemaining < 7) lc.style.borderLeft = '3px solid var(--rouge)';
+            else if (d.license.daysRemaining < 30) lc.style.borderLeft = '3px solid var(--gold)';
+            else lc.style.borderLeft = '3px solid var(--green)';
+        }
+    } catch (e) { console.error('Erreur dashboard:', e); }
+    finally { hideLoader(); }
+    loadAvisOverview();
+}
+
+// ── Avis overview (widget sur la page principale) ──
+async function loadAvisOverview() {
+    if (!centerData) return;
+    try {
+        const r = await fetch(`${API_URL}/avis/centre/${centerData.centerId}`);
+        const d = await r.json();
+        allAvisData = d.avis || [];
+        renderAvisOverview(allAvisData);
+    } catch {
+        // Données démo
+        allAvisData = [
+            { id:'d1', role:'formateur', prenom:'Marie', nom:'D.', noteGlobale:4.8, commentaire:'Excellent outil, progrès visibles.', adminReplies:[{texte:'Merci pour votre retour !', timestamp:Date.now()-86400000}], createdAt:Date.now()-86400000*2, nps:9 },
+            { id:'d2', role:'stagiaire', prenom:'Thomas', nom:'M.', noteGlobale:4.2, commentaire:'Pratique pour réviser.', adminReplies:[], createdAt:Date.now()-86400000*4, nps:8 },
+            { id:'d3', role:'stagiaire', prenom:'Lucie', nom:'B.', noteGlobale:5, commentaire:'J\'ai eu 18/20 !', adminReplies:[{texte:'Félicitations 🎉', timestamp:Date.now()-86400000*3}], createdAt:Date.now()-86400000*6, nps:10 },
+        ];
+        renderAvisOverview(allAvisData);
+    }
+    loadNotifications();
+}
+
+function renderAvisOverview(avis) {
+    const total = avis.length;
+    if (!total) {
+        document.getElementById('avis-overview-content').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⭐</div><p>Aucun avis pour le moment</p></div>';
+        document.getElementById('avis-mini-list').innerHTML = '';
+        return;
+    }
+    const moy = (avis.reduce((s,a) => s+a.noteGlobale, 0)/total).toFixed(1);
+    document.getElementById('kpi-note').textContent = moy;
+    document.getElementById('kpi-avis-count').textContent = total + ' avis';
+
+    // Distribution
+    const dist = {5:0,4:0,3:0,2:0,1:0};
+    avis.forEach(a => { const n = Math.round(a.noteGlobale); if(dist[n]!==undefined) dist[n]++; });
+    const barsHtml = [5,4,3,2,1].map(n => `
+        <div class="avis-bar-row">
+            <span class="avis-bar-lbl">${n}</span>
+            <div class="avis-bar-track"><div class="avis-bar-fill" style="width:${total?dist[n]/total*100:0}%"></div></div>
+            <span class="avis-bar-cnt">${dist[n]}</span>
+        </div>`).join('');
+
+    // NPS
+    const wn = avis.filter(a => a.nps!=null);
+    const prom = wn.filter(a => a.nps>=9).length;
+    const detr = wn.filter(a => a.nps<7).length;
+    const nps = wn.length ? Math.round(((prom-detr)/wn.length)*100) : null;
+
+    document.getElementById('avis-overview-content').innerHTML = `
+        <div class="avis-score-big">
+            <div class="avis-note">${moy}</div>
+            <div class="avis-stars">${starsStr(parseFloat(moy))}</div>
+            <div class="avis-count">${total} avis</div>
+        </div>
+        <div class="avis-bars">${barsHtml}</div>
+        ${nps!==null?`<div class="avis-nps"><div class="avis-nps-val">${nps>=0?'+':''}${nps}</div><div class="avis-nps-lbl">Score NPS</div></div>`:'<div></div>'}
+    `;
+
+    // 3 derniers avis
+    const derniers = [...avis].sort((a,b) => b.createdAt-a.createdAt).slice(0,3);
+    document.getElementById('avis-mini-list').innerHTML = derniers.map(a => {
+        const nom = [a.prenom,a.nom].filter(Boolean).join(' ') || (a.role==='formateur'?'Formateur':'Stagiaire');
+        const init = (a.prenom?.[0]||'?').toUpperCase();
+        const hasR = (a.adminReplies||[]).length > 0;
+        return `<div class="avis-mini">
+            <div class="avis-mini-av ${a.role==='formateur'?'f':'s'}">${init}</div>
+            <div class="avis-mini-body">
+                <div class="avis-mini-top">
+                    <span class="avis-mini-nom">${nom}</span>
+                    <span class="avis-mini-note">${starsStr(Math.round(a.noteGlobale))} ${a.noteGlobale.toFixed(1)}</span>
+                </div>
+                <div class="avis-mini-comment">${a.commentaire||'Aucun commentaire'}</div>
+                <span class="avis-reply-tag ${hasR?'has':'none'}">${hasR?'✓ Répondu par l\'admin':'En attente de réponse'}</span>
+                ${hasR?`<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--rouge-light);border-radius:6px;border-left:2px solid var(--rouge);font-style:italic">"${(a.adminReplies||[]).slice(-1)[0]?.texte||''}"</div>`:''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── Page Avis complète ──
+async function loadAvisPage() {
+    await loadAvisOverview();
+    const avis = allAvisData;
+    const total = avis.length;
+
+    // KPIs page avis
+    const moy = total ? (avis.reduce((s,a) => s+a.noteGlobale,0)/total).toFixed(1) : '—';
+    document.getElementById('av-note').textContent = moy;
+    document.getElementById('av-total').textContent = total;
+    document.getElementById('av-form').textContent = avis.filter(a=>a.role==='formateur').length;
+    document.getElementById('av-stag').textContent = avis.filter(a=>a.role==='stagiaire').length;
+
+    // URL partage
+    const shareUrl = `${window.location.origin}${window.location.pathname.replace('center-dashboard.html','formulaire-avis.html')}?centerId=${centerData?.centerId||'demo'}`;
+    document.getElementById('share-url').textContent = shareUrl;
+
+    // Liste complète
+    const container = document.getElementById('avis-full-list');
+    if (!total) { container.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu.<br>Partagez le formulaire !</p></div>'; return; }
+    container.innerHTML = [...avis].sort((a,b)=>b.createdAt-a.createdAt).map(a => {
+        const nom = [a.prenom,a.nom].filter(Boolean).join(' ') || 'Anonyme';
+        const init = (a.prenom?.[0]||'?').toUpperCase();
+        const hasR = (a.adminReplies||[]).length > 0;
+        const date = new Date(a.createdAt).toLocaleDateString('fr-FR');
+        return `<div class="avis-mini" style="margin-bottom:8px">
+            <div class="avis-mini-av ${a.role==='formateur'?'f':'s'}">${init}</div>
+            <div class="avis-mini-body">
+                <div class="avis-mini-top">
+                    <span class="avis-mini-nom">${nom} <span style="font-weight:400;color:var(--muted);font-size:10px">${a.role==='formateur'?'Formateur':'Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</span></span>
+                    <span style="display:flex;align-items:center;gap:8px">
+                        <span class="avis-mini-note">${starsStr(Math.round(a.noteGlobale))} ${a.noteGlobale.toFixed(1)}</span>
+                        <span style="font-size:10px;color:var(--muted)">${date}</span>
+                    </span>
+                </div>
+                ${a.commentaire?`<div class="avis-mini-comment" style="white-space:normal">${a.commentaire}</div>`:''}
+                ${hasR?`<div style="font-size:11px;color:var(--text2);margin-top:8px;padding:8px 12px;background:var(--rouge-light);border-radius:7px;border-left:3px solid var(--rouge);font-style:italic">
+                    <strong style="font-style:normal;color:var(--rouge);font-size:10px">Réponse admin :</strong><br>${(a.adminReplies||[]).slice(-1)[0]?.texte||''}
+                </div>`:'<span class="avis-reply-tag none" style="margin-top:6px">En attente de réponse</span>'}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── Notifications ──
+async function loadNotifications() {
+    if (!centerData) return;
+    let notifs = [];
+    try {
+        const r = await fetch(`${API_URL}/notifications/${centerData.centerId}`);
+        const d = await r.json();
+        notifs = d.notifications || [];
+    } catch {
+        // Démo
+        notifs = [
+            { type:'avis_reply', texteReponse:'Merci pour votre retour, nous travaillons sur les améliorations suggérées !', timestamp:Date.now()-86400000*1, read:false },
+            { type:'demande_reply', objet:'Problème connexion', texteReponse:'Nous avons résolu le problème de connexion. Merci de réessayer.', timestamp:Date.now()-86400000*3, read:true },
+        ];
+    }
+    const unread = notifs.filter(n => !n.read).length;
+
+    // Badge dans nav
+    const dot = document.getElementById('avis-dot');
+    if (unread > 0) dot.classList.add('visible'); else dot.classList.remove('visible');
+
+    // Badge dans page avis
+    const badge = document.getElementById('notif-badge');
+    if (unread > 0) { badge.textContent = unread + ' non lu' + (unread>1?'s':''); badge.style.display='inline'; }
+    else badge.style.display = 'none';
+
+    // Liste
+    const list = document.getElementById('notif-list');
+    if (!notifs.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📬</div><p>Aucune réponse</p></div>'; return; }
+    list.innerHTML = notifs.map(n => `
+        <div class="notif-item ${n.read?'':'unread'}">
+            <div class="notif-icon">${n.type==='avis_reply'?'⭐':'📨'}</div>
+            <div class="notif-body">
+                <div class="notif-title">${n.type==='avis_reply'?'Réponse à votre avis':'Réponse à votre demande'} ${n.objet?`— ${n.objet}`:''}</div>
+                <div class="notif-reply-bubble">${n.texteReponse}</div>
+                <div class="notif-time">${new Date(n.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
+            </div>
+        </div>`).join('');
+}
+
+async function markAllRead() {
+    try { await fetch(`${API_URL}/notifications/${centerData.centerId}/read`, {method:'PUT'}); } catch {}
+    document.getElementById('avis-dot').classList.remove('visible');
+    document.getElementById('notif-badge').style.display = 'none';
+    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+    showToast('Notifications marquées comme lues');
+}
+
+// ── Modal avis rapide ──
+function openAvisModal(fromSession=false) {
+    document.getElementById('modal-avis').classList.add('open');
+    if (fromSession) document.querySelector('.modal-sub').textContent = 'Session terminée — partagez votre expérience !';
+}
+function closeAvisModal() { document.getElementById('modal-avis').classList.remove('open'); }
+
+function selectRole(role) {
+    currentRole = role;
+    document.getElementById('role-f').classList.toggle('selected', role==='formateur');
+    document.getElementById('role-s').classList.toggle('selected', role==='stagiaire');
+}
+
+function setNote(n) {
+    currentNote = n;
+    document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.classList.toggle('lit', parseInt(btn.dataset.v) <= n);
+    });
+}
+
+async function submitAvisQuick() {
+    const comment = document.getElementById('avis-comment').value.trim();
+    const payload = {
+        centerId: centerData?.centerId || 'demo',
+        centreNom: centerData?.nom || '',
+        role: currentRole,
+        ratings: { questions:currentNote, explications:currentNote, interface:currentNote, progression:currentNote, rolespecific:currentNote },
+        noteGlobale: currentNote,
+        positifs: [], negatifs: [],
+        commentaire: comment,
+        createdAt: Date.now()
+    };
+    try {
+        const r = await fetch(`${API_URL}/avis/submit`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        if (!r.ok) throw new Error();
+    } catch { /* Local fallback */ }
+    closeAvisModal();
+    showToast('✓ Avis envoyé — merci !');
+    loadAvisOverview();
+}
+
+function openFullForm() {
+    const url = `formulaire-avis.html?centerId=${centerData?.centerId||'demo'}&role=${currentRole}`;
+    closeAvisModal();
+    window.open(url, '_blank');
+}
+
+// ── Partage lien ──
+function copyShareLink(e) {
+    const url = document.getElementById('share-url')?.textContent || `${window.location.href.replace('center-dashboard.html','formulaire-avis.html')}?centerId=${centerData?.centerId||'demo'}`;
+    navigator.clipboard?.writeText(url).then(() => showToast('🔗 Lien copié !')).catch(() => showToast('Copiez : '+url));
+}
+function sendShareEmail() {
+    const url = document.getElementById('share-url')?.textContent || '';
+    const subject = encodeURIComponent('Donnez votre avis sur SSIAP Training');
+    const body = encodeURIComponent(`Bonjour,\n\nNous vous invitons à donner votre avis sur notre plateforme SSIAP Training :\n${url}\n\nMerci pour votre retour !\n${centerData?.nom||''}`);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+}
+
+// ── Déclencheur fin de session ──
+// À appeler depuis center-sessions.js quand une session se termine
+window.onSessionTerminee = function(sessionData) {
+    setTimeout(() => {
+        if (confirm(`✅ Session "${sessionData?.nom||'Training'}" terminée !\n\nSouhaitez-vous laisser un avis sur la plateforme ?`)) {
+            openAvisModal(true);
+        }
+    }, 500);
+};
+
+// ── Formateurs / Sessions / Licence ──
+function loadFormateurs() {
+    if (typeof initFormateurs === 'function') initFormateurs();
+    else document.getElementById('formateurs-list').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Script center-formateurs.js non chargé</p></div>';
+}
+async function loadLicenseInfo() {
+    if (!centerData) return;
+    const l = centerData.license || {};
+    document.getElementById('license-info').innerHTML = `
+        <div class="licence-row"><strong>Type :</strong> <span class="badge badge-gold">${l.type||'—'}</span></div>
+        <div class="licence-row"><strong>Statut :</strong> <span class="badge ${l.status==='active'?'badge-green':'badge-red'}">${l.status==='active'?'Active':'Expirée'}</span></div>
+        <div class="licence-row"><strong>Valide jusqu'au :</strong> ${l.validUntil||'—'} <span style="color:var(--muted)">(${l.daysRemaining||0} jours restants)</span></div>
+        <div class="licence-row"><strong>Formateurs autorisés :</strong> ${l.maxFormateurs||'—'}</div>
+        <div class="licence-row"><strong>Stagiaires simultanés :</strong> ${l.maxStagiaires||'—'}</div>
+    `;
+    document.getElementById('center-info').innerHTML = `
+        <div class="licence-row"><strong>Nom :</strong> ${centerData.nom||'—'}</div>
+        <div class="licence-row"><strong>Email :</strong> ${centerData.email||'—'}</div>
+        <div class="licence-row"><strong>ID Centre :</strong> <code style="font-size:11px">${centerData.centerId||'—'}</code></div>
+    `;
+}
+
+// ── Helpers ──
+function starsStr(n) { let s=''; for(let i=1;i<=5;i++) s+=i<=n?'★':'☆'; return s; }
+function showLoader() { document.getElementById('loader').style.display='flex'; }
+function hideLoader() { document.getElementById('loader').style.display='none'; }
+function showToast(msg) {
+    const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── Déconnexion ──
+document.getElementById('btn-logout').addEventListener('click', () => {
+    if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+        localStorage.removeItem('ssiap_token');
+        localStorage.removeItem('ssiap_center');
+        window.location.href = 'center-login.html';
+    }
+});
+
+// ── Boutons sessions / formateurs ──
+document.getElementById('btn-add-session').addEventListener('click', () => {
+    if (typeof showAddSessionModal === 'function') showAddSessionModal();
+});
+document.getElementById('btn-add-formateur').addEventListener('click', () => {
+    if (typeof showAddFormateurModal === 'function') showAddFormateurModal();
+    else alert('⚠️ Script center-formateurs.js non chargé');
+});
+
+loadDashboard();
+console.log('🔥 Dashboard Centre SSIAP Training chargé');
+</script>
+
+<script src="center-formateurs.js"></script>
+<script src="center-sessions.js"></script>
+</body>
+</html>

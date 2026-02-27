@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Formateur - SSIAP</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🔥 SSIAP Dashboard</h1>
+                    <p>Tableau de bord formateur</p>
+                </div>
+                <nav class="main-nav">
+                    <button class="nav-btn active" data-page="overview">📊 Vue d'ensemble</button>
+                    <button class="nav-btn" data-page="stagiaires">👥 Stagiaires</button>
+                    <button class="nav-btn" data-page="questions">📝 Questions</button>
+                    <button class="btn-export" id="btn-export">📥 Export CSV</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- PAGE: VUE D'ENSEMBLE -->
+        <div id="page-overview" class="page active">
+            <h2 class="page-title">Vue d'ensemble</h2>
+            
+            <!-- KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon">👥</div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="kpi-stagiaires">-</div>
+                        <div class="kpi-label">Stagiaires actifs</div>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon">📚</div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="kpi-sessions">-</div>
+                        <div class="kpi-label">Sessions réalisées</div>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon">📈</div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="kpi-moyenne">-</div>
+                        <div class="kpi-label">Score moyen</div>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="kpi-reussite">-</div>
+                        <div class="kpi-label">Taux de réussite</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAPHIQUES -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Sessions par niveau SSIAP</h3>
+                    <canvas id="chart-niveaux"></canvas>
+                </div>
+                
+                <div class="chart-card">
+                    <h3>Top 5 Stagiaires</h3>
+                    <canvas id="chart-top"></canvas>
+                </div>
+            </div>
+
+            <!-- SESSIONS RÉCENTES -->
+            <div class="section-card">
+                <h3>Sessions récentes</h3>
+                <div id="recent-sessions" class="table-container"></div>
+            </div>
+        </div>
+
+        <!-- PAGE: STAGIAIRES -->
+        <div id="page-stagiaires" class="page">
+            <h2 class="page-title">Gestion des stagiaires</h2>
+            
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>Liste des stagiaires</h3>
+                    <input type="text" id="search-stagiaire" placeholder="🔍 Rechercher un stagiaire..." class="search-input">
+                </div>
+                <div id="stagiaires-list" class="table-container"></div>
+            </div>
+
+            <!-- DÉTAILS STAGIAIRE (modal) -->
+            <div id="modal-stagiaire" class="modal">
+                <div class="modal-content">
+                    <span class="modal-close">&times;</span>
+                    <h2 id="modal-title">Détails stagiaire</h2>
+                    <div id="modal-body"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: QUESTIONS -->
+        <div id="page-questions" class="page">
+            <h2 class="page-title">Statistiques des questions</h2>
+            
+            <div class="stats-tabs">
+                <button class="tab-btn active" data-tab="difficiles">Questions difficiles</button>
+                <button class="tab-btn" data-tab="faciles">Questions faciles</button>
+                <button class="tab-btn" data-tab="toutes">Toutes les questions</button>
+            </div>
+
+            <div class="section-card">
+                <div id="questions-stats" class="table-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <p>Chargement des données...</p>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

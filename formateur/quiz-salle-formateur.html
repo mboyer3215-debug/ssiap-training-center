@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz en Salle — Formateur · SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;
+  --bg:#f7f4f0;--surface:#fff;--card:#faf9f7;
+  --border:#e8e2db;--border2:#d4cdc5;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;
+  --gold:#d4960a;--gold-light:#fef7e0;
+  --green:#2e7d52;--green-light:#edf7f2;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+  --shadow:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 16px 40px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── SETUP ── */
+#screen-setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.setup-wrap{width:560px;max-width:95vw}
+.setup-header{text-align:center;margin-bottom:28px}
+.setup-flame{font-size:44px;margin-bottom:10px;display:block}
+.setup-header h1{font-family:'Lora',serif;font-size:26px;font-weight:600;color:var(--text);margin-bottom:4px}
+.setup-header .subtitle{font-size:13px;color:var(--muted)}
+.session-badge{display:inline-flex;align-items:center;gap:8px;background:var(--rouge-light);border:1px solid var(--rouge-mid);padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;color:var(--rouge);margin-top:10px}
+
+.scard{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.scard-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.btn-opt{padding:9px 18px;border:1.5px solid var(--border);background:var(--subtle);color:var(--text2);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;transition:.15s}
+.btn-opt:hover{border-color:var(--border2)}
+.btn-opt.active{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+
+.partie-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;margin-bottom:7px;background:var(--subtle);transition:.15s}
+.partie-opt:hover{border-color:var(--border2)}
+.partie-opt input[type="radio"]{accent-color:var(--rouge);width:16px;height:16px;flex-shrink:0}
+.partie-opt span{color:var(--text2);font-size:13px;font-weight:500;flex:1}
+.partie-opt.selected{border-color:var(--rouge);background:var(--rouge-light)}
+
+.btn-launch{width:100%;padding:14px;background:var(--rouge);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;transition:.18s;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(194,90,58,.3);margin-top:6px}
+.btn-launch:hover{background:var(--rouge-hover);transform:translateY(-1px)}
+.btn-launch:disabled{background:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ── ATTENTE ── */
+#screen-attente{display:none;min-height:100vh;padding:32px 24px;max-width:900px;margin:0 auto}
+.attente-header{text-align:center;margin-bottom:32px}
+.attente-header h1{font-family:'Lora',serif;font-size:26px;font-weight:600;color:var(--text)}
+.attente-header p{font-size:13px;color:var(--muted);margin-top:6px}
+
+.code-salle{text-align:center;background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;box-shadow:var(--shadow)}
+.code-salle .label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px}
+.code-salle .code{font-family:'DM Mono',monospace;font-size:52px;font-weight:700;color:var(--rouge);letter-spacing:6px;line-height:1}
+.code-salle .hint{font-size:12px;color:var(--muted);margin-top:8px}
+
+.stag-box{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px;margin-bottom:20px}
+.stag-box-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stag-box-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.stag-count{background:var(--green-light);color:var(--green);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:800}
+.stagiaires-grid{display:flex;flex-wrap:wrap;gap:8px}
+.stagiaire-chip{background:var(--green-light);border:1px solid rgba(46,125,82,.2);color:var(--green);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px}
+.stagiaire-chip::before{content:"✓";font-size:10px}
+
+.btn-start{width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;transition:.18s;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 3px 12px rgba(46,125,82,.3)}
+.btn-start:hover{background:#1a5235;transform:translateY(-1px)}
+
+/* ── QUESTION ── */
+#screen-question{display:none;min-height:100vh;flex-direction:column}
+.q-header{background:var(--surface);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:10;gap:16px}
+.q-header .info{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+.progress-dots{display:flex;gap:4px;flex-wrap:wrap;flex:1;justify-content:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0}
+.dot.done{background:var(--green)}
+.dot.current{background:var(--rouge)}
+.q-stats{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--muted);white-space:nowrap}
+.q-stats strong{color:var(--text);font-size:14px}
+
+.q-body{padding:28px 24px;max-width:900px;margin:0 auto;width:100%;flex:1}
+.q-num-tag{display:inline-flex;align-items:center;gap:8px;background:var(--rouge-light);border:1px solid var(--rouge-mid);padding:5px 14px;border-radius:20px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--rouge);margin-bottom:14px}
+.q-texte{font-family:'Lora',serif;font-size:22px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:28px;letter-spacing:-.2px}
+
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.option-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px;cursor:default;transition:.2s}
+.option-card.correct{border-color:var(--green);background:var(--green-light)}
+.option-letter{width:36px;height:36px;border-radius:9px;background:var(--subtle);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--muted);flex-shrink:0}
+.option-card.correct .option-letter{background:var(--green);color:#fff}
+.option-texte{font-size:14px;color:var(--text2);line-height:1.4}
+.option-card.correct .option-texte{color:var(--text);font-weight:600}
+
+.explication-box{background:var(--blue-light);border:1.5px solid rgba(46,92,138,.2);border-radius:12px;padding:16px;margin-bottom:16px;display:none}
+.explication-box .expl-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--blue);margin-bottom:6px}
+.explication-box p{font-size:13px;color:var(--text2);line-height:1.6}
+
+.reponses-stats{display:none;gap:8px;margin-bottom:16px}
+.reponse-stat{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--subtle);border-radius:9px;border:1px solid var(--border)}
+.reponse-stat.correct-stat{background:var(--green-light);border-color:rgba(46,125,82,.2)}
+.reponse-stat .lettre{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--muted);width:18px}
+.reponse-stat.correct-stat .lettre{color:var(--green)}
+.reponse-stat .bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.reponse-stat .bar{height:100%;border-radius:4px;background:var(--muted);transition:.4s}
+.reponse-stat.correct-stat .bar{background:var(--green)}
+.reponse-stat .count{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;min-width:60px;text-align:right}
+
+.q-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-action{padding:10px 20px;border-radius:10px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px}
+.btn-correction{background:var(--rouge);color:#fff;box-shadow:0 2px 8px rgba(194,90,58,.25)}
+.btn-correction:hover{background:var(--rouge-hover)}
+.btn-suivant{background:var(--blue);color:#fff}
+.btn-suivant:hover{background:#1e3f64}
+.btn-terminer{background:var(--green);color:#fff}
+.btn-terminer:hover{background:#1a5235}
+
+/* ── RÉSULTATS ── */
+#screen-resultats{display:none;min-height:100vh;padding:32px 24px;max-width:700px;margin:0 auto}
+.res-title{font-family:'Lora',serif;font-size:28px;font-weight:600;text-align:center;margin-bottom:6px}
+.res-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:28px}
+
+.podium{display:flex;gap:12px;justify-content:center;margin-bottom:24px;align-items:flex-end}
+.podium-card{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center;flex:1;max-width:180px;box-shadow:var(--shadow)}
+.podium-card.first{border-color:var(--gold);background:var(--gold-light);transform:translateY(-8px)}
+.podium-card.second{border-color:var(--border2)}
+.podium-card.third{border-color:var(--border)}
+.podium-rank{font-size:28px;margin-bottom:6px}
+.podium-nom{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.podium-score{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--rouge)}
+.podium-total{font-size:10px;color:var(--muted)}
+
+.classement-box{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.classement-ligne{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border)}
+.classement-ligne:last-child{border:none}
+.classement-rang{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--muted);width:24px;text-align:right}
+.classement-nom{flex:1;font-size:13px;font-weight:600}
+.classement-score{font-family:'DM Mono',monospace;font-size:14px;color:var(--blue);font-weight:700}
+.classement-pct{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--green-light);color:var(--green)}
+
+.btn-fermer{width:100%;padding:14px;background:var(--rouge);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 2px 10px rgba(194,90,58,.25)}
+.btn-fermer:hover{background:var(--rouge-hover)}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP ═══ -->
+<div id="screen-setup">
+  <div class="setup-wrap">
+    <div class="setup-header">
+      <span class="setup-flame">🔥</span>
+      <h1>Quiz en Salle</h1>
+      <p class="subtitle">Configurez le quiz avant de lancer la session</p>
+      <div class="session-badge">📅 <span id="setup-session-info">Chargement...</span></div>
+    </div>
+
+    <div class="scard">
+      <div class="scard-label">Type de quiz</div>
+      <div class="btn-group">
+        <button class="btn-opt active" data-type="debut">🚀 Début de session</button>
+        <button class="btn-opt" data-type="fin">🏁 Fin de session</button>
+        <button class="btn-opt" data-type="evaluation">📊 Évaluation</button>
+        <button class="btn-opt" data-type="recyclage">♻️ Recyclage</button>
+      </div>
+    </div>
+
+    <div class="scard">
+      <div class="scard-label">Nombre de questions</div>
+      <div class="btn-group">
+        <button class="btn-opt" data-nb="5">5</button>
+        <button class="btn-opt active" data-nb="10">10</button>
+        <button class="btn-opt" data-nb="15">15</button>
+        <button class="btn-opt" data-nb="20">20</button>
+      </div>
+    </div>
+
+    <div class="scard">
+      <div class="scard-label">Thématique</div>
+      <div id="partie-selector">
+        <label class="partie-opt selected">
+          <input type="radio" name="partie" value="toutes" checked>
+          <span>Toutes les thématiques</span>
+        </label>
+      </div>
+      <div id="parties-list"></div>
+    </div>
+
+    <button class="btn-launch" id="btn-lancer" disabled>🚀 Lancer la session</button>
+  </div>
+</div>
+
+<!-- ═══ ATTENTE ═══ -->
+<div id="screen-attente">
+  <div class="attente-header">
+    <h1>En attente des stagiaires…</h1>
+    <p>Les stagiaires se connectent avec leur PIN habituel</p>
+  </div>
+  <div class="code-salle">
+    <div class="label">Code de session</div>
+    <div class="code" id="display-session">SESSION</div>
+    <div class="hint">Les stagiaires rejoignent automatiquement depuis leur app</div>
+  </div>
+  <div class="stag-box">
+    <div class="stag-box-header">
+      <div class="stag-box-title">Stagiaires connectés</div>
+      <div class="stag-count" id="nb-connectes">0</div>
+    </div>
+    <div class="stagiaires-grid" id="liste-connectes"></div>
+  </div>
+  <button class="btn-start" id="btn-demarrer-quiz">
+    🚀 Démarrer le quiz (<span id="nb-prets">0</span> stagiaire(s) prêt(s))
+  </button>
+</div>
+
+<!-- ═══ QUESTION ═══ -->
+<div id="screen-question" style="display:none;flex-direction:column">
+  <div class="q-header">
+    <span class="info" id="header-info">Question 1/10</span>
+    <div class="progress-dots" id="progress-dots"></div>
+    <div class="q-stats">
+      Réponses : <strong><span id="nb-reponses">0</span>/<span id="nb-total-stag">0</span></strong>
+    </div>
+  </div>
+  <div class="q-body">
+    <div class="q-num-tag" id="question-num">QUESTION 1</div>
+    <div class="q-texte" id="question-texte"></div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="reponses-stats" id="reponses-stats"></div>
+    <div class="explication-box" id="explication-box">
+      <div class="expl-label">💡 Explication</div>
+      <p id="explication-texte"></p>
+    </div>
+    <div class="q-actions">
+      <button class="btn-action btn-correction" id="btn-correction" onclick="afficherCorrection()" style="display:inline-flex">
+        ✓ Afficher la correction
+      </button>
+      <button class="btn-action btn-suivant" id="btn-q-suivant" onclick="questionSuivante()" style="display:none">
+        → Question suivante
+      </button>
+      <button class="btn-action btn-terminer" id="btn-terminer-quiz" onclick="terminerQuiz()" style="display:none">
+        🏁 Terminer et voir les résultats
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RÉSULTATS ═══ -->
+<div id="screen-resultats">
+  <div class="res-title">🏆 Résultats du quiz</div>
+  <div class="res-sub" id="resultats-sous-titre">Chargement...</div>
+  <div class="podium" id="podium"></div>
+  <div class="classement-box">
+    <div id="classement-liste"></div>
+  </div>
+  <button class="btn-fermer" onclick="fermerQuiz()">✕ Fermer et retourner au tableau de bord</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../shared/firebase-client-config.js"></script>
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const centerId = params.get('centerId');
+const sessionId = params.get('sessionId');
+const sessionTitre = decodeURIComponent(params.get('titre') || 'Session');
+const sessionNiveau = params.get('niveau') || 'SSIAP1';
+const API_URL = params.get('api') || 'http://localhost:5000/api';
+
+let quizConfig = { type: 'debut', nbQuestions: 10, partie: 'toutes' };
+let questions = [];
+let questionIndex = 0;
+let stagiairesPrets = {};
+let reponsesQuestion = {};
+let scores = {};
+let quizRef = null;
+let db = null;
+let allQuestionsCache = null;
+
+document.getElementById('setup-session-info').textContent = `${sessionTitre} • ${niveauLabel(sessionNiveau)}`;
+
+document.querySelectorAll('[data-type]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        quizConfig.type = btn.dataset.type;
+    });
+});
+
+document.querySelectorAll('[data-nb]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-nb]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        quizConfig.nbQuestions = parseInt(btn.dataset.nb);
+    });
+});
+
+document.getElementById('partie-selector').addEventListener('change', (e) => {
+    quizConfig.partie = e.target.value;
+    document.querySelectorAll('#partie-selector .partie-opt').forEach(lbl => {
+        const inp = lbl.querySelector('input');
+        lbl.classList.toggle('selected', inp && inp.checked);
+    });
+});
+
+async function initFirebase() {
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CLIENT_CONFIG);
+        db = firebase.database();
+        document.getElementById('btn-lancer').disabled = false;
+        await chargerParties();
+    } catch(e) {
+        console.error('Erreur Firebase:', e);
+        alert('Erreur Firebase : ' + e.message);
+    }
+}
+
+async function chargerParties() {
+    try {
+        const niveauMap = { SSIAP1:'1', SSIAP2:'2', SSIAP3:'3', RECYCLAGE:'1', MAC:'1' };
+        const niveauNum = niveauMap[sessionNiveau] || '1';
+        const r = await fetch(`${API_URL}/entrainement/config/${niveauNum}`);
+        const d = await r.json();
+        if (!d.success) return;
+        const container = document.getElementById('parties-list');
+        container.innerHTML = d.config.parties.map(p => `
+            <label class="partie-opt">
+                <input type="radio" name="partie" value="${p.id}">
+                <span>${p.label}</span>
+            </label>
+        `).join('');
+    } catch(e) { console.error('Erreur parties:', e); }
+}
+
+document.getElementById('btn-lancer').addEventListener('click', async () => {
+    const niveauMap = { SSIAP1:'1', SSIAP2:'2', SSIAP3:'3', RECYCLAGE:'1', MAC:'1' };
+    const niveauNum = niveauMap[sessionNiveau] || '1';
+    try {
+        const r = await fetch(`${API_URL}/entrainement/start`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ userId:`formateur_${centerId}`, niveau:parseInt(niveauNum), partieId:quizConfig.partie||'toutes', nbQuestions:quizConfig.nbQuestions })
+        });
+        const d = await r.json();
+        if (!d.success) { alert('Erreur chargement questions : '+(d.error||'')); return; }
+        questions = d.questions;
+        if (!questions||!questions.length) { alert('Aucune question disponible'); return; }
+        quizRef = db.ref(`centers/${centerId}/sessions/${sessionId}/quizSalle`);
+        await quizRef.set({ status:'attente', type:quizConfig.type, partie:quizConfig.partie, nbQuestions:questions.length, niveau:sessionNiveau, startedAt:Date.now(), stagiairesPrets:{} });
+        document.getElementById('screen-setup').style.display = 'none';
+        document.getElementById('screen-attente').style.display = 'block';
+        document.getElementById('display-session').textContent = sessionTitre.substring(0,10).toUpperCase();
+        quizRef.child('stagiairesPrets').on('value', snap => {
+            stagiairesPrets = snap.val() || {};
+            const nb = Object.keys(stagiairesPrets).length;
+            document.getElementById('nb-connectes').textContent = nb;
+            document.getElementById('nb-prets').textContent = nb;
+            document.getElementById('liste-connectes').innerHTML = Object.values(stagiairesPrets).map(s => `<div class="stagiaire-chip">${s.nom}</div>`).join('');
+        });
+    } catch(e) { alert('Erreur : '+e.message); }
+});
+
+document.getElementById('btn-demarrer-quiz').addEventListener('click', () => {
+    if (Object.keys(stagiairesPrets).length === 0) {
+        if (!confirm('Aucun stagiaire connecté. Continuer quand même ?')) return;
+    }
+    Object.entries(stagiairesPrets).forEach(([id,s]) => { scores[id] = {nom:s.nom, score:0, total:questions.length}; });
+    questionIndex = 0;
+    afficherQuestion(questionIndex);
+});
+
+function afficherQuestion(idx) {
+    const q = questions[idx];
+    reponsesQuestion = {};
+    document.getElementById('screen-attente').style.display = 'none';
+    document.getElementById('screen-question').style.display = 'flex';
+    document.getElementById('screen-resultats').style.display = 'none';
+    document.getElementById('header-info').textContent = `Question ${idx+1}/${questions.length} • ${niveauLabel(sessionNiveau)}`;
+    document.getElementById('question-num').textContent = `QUESTION ${idx+1}`;
+    document.getElementById('question-texte').textContent = q.question;
+    document.getElementById('nb-total-stag').textContent = Object.keys(stagiairesPrets).length;
+    document.getElementById('nb-reponses').textContent = '0';
+    const dots = document.getElementById('progress-dots');
+    dots.innerHTML = questions.map((_,i) => `<div class="dot ${i<idx?'done':i===idx?'current':''}"></div>`).join('');
+    const opts = q.options || [];
+    const lettres = ['A','B','C','D'];
+    document.getElementById('options-grid').innerHTML = opts.map((rep,i) => `
+        <div class="option-card" id="opt-${i}">
+            <div class="option-letter">${lettres[i]}</div>
+            <div class="option-texte">${rep}</div>
+        </div>`).join('');
+    document.getElementById('explication-box').style.display = 'none';
+    document.getElementById('reponses-stats').style.display = 'none';
+    document.getElementById('btn-correction').style.display = 'inline-flex';
+    document.getElementById('btn-q-suivant').style.display = 'none';
+    document.getElementById('btn-terminer-quiz').style.display = 'none';
+    quizRef.update({ status:'question', questionIndex:idx, currentQuestion:{ texte:q.question, reponses:opts, nbReponses:opts.length }, reponses:null });
+    quizRef.child('reponses').off();
+    quizRef.child('reponses').on('value', snap => {
+        reponsesQuestion = snap.val() || {};
+        document.getElementById('nb-reponses').textContent = Object.keys(reponsesQuestion).length;
+    });
+}
+
+function afficherCorrection() {
+    const q = questions[questionIndex];
+    const lettres = ['A','B','C','D'];
+    const opts = q.options || [];
+    const bonnesReponses = q.correctAnswers || [q.bonneReponse||0];
+    const bonneReponse = bonnesReponses[0];
+    opts.forEach((_,i) => {
+        const card = document.getElementById(`opt-${i}`);
+        if (!card) return;
+        if (bonnesReponses.includes(i)) card.classList.add('correct');
+    });
+    Object.entries(reponsesQuestion).forEach(([stagId,rep]) => {
+        if (!scores[stagId]) return;
+        const choixListe = Array.isArray(rep.choixMultiples)&&rep.choixMultiples.length>0 ? rep.choixMultiples.map(Number) : (rep.choix!==undefined?[Number(rep.choix)]:[]);
+        const bonnesSorted = [...bonnesReponses].map(Number).sort((a,b)=>a-b);
+        const userSorted = [...choixListe].sort((a,b)=>a-b);
+        const correct = userSorted.length===bonnesSorted.length && userSorted.every((v,i)=>v===bonnesSorted[i]);
+        if (correct) scores[stagId].score++;
+    });
+    const comptages = {};
+    Object.values(reponsesQuestion).forEach(rep => {
+        const choixListe = Array.isArray(rep.choixMultiples)&&rep.choixMultiples.length>0 ? rep.choixMultiples : (rep.choix!==undefined?[rep.choix]:[]);
+        choixListe.forEach(c => { comptages[c] = (comptages[c]||0)+1; });
+    });
+    const totalRep = Object.values(reponsesQuestion).length || 1;
+    const statsDiv = document.getElementById('reponses-stats');
+    statsDiv.style.display = 'grid';
+    statsDiv.innerHTML = opts.map((_,i) => {
+        const nb = comptages[i]||0;
+        const pct = Math.round((nb/totalRep)*100);
+        const isCorrect = bonnesReponses.includes(i);
+        return `<div class="reponse-stat ${isCorrect?'correct-stat':''}">
+            <span class="lettre">${lettres[i]}</span>
+            <div class="bar-wrap"><div class="bar" style="width:${pct}%"></div></div>
+            <span class="count">${nb} (${pct}%)</span>
+        </div>`;
+    }).join('');
+    const explication = typeof q.explanation==='object' ? (q.explanation?.complete||q.explanation?.short||'') : (q.explanation||'');
+    if (explication) {
+        document.getElementById('explication-texte').textContent = explication;
+        document.getElementById('explication-box').style.display = 'block';
+    }
+    quizRef.update({ status:'correction', bonnesReponses:bonnesReponses, bonneReponse:bonneReponse, explication:explication });
+    document.getElementById('btn-correction').style.display = 'none';
+    if (questionIndex < questions.length-1) document.getElementById('btn-q-suivant').style.display = 'inline-flex';
+    else document.getElementById('btn-terminer-quiz').style.display = 'inline-flex';
+}
+
+function questionSuivante() { questionIndex++; afficherQuestion(questionIndex); }
+
+async function terminerQuiz() {
+    const classement = Object.entries(scores).map(([id,s]) => ({...s, id, pct:Math.round((s.score/s.total)*100)})).sort((a,b)=>b.score-a.score);
+    const resultsObj = {};
+    classement.forEach(s => { resultsObj[s.id] = {nom:s.nom, score:s.score, total:s.total, pct:s.pct}; });
+    await quizRef.update({ status:'fin', scores:resultsObj });
+    try {
+        await fetch(`${API_URL}/stagiaire/quiz-result`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ centerId, sessionId, type:quizConfig.type, scores:resultsObj, nbQuestions:questions.length }) });
+    } catch(e) { console.error('Erreur sauvegarde:', e); }
+    afficherResultats(classement);
+    // Déclencher popup avis si fenêtre parente
+    if (window.opener && typeof window.opener.onSessionTerminee === 'function') {
+        window.opener.onSessionTerminee({ nom: sessionTitre });
+    }
+}
+
+function afficherResultats(classement) {
+    document.getElementById('screen-question').style.display = 'none';
+    document.getElementById('screen-resultats').style.display = 'block';
+    const totalStag = classement.length;
+    const moyPct = totalStag>0 ? Math.round(classement.reduce((s,x)=>s+x.pct,0)/totalStag) : 0;
+    document.getElementById('resultats-sous-titre').textContent = `${totalStag} participant(s) • Score moyen : ${moyPct}%`;
+    const medals = ['🥇','🥈','🥉'];
+    const classes = ['first','second','third'];
+    document.getElementById('podium').innerHTML = classement.slice(0,3).map((s,i) => `
+        <div class="podium-card ${classes[i]||''}">
+            <div class="podium-rank">${medals[i]||(i+1)}</div>
+            <div class="podium-nom">${s.nom}</div>
+            <div class="podium-score">${s.score}</div>
+            <div class="podium-total">/ ${s.total} questions</div>
+        </div>`).join('');
+    document.getElementById('classement-liste').innerHTML = classement.map((s,i) => `
+        <div class="classement-ligne">
+            <div class="classement-rang">${i+1}</div>
+            <div class="classement-nom">${s.nom}</div>
+            <div class="classement-score">${s.score}/${s.total}</div>
+            <div class="classement-pct">${s.pct}%</div>
+        </div>`).join('');
+}
+
+async function fermerQuiz() {
+    if (quizRef) await quizRef.remove();
+    window.close();
+}
+
+function niveauLabel(n) {
+    const map = {SSIAP1:'SSIAP 1',SSIAP2:'SSIAP 2',SSIAP3:'SSIAP 3',RECYCLAGE:'Recyclage',MAC:'MAC'};
+    return map[n]||n;
+}
+
+initFirebase();
+</script>
+</body>
+</html>

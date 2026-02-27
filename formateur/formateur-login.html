@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion Formateur — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;--accent:#2e5c8a;--accent2:#1e3f64;--accent-light:#eef4fb;--bg:#f7f4f0;--surface:#fff;--border:#e8e2db;--text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);display:flex;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text)}
+.split{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;width:100%}
+@media(max-width:768px){.split{grid-template-columns:1fr}.split-left{display:none}}
+.split-left{background:linear-gradient(145deg,#2e5c8a 0%,#1e3f64 100%);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px;position:relative;overflow:hidden;}
+.split-left::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.06)}
+.split-left::after{content:'';position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04)}
+.brand{text-align:center;position:relative;z-index:1}
+.brand-flame{font-size:52px;margin-bottom:16px;display:block}
+.brand-name{font-family:'Lora',serif;font-size:34px;font-weight:600;color:#fff;margin-bottom:8px}
+.brand-name em{font-style:italic;opacity:.8}
+.brand-sub{color:rgba(255,255,255,.65);font-size:14px;margin-bottom:44px}
+.brand-features{display:flex;flex-direction:column;gap:14px;text-align:left;width:100%;max-width:280px}
+.feat{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.85);font-size:13px;font-weight:500}
+.feat-icon{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.split-right{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 40px;background:var(--bg)}
+.login-box{width:100%;max-width:400px}
+.login-header{margin-bottom:32px}
+.login-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:16px}
+.login-title{font-family:'Lora',serif;font-size:28px;font-weight:600;margin-bottom:6px;letter-spacing:-.3px}
+.login-sub{font-size:13px;color:var(--muted)}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.form-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:.15s;}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+.form-input::placeholder{color:var(--muted)}
+.form-input.error{border-color:#e05252}
+.input-wrap{position:relative}
+.input-wrap .form-input{padding-right:44px}
+.toggle-pw{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;transition:.12s;}
+.form-error{background:#fff2f2;border:1px solid #fdc5c5;border-radius:8px;padding:10px 14px;font-size:12px;color:#c0392b;margin-bottom:16px;display:none}
+.form-error.show{display:flex;align-items:center;gap:8px}
+.form-links{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.form-link{font-size:11px;color:var(--muted);text-decoration:none;transition:.12s}
+.form-link:hover{color:var(--accent)}
+.btn-submit{width:100%;padding:13px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.18s;box-shadow:0 3px 10px rgba(46,92,138,.25);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;}
+.btn-submit:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-submit.loading{opacity:.7;cursor:not-allowed}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn-submit.loading .spinner{display:block}
+.btn-submit.loading .btn-text{display:none}
+.login-footer{margin-top:28px;text-align:center;font-size:11px;color:var(--muted)}
+.login-footer a{color:var(--rouge);text-decoration:none;font-weight:600}
+.ssiap-badge{display:flex;gap:8px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.sb{padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;background:var(--subtle);color:var(--muted);border:1px solid var(--border)}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="split">
+  <div class="split-left">
+    <div class="brand">
+      <span class="brand-flame">🔥</span>
+      <div class="brand-name">SSIAP <em>Training</em></div>
+      <div class="brand-sub">Espace pédagogique formateur</div>
+      <div class="brand-features">
+        <div class="feat"><div class="feat-icon">👥</div>Gérez vos sessions et stagiaires</div>
+        <div class="feat"><div class="feat-icon">📊</div>Suivez la progression en temps réel</div>
+        <div class="feat"><div class="feat-icon">🎯</div>Animez des quiz en salle interactifs</div>
+      </div>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="login-tag">👨‍🏫 Espace Formateur</div>
+        <h1 class="login-title">Connexion Formateur</h1>
+        <p class="login-sub">Accédez à votre espace pédagogique</p>
+      </div>
+      <div class="form-error" id="form-error"><span>⚠️</span><span id="error-msg">Identifiants incorrects</span></div>
+      <div class="form-group">
+        <label class="form-label">Identifiant</label>
+        <input class="form-input" type="text" id="login-id" placeholder="Votre identifiant" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+          <button class="toggle-pw" type="button" onclick="togglePw()">👁</button>
+        </div>
+      </div>
+      <div class="form-links">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" style="accent-color:var(--accent)"> Se souvenir de moi
+        </label>
+        <a href="#" class="form-link">Mot de passe oublié ?</a>
+      </div>
+      <button class="btn-submit" id="btn-login" onclick="handleLogin()">
+        <span class="btn-text">Se connecter →</span>
+        <div class="spinner"></div>
+      </button>
+      <div class="ssiap-badge">
+        <span class="sb">SSIAP 1</span><span class="sb">SSIAP 2</span><span class="sb">SSIAP 3</span>
+      </div>
+      <div class="login-footer">Accès centre ? <a href="../center/center-login.html">Connexion centre</a></div>
+    </div>
+  </div>
+</div>
+<script>
+const API='http://localhost:5000/api';
+function togglePw(){const i=document.getElementById('password');i.type=i.type==='password'?'text':'password';}
+async function handleLogin(){
+  const id=document.getElementById('login-id').value.trim();
+  const pw=document.getElementById('password').value;
+  const btn=document.getElementById('btn-login');
+  const err=document.getElementById('form-error');
+  err.classList.remove('show');
+  if(!id||!pw){document.getElementById('error-msg').textContent='Veuillez remplir tous les champs';err.classList.add('show');return;}
+  btn.classList.add('loading');
+  try{
+    const r=await fetch(`${API}/formateur/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:id,password:pw})});
+    const d=await r.json();
+    if(d.success){localStorage.setItem('ssiap_formateur',JSON.stringify(d.data||d));window.location.href='formateur-dashboard.html';}
+    else{document.getElementById('error-msg').textContent=d.message||'Identifiants incorrects';err.classList.add('show');}
+  }catch{document.getElementById('error-msg').textContent='Erreur de connexion au serveur';err.classList.add('show');}
+  btn.classList.remove('loading');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+</script>
+</body>
+</html>
