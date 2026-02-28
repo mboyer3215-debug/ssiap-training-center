@@ -1,4 +1,6 @@
-# Netlify configuration
+# Netlify configuration — SSIAP Training
+# ⚠️ IMPORTANT : supprimer index.html de la racine pour que ces redirections fonctionnent
+
 [[redirects]]
   from = "/"
   to = "/center/center-login.html"
@@ -21,5 +23,10 @@
 
 [[redirects]]
   from = "/admin"
-  to = "/admin/admin-dashboard.html"
+  to = "/admin/admin-login.html"
+  status = 302
+
+[[redirects]]
+  from = "/admin/"
+  to = "/admin/admin-login.html"
   status = 302
