@@ -336,10 +336,9 @@ function showLicensePreview(lic) {
   document.getElementById('lp-type').textContent = lic.type || 'DEMO';
   document.getElementById('lp-form').textContent = lic.maxFormateurs === 9999 ? 'Illimité' : (lic.maxFormateurs || 1);
   document.getElementById('lp-stag').textContent = lic.maxStagiaires === 9999 ? 'Illimité' : (lic.maxStagiaires || 10);
-  document.getElementById('lp-exp').textContent = lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : '—';
+  document.getElementById('lp-exp').textContent = lic.endDate || lic.expiresAt || '—'; // ← corrigé
   preview.classList.add('show');
 }
-
 // ── Étape 2 : Valider infos ──
 function validateInfo() {
   const name = document.getElementById('center-name').value.trim();
