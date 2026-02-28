@@ -124,7 +124,7 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
 
 <script>
 const API = window.location.hostname === 'localhost'
-  ? 'http://localhost:5000/api'
+  ? 'http://localhost:10000/api'
   : 'https://ssiap-training-center.onrender.com/api';
 
 async function login() {
@@ -149,24 +149,18 @@ async function login() {
     const data = await r.json();
 
     if (data.success) {
-      // Stocker les infos de session
-    localStorage.setItem('ssiap_token', data.centerId); // token de session
-    localStorage.setItem('ssiap_center', JSON.stringify({
-      centerId:  data.centerId,
-      nom:       data.nom,
-      email:     data.email,
-      license: {
-        type:          data.license?.type || 'DEMO',
-        expiresAt:     data.license?.expiresAt || null,
-        maxFormateurs: data.license?.maxFormateurs || 1,
-        maxStagiaires: data.license?.maxStagiaires || 10
-      }
-    }));
-  
-    showAlert('success', `✅ Bienvenue ${data.nom} !`);
-    setTimeout(() => window.location = 'center-dashboard.html', 800);
-  }
-
+      localStorage.setItem('ssiap_token', data.centerId);
+      localStorage.setItem('ssiap_center', JSON.stringify({
+        centerId:  data.centerId,
+        nom:       data.nom,
+        email:     data.email,
+        license: {
+          type:          data.license?.type || 'DEMO',
+          expiresAt:     data.license?.expiresAt || null,
+          maxFormateurs: data.license?.maxFormateurs || 1,
+          maxStagiaires: data.license?.maxStagiaires || 10
+        }
+      }));
       showAlert('success', `✅ Bienvenue ${data.nom} !`);
       setTimeout(() => window.location = 'center-dashboard.html', 800);
     } else {
