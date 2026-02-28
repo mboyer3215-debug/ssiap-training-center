@@ -36,16 +36,12 @@ router.post('/register', async (req, res) => {
 
   try {
     // 1. Trouver la licence
-    const licSnapshot = await db.ref('licenses').orderByChild('licenseKey').equalTo(licenseKey).once('value');
-    if (!licSnapshot.exists()) {
-      return res.status(400).json({ success: false, error: 'Clé de licence invalide' });
+    const licSnapshot = await db.ref(`licenses/${licenseKey}`).once('value');
+    const licenseData = licSnapshot.val();
+    if (!licenseData) {
+    return res.status(400).json({ success: false, error: 'Clé de licence invalide' });
     }
-
-    let licenseId, licenseData;
-    licSnapshot.forEach(child => {
-      licenseId   = child.key;
-      licenseData = child.val();
-    });
+    const licenseId = licenseKey;
 
     // 2. Vérifier que la licence est disponible
     if (licenseData.used && licenseData.centerId) {
