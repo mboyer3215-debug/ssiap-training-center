@@ -268,20 +268,18 @@ const API = 'https://ssiap-training-center.onrender.com/api';
 let licenseData = null;
 let currentStep = 1;
 
-// ── Format clé ──
+// ── Format clé ── 
 function formatLicenseKey(input) {
-  let val = input.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-  if (val.startsWith('SSIAP')) val = val.slice(0, 5) + val.slice(5);
-  // Format: SSIAP-XXXX-XXXX-XXXX
+  // Garde uniquement les caractères alphanumériques, max 17
+  let val = input.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 17);
+  
+  // Réinsère les tirets aux bonnes positions
   let result = '';
-  for (let i = 0; i < val.length && i < 17; i++) {
+  for (let i = 0; i < val.length; i++) {
     if (i === 5 || i === 9 || i === 13) result += '-';
-    if (i < 5 || (i > 5 && i < 9) || (i > 9 && i < 13) || i > 13) result += val[i];
+    result += val[i];
   }
-  // Préfixe SSIAP
-  if (!result.startsWith('SSIAP')) {
-    result = ('SSIAP' + val.replace(/^SSIAP/i, '')).slice(0, 19);
-  }
+  
   input.value = result;
   document.getElementById('licence-preview').classList.remove('show');
   document.getElementById('key-valid-icon').style.display = 'none';
