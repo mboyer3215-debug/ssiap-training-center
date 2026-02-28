@@ -554,12 +554,29 @@ let currentRole = 'formateur';
 let allAvisData = [];
 
 // ── Auth ──
-const token = localStorage.getItem('ssiap_token');
+const token = localStorage.getItem('ssiap_token') || sessionStorage.getItem('centerId');
 if (!token) window.location.href = 'center-login.html';
 
 const centerStored = localStorage.getItem('ssiap_center');
 if (centerStored) {
     centerData = JSON.parse(centerStored);
+} else {
+    // Fallback sessionStorage (ancienne version login)
+    const centerId = sessionStorage.getItem('centerId');
+    if (centerId) {
+        centerData = {
+            centerId,
+            nom:   sessionStorage.getItem('centerNom'),
+            email: sessionStorage.getItem('centerEmail'),
+            license: { type: sessionStorage.getItem('licenseType') }
+        };
+        // Migrer vers localStorage
+        localStorage.setItem('ssiap_token', centerId);
+        localStorage.setItem('ssiap_center', JSON.stringify(centerData));
+    }
+}
+
+if (centerData) {
     document.getElementById('center-name').textContent = centerData.nom || 'Mon Centre';
 }
 
