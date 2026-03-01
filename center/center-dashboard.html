@@ -323,8 +323,8 @@
             <button class="nav-btn active" data-page="overview">📊 Vue d'ensemble</button>
             <button class="nav-btn" data-page="formateurs">👨‍🏫 Formateurs</button>
             <button class="nav-btn" data-page="sessions">📅 Sessions</button>
-            <button class="nav-btn" data-page="avis">
-                ⭐ Avis
+			<button class="nav-btn" data-page="avis">
+                ⭐ Avis & Retours
                 <span class="notif-dot" id="avis-dot"></span>
             </button>
             <button class="nav-btn" data-page="license">📜 Licence</button>
@@ -393,9 +393,6 @@
                 <button class="qa-btn green" onclick="showPage('license')">
                     <span class="qa-icon">📜</span><span>Voir ma licence</span>
                 </button>
-                <button class="qa-btn gold" onclick="openAvisModal()">
-                    <span class="qa-icon">⭐</span><span>Donner un avis</span>
-                </button>
             </div>
         </div>
 
@@ -438,7 +435,9 @@
         <div class="section-header" style="margin-bottom:24px">
             <h2 class="page-title" style="margin:0">⭐ Avis & Retours</h2>
             <div style="display:flex;gap:10px">
-                <button class="btn btn-outline" onclick="openAvisModal()">✍️ Donner un avis</button>
+                <button class="btn btn-primary" onclick="window.location.href='../avis/formulaire-avis-centre.html'">
+				⭐ Donner mon avis
+				</button>
                 <button class="btn btn-primary" onclick="window.open('centre-avis.html','_blank')">📊 Vue détaillée →</button>
             </div>
         </div>
@@ -451,16 +450,6 @@
             <div class="kpi-card"><div class="kpi-icon">🎓</div><div><div class="kpi-value" id="av-stag" style="color:var(--green)">0</div><div class="kpi-label">Stagiaires</div></div></div>
         </div>
 
-        <!-- Lien partage formulaire -->
-        <div class="section-card" style="background:var(--rouge-light);border-color:var(--rouge-mid)">
-            <h3 style="color:var(--rouge)">🔗 Partagez le formulaire d'avis</h3>
-            <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Envoyez ce lien à vos formateurs et stagiaires pour recueillir leurs retours</p>
-            <div style="display:flex;gap:10px;align-items:center">
-                <div style="flex:1;background:var(--surface);border:1.5px solid var(--rouge-mid);border-radius:8px;padding:9px 14px;font-family:monospace;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="share-url">Chargement…</div>
-                <button class="btn btn-primary" onclick="copyShareLink(event)">📋 Copier</button>
-                <button class="btn btn-secondary" onclick="sendShareEmail()">✉️ Email</button>
-            </div>
-        </div>
 
         <!-- Notifications réponses admin -->
         <div class="section-card">

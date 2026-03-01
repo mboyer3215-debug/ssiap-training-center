@@ -311,6 +311,24 @@
             window.location.reload();
         }
     };
+	
     </script>
+	<!-- OU : flottant en bas de page à ajouter avant </body> : -->
+	<div id="avis-float" style="
+	  position:fixed;bottom:20px;right:20px;z-index:100;
+	  background:#2e7d52;color:#fff;
+	  padding:12px 18px;border-radius:12px;
+	  font-family:'Plus Jakarta Sans',sans-serif;
+	  font-size:13px;font-weight:700;
+	  cursor:pointer;
+	  box-shadow:0 4px 16px rgba(46,125,82,.35);
+	  display:flex;align-items:center;gap:8px;
+	  transition:.15s;
+	" onclick="window.location.href='../avis/formulaire-avis-stagiaire.html'"
+	   onmouseover="this.style.transform='translateY(-2px)'"
+	   onmouseout="this.style.transform='translateY(0)'">
+	  ⭐ Donner mon avis
+	</div>
+
 </body>
 </html>

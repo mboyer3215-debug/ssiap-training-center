@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avis Stagiaire — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;
+  --bg:#f7f4f0;--surface:#fff;--border:#e8e2db;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;
+  --gold:#d4960a;--gold-light:#fef7e0;--green:#2e7d52;--green-light:#edf7f2;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;padding-bottom:60px}
+.header{background:linear-gradient(135deg,#2e7d52,#1a5235);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(46,125,82,.3)}
+.header-brand{display:flex;align-items:center;gap:10px;font-family:'Lora',serif;font-size:18px;font-weight:600;color:#fff}
+.header-section{font-size:12px;color:rgba(255,255,255,.8);background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.2)}
+.wrapper{max-width:640px;margin:0 auto;padding:32px 20px}
+.hero{text-align:center;margin-bottom:32px}
+.hero-icon{font-size:48px;margin-bottom:12px}
+.hero h1{font-family:'Lora',serif;font-size:28px;font-weight:600;margin-bottom:8px}
+.hero h1 em{color:var(--green);font-style:italic}
+.hero p{font-size:13px;color:var(--muted);line-height:1.6}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:28px}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:.4s}
+.steps{display:flex;gap:0;margin-bottom:28px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.step{flex:1;padding:10px 6px;text-align:center;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-right:1px solid var(--border);transition:.2s}
+.step:last-child{border-right:none}
+.step.active{background:var(--green-light);color:var(--green)}
+.step.done{background:var(--blue-light);color:var(--blue)}
+.step-num{display:block;font-size:15px;font-weight:800;margin-bottom:2px}
+.scard{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:28px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.scard-title{font-family:'Lora',serif;font-size:18px;font-weight:600;margin-bottom:4px}
+.scard-sub{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.form-input{width:100%;background:var(--subtle);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:.15s}
+.form-input:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px var(--green-light)}
+.form-input::placeholder{color:var(--muted)}
+select.form-input{cursor:pointer}
+.stars-row{display:flex;gap:6px;align-items:center;justify-content:center;margin:16px 0}
+.star-btn{font-size:32px;cursor:pointer;color:var(--border);transition:.12s;background:none;border:none;padding:2px;line-height:1}
+.star-btn.lit{color:var(--gold)}
+.star-btn:hover{transform:scale(1.2)}
+.note-display{font-family:'Lora',serif;font-size:52px;font-weight:600;color:var(--gold);text-align:center;line-height:1}
+.note-label{font-size:13px;color:var(--muted);text-align:center;margin-top:4px}
+.crit-grid{display:grid;gap:14px}
+.crit-item{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;background:var(--subtle);padding:12px 14px;border-radius:10px;border:1px solid var(--border)}
+.crit-name{font-size:13px;font-weight:600;color:var(--text2)}
+.crit-stars{display:flex;gap:3px}
+.crit-star{font-size:22px;cursor:pointer;color:var(--border);background:none;border:none;padding:1px;transition:.1s;line-height:1}
+.crit-star.lit{color:var(--gold)}
+.crit-val{font-size:11px;color:var(--muted);width:30px;text-align:right;font-family:monospace}
+.tags-grid{display:flex;flex-wrap:wrap;gap:8px}
+.tag-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:.12s;font-family:'Plus Jakarta Sans',sans-serif}
+.tag-btn.selected-pos{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.tag-btn.selected-neg{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+.form-textarea{width:100%;background:var(--subtle);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);resize:none;height:90px;outline:none;transition:.15s}
+.form-textarea:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px var(--green-light)}
+.form-textarea::placeholder{color:var(--muted)}
+.nps-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.nps-btn{width:46px;height:46px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;transition:.15s;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text2)}
+.nps-btn.selected{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+.nps-btn.nps-green.selected{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.nps-btn.nps-gold.selected{border-color:var(--gold);background:var(--gold-light);color:var(--gold)}
+.nps-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px}
+.nav-row{display:flex;gap:10px;justify-content:space-between;margin-top:20px}
+.btn{padding:11px 22px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;border:none;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 2px 10px rgba(46,125,82,.25)}
+.btn-primary:hover{background:#1a5235}
+.btn-secondary{background:var(--subtle);color:var(--text2);border:1.5px solid var(--border)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#1a5235}
+.section{display:none}.section.active{display:block}
+.merci{text-align:center;padding:48px 20px}
+.merci-icon{font-size:64px;margin-bottom:20px}
+.merci h2{font-family:'Lora',serif;font-size:28px;margin-bottom:10px}
+.merci p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.stag-pill{background:var(--green-light);border:1px solid rgba(46,125,82,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--green);font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.anon-notice{display:flex;align-items:center;gap:8px;background:var(--subtle);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--muted);margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">🔥 SSIAP Training</div>
+  <div class="header-section">🎓 Avis Stagiaire</div>
+</header>
+
+<div class="wrapper">
+  <div class="hero">
+    <div class="hero-icon">🎓</div>
+    <h1>Votre avis <em>compte</em></h1>
+    <p>En tant que stagiaire, aidez-nous à améliorer<br>votre expérience de préparation SSIAP</p>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:20%"></div></div>
+  <div class="steps">
+    <div class="step active" id="tab-1"><span class="step-num">1</span>Profil</div>
+    <div class="step" id="tab-2"><span class="step-num">2</span>Note</div>
+    <div class="step" id="tab-3"><span class="step-num">3</span>Critères</div>
+    <div class="step" id="tab-4"><span class="step-num">4</span>Retours</div>
+    <div class="step" id="tab-5"><span class="step-num">5</span>Recommandation</div>
+  </div>
+
+  <!-- SECTION 1 : Profil stagiaire -->
+  <div class="section active" id="sec-1">
+    <div class="scard">
+      <div class="scard-title">Votre profil</div>
+      <div class="scard-sub">Ces informations sont optionnelles — votre avis peut rester anonyme</div>
+      <div id="stag-pill" class="stag-pill" style="display:none">🎓 <span id="stag-nom-display"></span></div>
+      <div class="anon-notice">🔒 Votre avis peut rester totalement anonyme.</div>
+      <div class="form-row" style="margin-bottom:14px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Prénom</label>
+          <input class="form-input" type="text" id="prenom" placeholder="Optionnel">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" id="nom" placeholder="Optionnel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Niveau SSIAP préparé</label>
+        <select class="form-input" id="niveau">
+          <option value="">Sélectionnez…</option>
+          <option value="1">SSIAP 1 — Agent de sécurité</option>
+          <option value="2">SSIAP 2 — Chef d'équipe</option>
+          <option value="3">SSIAP 3 — Chef de service</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Centre de formation</label>
+        <input class="form-input" type="text" id="centre-nom" placeholder="Nom de votre centre (optionnel)">
+      </div>
+    </div>
+    <div class="nav-row"><div></div><button class="btn btn-primary" onclick="goTo(2)">Suivant →</button></div>
+  </div>
+
+  <!-- SECTION 2 : Note globale -->
+  <div class="section" id="sec-2">
+    <div class="scard">
+      <div class="scard-title">Note globale</div>
+      <div class="scard-sub">Quelle note donnez-vous à la plateforme SSIAP Training pour votre préparation à l'examen ?</div>
+      <div class="stars-row">
+        <button class="star-btn lit" data-v="1" onclick="setNote(1)">★</button>
+        <button class="star-btn lit" data-v="2" onclick="setNote(2)">★</button>
+        <button class="star-btn lit" data-v="3" onclick="setNote(3)">★</button>
+        <button class="star-btn lit" data-v="4" onclick="setNote(4)">★</button>
+        <button class="star-btn" data-v="5" onclick="setNote(5)">★</button>
+      </div>
+      <div class="note-display" id="note-display">4</div>
+      <div class="note-label" id="note-label">Très bien</div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(3)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3 : Critères stagiaire -->
+  <div class="section" id="sec-3">
+    <div class="scard">
+      <div class="scard-title">Évaluation par critère</div>
+      <div class="scard-sub">Notez chaque aspect de votre expérience d'apprentissage</div>
+      <div class="crit-grid">
+        <div class="crit-item">
+          <span class="crit-name">📚 Qualité des questions</span>
+          <div class="crit-stars" id="crit-questions"></div>
+          <span class="crit-val" id="cv-questions">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">💬 Clarté des explications</span>
+          <div class="crit-stars" id="crit-explications"></div>
+          <span class="crit-val" id="cv-explications">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">🖥 Facilité d'utilisation</span>
+          <div class="crit-stars" id="crit-interface"></div>
+          <span class="crit-val" id="cv-interface">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">📈 Sentiment de progression</span>
+          <div class="crit-stars" id="crit-progression"></div>
+          <span class="crit-val" id="cv-progression">4/5</span>
+        </div>
+        <div class="crit-item">
+          <span class="crit-name">🎯 Préparation à l'examen</span>
+          <div class="crit-stars" id="crit-exam"></div>
+          <span class="crit-val" id="cv-exam">4/5</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(2)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(4)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 4 : Retours qualitatifs -->
+  <div class="section" id="sec-4">
+    <div class="scard">
+      <div class="scard-title">Ce que vous avez aimé</div>
+      <div class="scard-sub">Sélectionnez les points positifs de votre expérience</div>
+      <div class="tags-grid" id="tags-positifs">
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Questions réalistes</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Explications claires</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Interface simple</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Bonne préparation</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Progression visible</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Quiz interactifs</button>
+        <button class="tag-btn" onclick="toggleTag(this,'pos')">Accessible partout</button>
+      </div>
+    </div>
+    <div class="scard">
+      <div class="scard-title">Ce qui pourrait être amélioré</div>
+      <div class="scard-sub">Vos suggestions pour progresser encore mieux</div>
+      <div class="tags-grid" id="tags-negatifs">
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Plus de questions</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Fiches de révision</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">App mobile dédiée</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Mode hors-ligne</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Temps de chargement</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Plus de niveaux</button>
+        <button class="tag-btn" onclick="toggleTag(this,'neg')">Vidéos explicatives</button>
+      </div>
+    </div>
+    <div class="scard">
+      <div class="scard-title">Commentaire libre</div>
+      <textarea class="form-textarea" id="commentaire" placeholder="Décrivez votre expérience, ce qui vous a aidé, vos suggestions…"></textarea>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(3)">← Retour</button>
+      <button class="btn btn-primary" onclick="goTo(5)">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 5 : NPS -->
+  <div class="section" id="sec-5">
+    <div class="scard">
+      <div class="scard-title">Recommanderiez-vous SSIAP Training ?</div>
+      <div class="scard-sub">À d'autres stagiaires qui préparent leur certification SSIAP, sur une échelle de 0 à 10</div>
+      <div class="nps-row">
+        <button class="nps-btn" onclick="setNPS(0)">0</button>
+        <button class="nps-btn" onclick="setNPS(1)">1</button>
+        <button class="nps-btn" onclick="setNPS(2)">2</button>
+        <button class="nps-btn" onclick="setNPS(3)">3</button>
+        <button class="nps-btn" onclick="setNPS(4)">4</button>
+        <button class="nps-btn" onclick="setNPS(5)">5</button>
+        <button class="nps-btn" onclick="setNPS(6)">6</button>
+        <button class="nps-btn nps-gold" onclick="setNPS(7)">7</button>
+        <button class="nps-btn nps-gold" onclick="setNPS(8)">8</button>
+        <button class="nps-btn nps-green" onclick="setNPS(9)">9</button>
+        <button class="nps-btn nps-green" onclick="setNPS(10)">10</button>
+      </div>
+      <div class="nps-labels"><span>Pas du tout probable</span><span>Tout à fait probable</span></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goTo(4)">← Retour</button>
+      <button class="btn btn-success" onclick="submitAvis()">✓ Envoyer mon avis</button>
+    </div>
+  </div>
+
+  <!-- MERCI -->
+  <div class="section" id="sec-merci">
+    <div class="merci">
+      <div class="merci-icon">🎉</div>
+      <h2>Merci pour votre avis !</h2>
+      <p>Votre retour a bien été transmis.<br>Il nous aide à améliorer la plateforme pour tous les futurs stagiaires SSIAP.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="window.location.href='../index.html'">← Retour à l'entraînement</button>
+        <button class="btn btn-secondary" onclick="location.reload()">Donner un autre avis</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://ssiap-training-center.onrender.com/api';
+let noteGlobal = 4;
+let noteNPS = null;
+const ratings = {questions:4, explications:4, interface:4, progression:4, exam:4};
+const noteLabels = {1:'Très insuffisant',2:'Insuffisant',3:'Passable',4:'Très bien',5:'Excellent !'};
+
+// Auto-remplir si stagiaire connecté
+const stagRaw = localStorage.getItem('ssiap_stagiaire');
+if (stagRaw) {
+  try {
+    const stag = JSON.parse(stagRaw);
+    if (stag.nom) { document.getElementById('nom').value = stag.nom; document.getElementById('nom').readOnly = true; }
+    if (stag.prenom) { document.getElementById('prenom').value = stag.prenom; document.getElementById('prenom').readOnly = true; }
+    const niveauStr = stag.session?.niveau || '';
+    const niveauNum = niveauStr.replace(/[^0-9]/g, '');
+    if (niveauNum) document.getElementById('niveau').value = niveauNum;
+    // Afficher pill
+    document.getElementById('stag-pill').style.display = 'flex';
+    document.getElementById('stag-nom-display').textContent = (stag.prenom||'') + ' ' + (stag.nom||'');
+    // Centre
+    const centerRaw = localStorage.getItem('ssiap_stagiaire_center');
+    if (centerRaw) {
+      const center = JSON.parse(centerRaw);
+      if (center.nom) document.getElementById('centre-nom').value = center.nom;
+    }
+  } catch {}
+}
+
+['questions','explications','interface','progression','exam'].forEach(k => buildCritStars(k));
+
+function buildCritStars(k) {
+  const el = document.getElementById('crit-'+k);
+  el.innerHTML = '';
+  for(let i=1;i<=5;i++) {
+    const b = document.createElement('button');
+    b.className = 'crit-star' + (i<=ratings[k]?' lit':'');
+    b.textContent = '★';
+    b.onclick = () => setCrit(k,i);
+    el.appendChild(b);
+  }
+}
+function setCrit(k,v) { ratings[k]=v; buildCritStars(k); document.getElementById('cv-'+k).textContent=v+'/5'; }
+function setNote(n) {
+  noteGlobal = n;
+  document.querySelectorAll('.star-btn[data-v]').forEach(b => b.classList.toggle('lit', parseInt(b.dataset.v)<=n));
+  document.getElementById('note-display').textContent = n;
+  document.getElementById('note-label').textContent = noteLabels[n]||'';
+}
+function setNPS(n) {
+  noteNPS = n;
+  document.querySelectorAll('.nps-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.nps-btn')[n].classList.add('selected');
+}
+function toggleTag(el,type) { el.classList.toggle('selected-'+type); }
+function goTo(step) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i+1<step) s.classList.add('done');
+    if(i+1===step) s.classList.add('active');
+  });
+  document.getElementById('sec-'+step)?.classList.add('active');
+  document.getElementById('progress').style.width=(step/5*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function submitAvis() {
+  const positifs = [...document.querySelectorAll('#tags-positifs .selected-pos')].map(b=>b.textContent);
+  const negatifs = [...document.querySelectorAll('#tags-negatifs .selected-neg')].map(b=>b.textContent);
+  const params = new URLSearchParams(window.location.search);
+  const centerRaw = localStorage.getItem('ssiap_stagiaire_center');
+  const centerData = centerRaw ? JSON.parse(centerRaw) : null;
+  const payload = {
+    centerId: centerData?.centerId || params.get('centerId') || 'public',
+    centreNom: document.getElementById('centre-nom').value || centerData?.nom || '',
+    role: 'stagiaire',
+    prenom: document.getElementById('prenom').value || '',
+    nom: document.getElementById('nom').value || '',
+    niveau: document.getElementById('niveau').value || '',
+    noteGlobale: noteGlobal,
+    ratings: {...ratings},
+    positifs, negatifs,
+    commentaire: document.getElementById('commentaire').value || '',
+    nps: noteNPS,
+    createdAt: Date.now()
+  };
+  try {
+    await fetch(`${API}/avis/submit`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  } catch {}
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.step').forEach(s=>s.classList.add('done'));
+  document.getElementById('sec-merci').classList.add('active');
+  document.getElementById('progress').style.width='100%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
