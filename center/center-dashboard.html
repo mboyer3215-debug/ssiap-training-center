@@ -450,14 +450,7 @@
             <div class="kpi-card"><div class="kpi-icon">🎓</div><div><div class="kpi-value" id="av-stag" style="color:var(--green)">0</div><div class="kpi-label">Stagiaires</div></div></div>
         </div>
 
-        <!-- Notifications réponses admin -->
-        <div class="section-card">
-            <div class="section-header">
-                <h3>📬 Réponses de l'administration <span id="notif-badge" style="background:var(--rouge);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:8px;display:none"></span></h3>
-                <button class="btn btn-secondary" onclick="markAllRead()">Tout marquer lu</button>
-            </div>
-            <div id="notif-list"><div class="empty"><div class="empty-icon">📬</div><p>Aucune réponse pour le moment</p></div></div>
-        </div>
+
 
         <!-- Tous les avis -->
         <div class="section-card">
@@ -698,7 +691,15 @@ async function loadAvisPage() {
     document.getElementById('av-form').textContent = avis.filter(a=>a.role==='formateur').length;
     document.getElementById('av-stag').textContent = avis.filter(a=>a.role==='stagiaire').length;
 
-    // Liste complète
+    // Compter nouvelles réponses admin
+    const newReplies = avis.filter(a => (a.adminReplies||[]).length > 0 && !a._read).length;
+    const badge = document.getElementById('notif-badge');
+    if (badge) {
+        if (newReplies > 0) { badge.textContent = newReplies + ' réponse' + (newReplies > 1 ? 's' : ''); badge.style.display = 'inline'; }
+        else badge.style.display = 'none';
+    }
+
+    // Liste complète avec réponses intégrées
     const container = document.getElementById('avis-full-list');
     if (!total) {
         container.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu.<br>Partagez le formulaire !</p></div>';
@@ -707,22 +708,32 @@ async function loadAvisPage() {
     container.innerHTML = [...avis].sort((a,b)=>b.createdAt-a.createdAt).map(a => {
         const nom = [a.prenom,a.nom].filter(Boolean).join(' ') || 'Anonyme';
         const init = (a.prenom?.[0]||'?').toUpperCase();
-        const hasR = (a.adminReplies||[]).length > 0;
+        const replies = a.adminReplies || [];
+        const hasR = replies.length > 0;
+        const isNew = hasR && !a._read;
         const date = new Date(a.createdAt).toLocaleDateString('fr-FR');
-        return `<div class="avis-mini" style="margin-bottom:8px">
+        return `<div class="avis-mini" style="margin-bottom:10px;${isNew?'border-left:3px solid var(--rouge);background:var(--rouge-light)':''}">
             <div class="avis-mini-av ${a.role==='formateur'?'f':'s'}">${init}</div>
             <div class="avis-mini-body">
                 <div class="avis-mini-top">
-                    <span class="avis-mini-nom">${nom} <span style="font-weight:400;color:var(--muted);font-size:10px">${a.role==='formateur'?'Formateur':'Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</span></span>
-                    <span style="display:flex;align-items:center;gap:8px">
+                    <span class="avis-mini-nom">${nom}
+                        <span style="font-weight:400;color:var(--muted);font-size:10px"> · ${a.role==='formateur'?'Formateur':'Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</span>
+                        ${isNew ? '<span style="background:var(--rouge);color:#fff;font-size:9px;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:700">NEW</span>' : ''}
+                    </span>
+                    <span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
                         <span class="avis-mini-note">${starsStr(Math.round(a.noteGlobale))} ${a.noteGlobale.toFixed(1)}</span>
                         <span style="font-size:10px;color:var(--muted)">${date}</span>
                     </span>
                 </div>
-                ${a.commentaire?`<div class="avis-mini-comment" style="white-space:normal">${a.commentaire}</div>`:''}
-                ${hasR?`<div style="font-size:11px;color:var(--text2);margin-top:8px;padding:8px 12px;background:var(--rouge-light);border-radius:7px;border-left:3px solid var(--rouge);font-style:italic">
-                    <strong style="font-style:normal;color:var(--rouge);font-size:10px">Réponse admin :</strong><br>${(a.adminReplies||[]).slice(-1)[0]?.texte||''}
-                </div>`:'<span class="avis-reply-tag none" style="margin-top:6px">En attente de réponse</span>'}
+                ${a.commentaire ? `<div class="avis-mini-comment" style="white-space:normal;margin:6px 0">${a.commentaire}</div>` : ''}
+                ${hasR ? replies.map(r => `
+                <div style="margin-top:8px;padding:8px 12px;background:var(--rouge-light);border-radius:7px;border-left:3px solid var(--rouge)">
+                    <div style="font-size:10px;color:var(--rouge);font-weight:700;margin-bottom:3px">
+                        💬 Réponse admin · ${new Date(r.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+                        ${r.sentEmail ? '<span style="margin-left:6px;opacity:.7">✉</span>' : ''}
+                    </div>
+                    <div style="font-size:12px;color:var(--text2);line-height:1.5;font-style:italic">${r.texte}</div>
+                </div>`).join('') : '<span class="avis-reply-tag none" style="margin-top:6px;display:inline-block">En attente de réponse</span>'}
             </div>
         </div>`;
     }).join('');
@@ -906,6 +917,23 @@ document.getElementById('btn-add-formateur').addEventListener('click', () => {
 
 loadDashboard();
 console.log('🔥 Dashboard Centre SSIAP Training chargé');
+
+// ── AUTO-REFRESH ── polling toutes les 30s
+let _refreshTimer = null;
+function startAutoRefresh() {
+    if (_refreshTimer) clearInterval(_refreshTimer);
+    _refreshTimer = setInterval(async () => {
+        const activePage = document.querySelector('.page.active')?.id;
+        if (activePage === 'page-overview') await loadDashboard();
+        if (activePage === 'page-avis')     await loadAvisPage();
+    }, 30000);
+}
+startAutoRefresh();
+// Reprendre le polling quand la page redevient visible (retour onglet)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { loadDashboard(); startAutoRefresh(); }
+    else { if (_refreshTimer) clearInterval(_refreshTimer); }
+});
 </script>
 
 <script src="center-formateurs.js"></script>
