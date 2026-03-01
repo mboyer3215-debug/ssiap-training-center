@@ -323,7 +323,7 @@
             <button class="nav-btn active" data-page="overview">📊 Vue d'ensemble</button>
             <button class="nav-btn" data-page="formateurs">👨‍🏫 Formateurs</button>
             <button class="nav-btn" data-page="sessions">📅 Sessions</button>
-			<button class="nav-btn" data-page="avis">
+            <button class="nav-btn" data-page="avis">
                 ⭐ Avis & Retours
                 <span class="notif-dot" id="avis-dot"></span>
             </button>
@@ -436,8 +436,8 @@
             <h2 class="page-title" style="margin:0">⭐ Avis & Retours</h2>
             <div style="display:flex;gap:10px">
                 <button class="btn btn-primary" onclick="window.location.href='../avis/formulaire-avis-centre.html'">
-				⭐ Donner mon avis
-				</button>
+                    ⭐ Donner mon avis
+                </button>
                 <button class="btn btn-primary" onclick="window.open('centre-avis.html','_blank')">📊 Vue détaillée →</button>
             </div>
         </div>
@@ -449,7 +449,6 @@
             <div class="kpi-card"><div class="kpi-icon">👨‍🏫</div><div><div class="kpi-value" id="av-form" style="color:var(--blue)">0</div><div class="kpi-label">Formateurs</div></div></div>
             <div class="kpi-card"><div class="kpi-icon">🎓</div><div><div class="kpi-value" id="av-stag" style="color:var(--green)">0</div><div class="kpi-label">Stagiaires</div></div></div>
         </div>
-
 
         <!-- Notifications réponses admin -->
         <div class="section-card">
@@ -550,7 +549,6 @@ const centerStored = localStorage.getItem('ssiap_center');
 if (centerStored) {
     centerData = JSON.parse(centerStored);
 } else {
-    // Fallback sessionStorage (ancienne version login)
     const centerId = sessionStorage.getItem('centerId');
     if (centerId) {
         centerData = {
@@ -559,7 +557,6 @@ if (centerStored) {
             email: sessionStorage.getItem('centerEmail'),
             license: { type: sessionStorage.getItem('licenseType') }
         };
-        // Migrer vers localStorage
         localStorage.setItem('ssiap_token', centerId);
         localStorage.setItem('ssiap_center', JSON.stringify(centerData));
     }
@@ -593,29 +590,29 @@ async function loadDashboard() {
     try {
         const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
         const d = await r.json();
-		const exp = d.license.expiresAt || d.license.endDate;
-		const days = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 86400000)) : 0;
-		
-		
-        if (d.success) {
-            document.getElementById('kpi-formateurs').textContent = d.stats.nbFormateurs;
-            document.getElementById('kpi-stagiaires').textContent = d.stats.nbStagiaires;
-            document.getElementById('kpi-sessions').textContent = d.stats.nbSessions || '—';
-        	document.getElementById('kpi-license-days').textContent = days;
-            document.getElementById('usage-formateurs').textContent = d.stats.usageFormateurs;
-            document.getElementById('usage-stagiaires').textContent = d.stats.usageStagiaires;
-            document.getElementById('license-type').textContent = `Licence ${d.license.type}`;
+
+        // Calculer les jours restants depuis expiresAt
+        const exp = d.license?.expiresAt || d.license?.endDate;
+        const days = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 86400000)) : 0;
+
+        // FIX : l'API retourne les données directement sans { success: true }
+        if (d.stats || d.license) {
+            document.getElementById('kpi-formateurs').textContent = d.stats?.formateurs ?? '—';
+            document.getElementById('kpi-stagiaires').textContent = d.stats?.stagiaires ?? '—';
+            document.getElementById('kpi-sessions').textContent   = d.stats?.sessions   ?? '—';
+            document.getElementById('kpi-license-days').textContent = days;
+            document.getElementById('license-type').textContent   = `Licence ${d.license?.type || 'DEMO'}`;
             const lc = document.getElementById('license-card');
-            if (d.license.daysRemaining < 7) lc.style.borderLeft = '3px solid var(--rouge)';
-            else if (d.license.daysRemaining < 30) lc.style.borderLeft = '3px solid var(--gold)';
-            else lc.style.borderLeft = '3px solid var(--green)';
+            if (days < 7)       lc.style.borderLeft = '3px solid var(--rouge)';
+            else if (days < 30) lc.style.borderLeft = '3px solid var(--gold)';
+            else                lc.style.borderLeft = '3px solid var(--green)';
         }
     } catch (e) { console.error('Erreur dashboard:', e); }
     finally { hideLoader(); }
     loadAvisOverview();
 }
 
-// ── Avis overview (widget sur la page principale) ──
+// ── Avis overview ──
 async function loadAvisOverview() {
     if (!centerData) return;
     try {
@@ -624,11 +621,10 @@ async function loadAvisOverview() {
         allAvisData = d.avis || [];
         renderAvisOverview(allAvisData);
     } catch {
-        // Données démo
         allAvisData = [
             { id:'d1', role:'formateur', prenom:'Marie', nom:'D.', noteGlobale:4.8, commentaire:'Excellent outil, progrès visibles.', adminReplies:[{texte:'Merci pour votre retour !', timestamp:Date.now()-86400000}], createdAt:Date.now()-86400000*2, nps:9 },
             { id:'d2', role:'stagiaire', prenom:'Thomas', nom:'M.', noteGlobale:4.2, commentaire:'Pratique pour réviser.', adminReplies:[], createdAt:Date.now()-86400000*4, nps:8 },
-            { id:'d3', role:'stagiaire', prenom:'Lucie', nom:'B.', noteGlobale:5, commentaire:'J\'ai eu 18/20 !', adminReplies:[{texte:'Félicitations 🎉', timestamp:Date.now()-86400000*3}], createdAt:Date.now()-86400000*6, nps:10 },
+            { id:'d3', role:'stagiaire', prenom:'Lucie', nom:'B.', noteGlobale:5, commentaire:"J'ai eu 18/20 !", adminReplies:[{texte:'Félicitations 🎉', timestamp:Date.now()-86400000*3}], createdAt:Date.now()-86400000*6, nps:10 },
         ];
         renderAvisOverview(allAvisData);
     }
@@ -646,7 +642,6 @@ function renderAvisOverview(avis) {
     document.getElementById('kpi-note').textContent = moy;
     document.getElementById('kpi-avis-count').textContent = total + ' avis';
 
-    // Distribution
     const dist = {5:0,4:0,3:0,2:0,1:0};
     avis.forEach(a => { const n = Math.round(a.noteGlobale); if(dist[n]!==undefined) dist[n]++; });
     const barsHtml = [5,4,3,2,1].map(n => `
@@ -656,7 +651,6 @@ function renderAvisOverview(avis) {
             <span class="avis-bar-cnt">${dist[n]}</span>
         </div>`).join('');
 
-    // NPS
     const wn = avis.filter(a => a.nps!=null);
     const prom = wn.filter(a => a.nps>=9).length;
     const detr = wn.filter(a => a.nps<7).length;
@@ -672,7 +666,6 @@ function renderAvisOverview(avis) {
         ${nps!==null?`<div class="avis-nps"><div class="avis-nps-val">${nps>=0?'+':''}${nps}</div><div class="avis-nps-lbl">Score NPS</div></div>`:'<div></div>'}
     `;
 
-    // 3 derniers avis
     const derniers = [...avis].sort((a,b) => b.createdAt-a.createdAt).slice(0,3);
     document.getElementById('avis-mini-list').innerHTML = derniers.map(a => {
         const nom = [a.prenom,a.nom].filter(Boolean).join(' ') || (a.role==='formateur'?'Formateur':'Stagiaire');
@@ -686,7 +679,7 @@ function renderAvisOverview(avis) {
                     <span class="avis-mini-note">${starsStr(Math.round(a.noteGlobale))} ${a.noteGlobale.toFixed(1)}</span>
                 </div>
                 <div class="avis-mini-comment">${a.commentaire||'Aucun commentaire'}</div>
-                <span class="avis-reply-tag ${hasR?'has':'none'}">${hasR?'✓ Répondu par l\'admin':'En attente de réponse'}</span>
+                <span class="avis-reply-tag ${hasR?'has':'none'}">${hasR?"✓ Répondu par l'admin":'En attente de réponse'}</span>
                 ${hasR?`<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--rouge-light);border-radius:6px;border-left:2px solid var(--rouge);font-style:italic">"${(a.adminReplies||[]).slice(-1)[0]?.texte||''}"</div>`:''}
             </div>
         </div>`;
@@ -699,20 +692,18 @@ async function loadAvisPage() {
     const avis = allAvisData;
     const total = avis.length;
 
-    // KPIs page avis
     const moy = total ? (avis.reduce((s,a) => s+a.noteGlobale,0)/total).toFixed(1) : '—';
     document.getElementById('av-note').textContent = moy;
     document.getElementById('av-total').textContent = total;
     document.getElementById('av-form').textContent = avis.filter(a=>a.role==='formateur').length;
     document.getElementById('av-stag').textContent = avis.filter(a=>a.role==='stagiaire').length;
 
-    // URL partage
-    const shareUrl = `${window.location.origin}${window.location.pathname.replace('center-dashboard.html','formulaire-avis.html')}?centerId=${centerData?.centerId||'demo'}`;
-    document.getElementById('share-url').textContent = shareUrl;
-
     // Liste complète
     const container = document.getElementById('avis-full-list');
-    if (!total) { container.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu.<br>Partagez le formulaire !</p></div>'; return; }
+    if (!total) {
+        container.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu.<br>Partagez le formulaire !</p></div>';
+        return;
+    }
     container.innerHTML = [...avis].sort((a,b)=>b.createdAt-a.createdAt).map(a => {
         const nom = [a.prenom,a.nom].filter(Boolean).join(' ') || 'Anonyme';
         const init = (a.prenom?.[0]||'?').toUpperCase();
@@ -746,24 +737,18 @@ async function loadNotifications() {
         const d = await r.json();
         notifs = d.notifications || [];
     } catch {
-        // Démo
         notifs = [
             { type:'avis_reply', texteReponse:'Merci pour votre retour, nous travaillons sur les améliorations suggérées !', timestamp:Date.now()-86400000*1, read:false },
             { type:'demande_reply', objet:'Problème connexion', texteReponse:'Nous avons résolu le problème de connexion. Merci de réessayer.', timestamp:Date.now()-86400000*3, read:true },
         ];
     }
     const unread = notifs.filter(n => !n.read).length;
-
-    // Badge dans nav
     const dot = document.getElementById('avis-dot');
     if (unread > 0) dot.classList.add('visible'); else dot.classList.remove('visible');
-
-    // Badge dans page avis
     const badge = document.getElementById('notif-badge');
     if (unread > 0) { badge.textContent = unread + ' non lu' + (unread>1?'s':''); badge.style.display='inline'; }
     else badge.style.display = 'none';
 
-    // Liste
     const list = document.getElementById('notif-list');
     if (!notifs.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📬</div><p>Aucune réponse</p></div>'; return; }
     list.innerHTML = notifs.map(n => `
@@ -820,7 +805,7 @@ async function submitAvisQuick() {
     try {
         const r = await fetch(`${API_URL}/avis/submit`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
         if (!r.ok) throw new Error();
-    } catch { /* Local fallback */ }
+    } catch {}
     closeAvisModal();
     showToast('✓ Avis envoyé — merci !');
     loadAvisOverview();
@@ -832,20 +817,7 @@ function openFullForm() {
     window.open(url, '_blank');
 }
 
-// ── Partage lien ──
-function copyShareLink(e) {
-    const url = document.getElementById('share-url')?.textContent || `${window.location.href.replace('center-dashboard.html','formulaire-avis.html')}?centerId=${centerData?.centerId||'demo'}`;
-    navigator.clipboard?.writeText(url).then(() => showToast('🔗 Lien copié !')).catch(() => showToast('Copiez : '+url));
-}
-function sendShareEmail() {
-    const url = document.getElementById('share-url')?.textContent || '';
-    const subject = encodeURIComponent('Donnez votre avis sur SSIAP Training');
-    const body = encodeURIComponent(`Bonjour,\n\nNous vous invitons à donner votre avis sur notre plateforme SSIAP Training :\n${url}\n\nMerci pour votre retour !\n${centerData?.nom||''}`);
-    window.open(`mailto:?subject=${subject}&body=${body}`);
-}
-
-// ── Déclencheur fin de session ──
-// À appeler depuis center-sessions.js quand une session se termine
+// ── Fin de session ──
 window.onSessionTerminee = function(sessionData) {
     setTimeout(() => {
         if (confirm(`✅ Session "${sessionData?.nom||'Training'}" terminée !\n\nSouhaitez-vous laisser un avis sur la plateforme ?`)) {
@@ -860,23 +832,24 @@ function loadFormateurs() {
     else document.getElementById('formateurs-list').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Script center-formateurs.js non chargé</p></div>';
 }
 
+function initSessions() {
+    if (typeof window.initSessionsModule === 'function') window.initSessionsModule();
+}
+
 async function loadLicenseInfo() {
     if (!centerData) return;
 
-    // Récupérer les infos fraîches depuis l'API
     try {
         const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
         const d = await r.json();
-        if (d.success && d.license) {
-            // Mettre à jour le localStorage avec les vraies données
+        // FIX : pas de { success } dans la réponse API
+        if (d.license) {
             centerData.license = { ...centerData.license, ...d.license };
             localStorage.setItem('ssiap_center', JSON.stringify(centerData));
         }
     } catch {}
 
     const l = centerData.license || {};
-
-    // Calculer les jours restants depuis expiresAt
     const expiresAt = l.expiresAt || l.endDate || null;
     let daysRemaining = 0;
     let status = 'expired';
