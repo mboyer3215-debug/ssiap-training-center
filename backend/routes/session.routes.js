@@ -28,13 +28,10 @@ router.post('/create', async (req, res) => {
         }
 
         // FIX : lire la licence depuis le nœud licenses/ séparé
-        const licenseSnapshot = await db.ref(`licenses/${centerId}`).once('value');
-        const licenseData = licenseSnapshot.val();
-
-        // Vérifier licence : si elle existe, vérifier expiration (expiresAt pas validUntil)
-        if (licenseData && licenseData.expiresAt && Date.now() > licenseData.expiresAt) {
-            return res.status(403).json({ success: false, error: 'Licence expirée' });
-        }
+	const license = centerData.license || {};
+	if (license.expiresAt && Date.now() > license.expiresAt) {
+    	    return res.status(403).json({ success: false, error: 'Licence expirée' });
+	}
 
         // Vérifier que les formateurs appartiennent bien au centre
         const formateursValides = [];
