@@ -584,22 +584,7 @@ async function sendReply() {
   btn.disabled = true;
   btn.textContent = '⏳ Envoi…';
 
-  // Sauvegarde locale immédiate — le bouton se débloque sans attendre l'email
-  avis.adminReplies = avis.adminReplies || [];
-  const localReply = { texte, timestamp: Date.now(), sentEmail: false, sentDashboard: false };
-  avis.adminReplies.push(localReply);
-
-  // Rafraîchir l'UI immédiatement
-  document.getElementById('reply-input').value = '';
-  btn.disabled = false;
-  btn.textContent = 'Envoyer ✓';
-  openPanel(currentAvisId, null);
-  updateCounts();
-  applyFilter();
-  showToast('✅ Réponse enregistrée' + (notifEmail ? ' · envoi email en cours…' : ''));
-
-  // Appel API en arrière-plan (ne bloque pas l'UI)
-  // Timeout 8s pour éviter d'attendre le SMTP indéfiniment
+  // Timeout 8s pour ne pas attendre le SMTP indéfiniment
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -612,20 +597,26 @@ async function sendReply() {
     });
     clearTimeout(timeout);
     const d = await r.json();
-    if (r.ok && d.reply) {
-      // Mettre à jour avec la vraie réponse serveur
-      const idx = avis.adminReplies.indexOf(localReply);
-      if (idx !== -1) avis.adminReplies[idx] = d.reply;
-      if (notifEmail && d.reply.sentEmail)  showToast('✉ Email envoyé au centre');
-      if (notifEmail && !d.reply.sentEmail) showToast('⚠️ Email non envoyé (SMTP non configuré)');
-    }
+    // FIX double : une seule push depuis la réponse serveur
+    avis.adminReplies = avis.adminReplies || [];
+    avis.adminReplies.push(d.reply || { texte, timestamp: Date.now(), sentEmail: false });
+    const emailOk = d.reply?.sentEmail;
+    showToast('✅ Réponse enregistrée' + (notifEmail ? (emailOk ? ' · ✉ email envoyé' : ' · ⚠️ SMTP') : ''));
   } catch(e) {
     clearTimeout(timeout);
-    // Timeout ou erreur réseau — la réponse est déjà affichée localement, pas grave
-    console.warn('sendReply background error:', e.message);
+    // Timeout ou erreur réseau - on pousse localement
+    avis.adminReplies = avis.adminReplies || [];
+    avis.adminReplies.push({ texte, timestamp: Date.now(), sentEmail: false, sentDashboard: false });
+    showToast('✅ Réponse enregistrée (' + (e.name === 'AbortError' ? 'timeout email' : e.message) + ')');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Envoyer ✓';
+    document.getElementById('reply-input').value = '';
+    openPanel(currentAvisId, null);
+    updateCounts();
+    applyFilter();
   }
 }
-
 // ── Vue / Export ──
 function toggleView() {
   isGridView = !isGridView;
