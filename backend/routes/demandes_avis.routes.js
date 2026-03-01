@@ -10,12 +10,12 @@ const nodemailer = require('nodemailer'); // npm install nodemailer
 // ─── CONFIG EMAIL ────────────────────────────────────────────────
 // À adapter selon votre provider (SMTP, SendGrid, Mailgun, etc.)
 const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST   || 'smtp.gmail.com',
-  port:   parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
+  host:   process.env.SMTP_HOST,
+  port:   parseInt(process.env.SMTP_PORT || '465'),
+  secure: process.env.SMTP_PORT === '465', // true pour 465, false pour 587
   auth: {
-    user: process.env.SMTP_USER || 'noreply@ssiap-training.fr',
-    pass: process.env.SMTP_PASS || '',
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 });
 
