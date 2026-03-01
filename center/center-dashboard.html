@@ -593,11 +593,15 @@ async function loadDashboard() {
     try {
         const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
         const d = await r.json();
+		const exp = d.license.expiresAt || d.license.endDate;
+		const days = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 86400000)) : 0;
+		
+		
         if (d.success) {
             document.getElementById('kpi-formateurs').textContent = d.stats.nbFormateurs;
             document.getElementById('kpi-stagiaires').textContent = d.stats.nbStagiaires;
             document.getElementById('kpi-sessions').textContent = d.stats.nbSessions || '—';
-            document.getElementById('kpi-license-days').textContent = d.license.daysRemaining;
+        	document.getElementById('kpi-license-days').textContent = days;
             document.getElementById('usage-formateurs').textContent = d.stats.usageFormateurs;
             document.getElementById('usage-stagiaires').textContent = d.stats.usageStagiaires;
             document.getElementById('license-type').textContent = `Licence ${d.license.type}`;
@@ -855,13 +859,41 @@ function loadFormateurs() {
     if (typeof initFormateurs === 'function') initFormateurs();
     else document.getElementById('formateurs-list').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Script center-formateurs.js non chargé</p></div>';
 }
+
 async function loadLicenseInfo() {
     if (!centerData) return;
+
+    // Récupérer les infos fraîches depuis l'API
+    try {
+        const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+        const d = await r.json();
+        if (d.success && d.license) {
+            // Mettre à jour le localStorage avec les vraies données
+            centerData.license = { ...centerData.license, ...d.license };
+            localStorage.setItem('ssiap_center', JSON.stringify(centerData));
+        }
+    } catch {}
+
     const l = centerData.license || {};
+
+    // Calculer les jours restants depuis expiresAt
+    const expiresAt = l.expiresAt || l.endDate || null;
+    let daysRemaining = 0;
+    let status = 'expired';
+    let validUntil = '—';
+
+    if (expiresAt) {
+        const now = Date.now();
+        const exp = typeof expiresAt === 'number' ? expiresAt : new Date(expiresAt).getTime();
+        daysRemaining = Math.max(0, Math.ceil((exp - now) / 86400000));
+        status = daysRemaining > 0 ? 'active' : 'expired';
+        validUntil = new Date(exp).toLocaleDateString('fr-FR');
+    }
+
     document.getElementById('license-info').innerHTML = `
         <div class="licence-row"><strong>Type :</strong> <span class="badge badge-gold">${l.type||'—'}</span></div>
-        <div class="licence-row"><strong>Statut :</strong> <span class="badge ${l.status==='active'?'badge-green':'badge-red'}">${l.status==='active'?'Active':'Expirée'}</span></div>
-        <div class="licence-row"><strong>Valide jusqu'au :</strong> ${l.validUntil||'—'} <span style="color:var(--muted)">(${l.daysRemaining||0} jours restants)</span></div>
+        <div class="licence-row"><strong>Statut :</strong> <span class="badge ${status==='active'?'badge-green':'badge-red'}">${status==='active'?'Active':'Expirée'}</span></div>
+        <div class="licence-row"><strong>Valide jusqu'au :</strong> ${validUntil} <span style="color:var(--muted)">(${daysRemaining} jours restants)</span></div>
         <div class="licence-row"><strong>Formateurs autorisés :</strong> ${l.maxFormateurs||'—'}</div>
         <div class="licence-row"><strong>Stagiaires simultanés :</strong> ${l.maxStagiaires||'—'}</div>
     `;
