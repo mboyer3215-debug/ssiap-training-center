@@ -461,7 +461,7 @@ function updateCounts() {
     low: allAvis.filter(a => a.noteGlobale < 3).length
   };
   Object.entries(c).forEach(([k, v]) => { const el = document.getElementById('cnt-' + k); if (el) el.textContent = v; });
-  const moy = allAvis.length ? (allAvis.reduce((s, a) => s + a.noteGlobale, 0) / allAvis.length).toFixed(1) : '—';
+  const moy = allAvis.length ? (allAvis.reduce((s, a) => s + (parseFloat(a.noteGlobale)||0), 0) / allAvis.length).toFixed(1) : '—';
   const withNps = allAvis.filter(a => a.nps != null);
   const nps = withNps.length ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100) : null;
   document.getElementById('sb-note').textContent = moy;
