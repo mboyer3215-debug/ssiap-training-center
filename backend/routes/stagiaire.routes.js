@@ -22,9 +22,15 @@ async function generateUniquePIN(centerId) {
     return pin;
 }
 
+// Helper : vérifier si la licence est expirée
+function isLicenseExpired(centerData) {
+    const license = centerData?.license || {};
+    if (!license.expiresAt) return false; // pas de date = pas de vérification
+    return Date.now() > license.expiresAt;
+}
+
 /**
  * POST /api/stagiaire/create
- * Créer un stagiaire et l'associer à une session
  */
 router.post('/create', async (req, res) => {
     try {
@@ -45,7 +51,8 @@ router.post('/create', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Centre introuvable' });
         }
 
-        if (centerData.license.status !== 'active' || Date.now() > centerData.license.validUntil) {
+        // FIX : utiliser expiresAt, pas status/validUntil
+        if (isLicenseExpired(centerData)) {
             return res.status(403).json({ success: false, error: 'Licence expirée', licenseExpired: true });
         }
 
@@ -61,11 +68,12 @@ router.post('/create', async (req, res) => {
         const stagiairesSnapshot = await db.ref(`centers/${centerId}/stagiaires`).once('value');
         const stagiaires = stagiairesSnapshot.val() || {};
         const stagiairesActifs = Object.values(stagiaires).filter(s => s.status === 'actif');
+        const maxStagiaires = centerData.license?.maxStagiaires || 999;
 
-        if (stagiairesActifs.length >= centerData.license.maxStagiaires) {
+        if (stagiairesActifs.length >= maxStagiaires) {
             return res.status(403).json({
                 success: false,
-                error: `Limite atteinte : ${centerData.license.maxStagiaires} stagiaires actifs maximum`
+                error: `Limite atteinte : ${maxStagiaires} stagiaires actifs maximum`
             });
         }
 
@@ -73,7 +81,7 @@ router.post('/create', async (req, res) => {
         const pin = await generateUniquePIN(centerId);
         const stagiaireId = 'STG_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6).toUpperCase();
 
-        // QR code data : centerId + stagiaireId + pin
+        // QR code data
         const qrCodeData = Buffer.from(JSON.stringify({
             centerId,
             stagiaireId,
@@ -97,7 +105,6 @@ router.post('/create', async (req, res) => {
             createdAt: Date.now()
         };
 
-        // Sauvegarder le stagiaire
         await db.ref(`centers/${centerId}/stagiaires/${stagiaireId}`).set(stagiaireData);
 
         // Incrémenter le compteur de la session
@@ -116,7 +123,6 @@ router.post('/create', async (req, res) => {
 
 /**
  * GET /api/stagiaire/list/:centerId
- * Lister tous les stagiaires d'un centre
  */
 router.get('/list/:centerId', async (req, res) => {
     try {
@@ -128,19 +134,17 @@ router.get('/list/:centerId', async (req, res) => {
 
         let stagiaires = Object.values(stagiairesRaw);
 
-        // Filtrer par session si demandé
         if (sessionId) {
             stagiaires = stagiaires.filter(s => s.sessionId === sessionId);
         }
 
-        // Mettre à jour les statuts selon les dates
         const now = Date.now();
         stagiaires = stagiaires.map(s => ({
             ...s,
-            status: now > s.dateFin ? 'expiré' : 'actif'
+            status: s.dateFin && now > s.dateFin ? 'expiré' : 'actif'
         }));
 
-        stagiaires.sort((a, b) => a.nom.localeCompare(b.nom));
+        stagiaires.sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
 
         res.json({ success: true, stagiaires });
 
@@ -152,7 +156,6 @@ router.get('/list/:centerId', async (req, res) => {
 
 /**
  * PUT /api/stagiaire/update/:stagiaireId
- * Modifier un stagiaire
  */
 router.put('/update/:stagiaireId', async (req, res) => {
     try {
@@ -171,9 +174,9 @@ router.put('/update/:stagiaireId', async (req, res) => {
         }
 
         const updates = { updatedAt: Date.now() };
-        if (nom) updates.nom = nom.toUpperCase();
-        if (prenom) updates.prenom = prenom;
-        if (email !== undefined) updates.email = email;
+        if (nom)                   updates.nom       = nom.toUpperCase();
+        if (prenom)                updates.prenom    = prenom;
+        if (email !== undefined)   updates.email     = email;
         if (telephone !== undefined) updates.telephone = telephone;
 
         await stagRef.update(updates);
@@ -188,7 +191,6 @@ router.put('/update/:stagiaireId', async (req, res) => {
 
 /**
  * DELETE /api/stagiaire/delete/:stagiaireId
- * Supprimer un stagiaire
  */
 router.delete('/delete/:stagiaireId', async (req, res) => {
     try {
@@ -207,7 +209,6 @@ router.delete('/delete/:stagiaireId', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Stagiaire introuvable' });
         }
 
-        // Décrémenter le compteur de la session
         if (stagiaire.sessionId) {
             await db.ref(`centers/${centerId}/sessions/${stagiaire.sessionId}/nbStagiaires`)
                 .transaction(count => Math.max(0, (count || 1) - 1));
@@ -225,7 +226,6 @@ router.delete('/delete/:stagiaireId', async (req, res) => {
 
 /**
  * POST /api/stagiaire/login
- * Connexion stagiaire par PIN ou QR code
  */
 router.post('/login', async (req, res) => {
     try {
@@ -242,14 +242,14 @@ router.post('/login', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Centre introuvable' });
         }
 
-        if (centerData.license.status !== 'active' || Date.now() > centerData.license.validUntil) {
+        // FIX : même correction ici
+        if (isLicenseExpired(centerData)) {
             return res.status(403).json({ success: false, error: 'Licence expirée', licenseExpired: true });
         }
 
         let stagiaire = null;
 
         if (qrCode) {
-            // Connexion par QR code
             try {
                 const decoded = JSON.parse(Buffer.from(qrCode, 'base64').toString('utf8'));
                 if (decoded.type !== 'stagiaire' || decoded.centerId !== centerId) {
@@ -261,10 +261,8 @@ router.post('/login', async (req, res) => {
                 return res.status(400).json({ success: false, error: 'QR code invalide' });
             }
         } else if (pin) {
-            // Connexion par PIN
             const snap = await db.ref(`centers/${centerId}/stagiaires`)
                 .orderByChild('pin').equalTo(pin).once('value');
-
             if (snap.exists()) {
                 stagiaire = Object.values(snap.val())[0];
             }
@@ -276,13 +274,11 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, error: 'Stagiaire non trouvé' });
         }
 
-        // Vérifier validité (dates de session)
         const now = Date.now();
-        if (now > stagiaire.dateFin) {
+        if (stagiaire.dateFin && now > stagiaire.dateFin) {
             return res.status(403).json({ success: false, error: 'Accès expiré - votre session de formation est terminée' });
         }
 
-        // Récupérer les infos de la session
         let sessionInfo = null;
         if (stagiaire.sessionId) {
             const sessionSnap = await db.ref(`centers/${centerId}/sessions/${stagiaire.sessionId}`).once('value');
@@ -296,13 +292,13 @@ router.post('/login', async (req, res) => {
             stagiaire: {
                 ...stagiaire,
                 session: sessionInfo ? {
-                    titre: sessionInfo.titre,
-                    niveau: sessionInfo.niveau,
+                    titre:     sessionInfo.titre,
+                    niveau:    sessionInfo.niveau,
                     dateDebut: sessionInfo.dateDebut,
-                    dateFin: sessionInfo.dateFin
+                    dateFin:   sessionInfo.dateFin
                 } : null
             },
-            centerInfo: { nom: centerData.info.nom }
+            centerInfo: { nom: centerData.info?.nom || centerData.nom || '' }
         });
 
     } catch (error) {
@@ -310,12 +306,9 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-// À ajouter dans backend/routes/stagiaire.routes.js
-// Route POST /api/stagiaire/quiz-result
 
 /**
  * POST /api/stagiaire/quiz-result
- * Sauvegarder les résultats d'un quiz en salle
  */
 router.post('/quiz-result', async (req, res) => {
     try {
@@ -328,26 +321,15 @@ router.post('/quiz-result', async (req, res) => {
         const timestamp = Date.now();
         const resultId = `QUIZ_${timestamp}`;
 
-        // Sauvegarder les résultats globaux dans la session
         await db.ref(`centers/${centerId}/sessions/${sessionId}/quizResults/${resultId}`).set({
-            resultId,
-            type,
-            nbQuestions,
-            scores,
-            completedAt: timestamp
+            resultId, type, nbQuestions, scores, completedAt: timestamp
         });
 
-        // Sauvegarder dans le suivi individuel de chaque stagiaire
         for (const [stagiaireId, score] of Object.entries(scores)) {
             await db.ref(`centers/${centerId}/stagiaires/${stagiaireId}/historique/${resultId}`).set({
-                resultId,
-                sessionId,
-                type,
-                score: score.score,
-                total: score.total,
-                pct: score.pct,
-                completedAt: timestamp,
-                mode: 'salle'
+                resultId, sessionId, type,
+                score: score.score, total: score.total, pct: score.pct,
+                completedAt: timestamp, mode: 'salle'
             });
         }
 
@@ -360,4 +342,5 @@ router.post('/quiz-result', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 module.exports = router;
