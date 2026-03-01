@@ -7,7 +7,6 @@ const { db } = require('../config/firebase');
 
 /**
  * POST /api/session/create
- * Créer une session de formation
  */
 router.post('/create', async (req, res) => {
     try {
@@ -20,7 +19,7 @@ router.post('/create', async (req, res) => {
             });
         }
 
-        // Vérifier que le centre existe et que la licence est active
+        // Vérifier que le centre existe
         const centerSnapshot = await db.ref(`centers/${centerId}`).once('value');
         const centerData = centerSnapshot.val();
 
@@ -28,7 +27,12 @@ router.post('/create', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Centre introuvable' });
         }
 
-        if (centerData.license.status !== 'active' || Date.now() > centerData.license.validUntil) {
+        // FIX : lire la licence depuis le nœud licenses/ séparé
+        const licenseSnapshot = await db.ref(`licenses/${centerId}`).once('value');
+        const licenseData = licenseSnapshot.val();
+
+        // Vérifier licence : si elle existe, vérifier expiration (expiresAt pas validUntil)
+        if (licenseData && licenseData.expiresAt && Date.now() > licenseData.expiresAt) {
             return res.status(403).json({ success: false, error: 'Licence expirée' });
         }
 
@@ -50,10 +54,10 @@ router.post('/create', async (req, res) => {
             titre,
             niveau,
             dateDebut: new Date(dateDebut).getTime(),
-            dateFin: new Date(dateFin).getTime(),
+            dateFin:   new Date(dateFin).getTime(),
             formateurIds: formateursValides,
             nbStagiaires: 0,
-            status: 'active',
+            status: 'à venir',
             createdAt: Date.now()
         };
 
@@ -74,7 +78,6 @@ router.post('/create', async (req, res) => {
 
 /**
  * GET /api/session/list/:centerId
- * Lister toutes les sessions d'un centre
  */
 router.get('/list/:centerId', async (req, res) => {
     try {
@@ -83,7 +86,6 @@ router.get('/list/:centerId', async (req, res) => {
         const sessionsSnapshot = await db.ref(`centers/${centerId}/sessions`).once('value');
         const sessionsRaw = sessionsSnapshot.val() || {};
 
-        // Enrichir avec les noms des formateurs
         const formateursSnapshot = await db.ref(`centers/${centerId}/formateurs`).once('value');
         const formateursRaw = formateursSnapshot.val() || {};
 
@@ -93,17 +95,16 @@ router.get('/list/:centerId', async (req, res) => {
                 return f ? { formateurId: fId, nom: f.nom, prenom: f.prenom } : null;
             }).filter(Boolean);
 
-            // Mettre à jour le statut selon la date
+            // Calculer le statut dynamiquement selon les dates
             const now = Date.now();
-            let status = session.status;
-            if (now > session.dateFin) status = 'terminée';
+            let status;
+            if (now > session.dateFin)        status = 'terminée';
             else if (now >= session.dateDebut) status = 'en cours';
-            else status = 'à venir';
+            else                               status = 'à venir';
 
             return { ...session, formateurs, status };
         });
 
-        // Trier par date de début décroissante
         sessions.sort((a, b) => b.dateDebut - a.dateDebut);
 
         res.json({ success: true, sessions });
@@ -116,7 +117,6 @@ router.get('/list/:centerId', async (req, res) => {
 
 /**
  * GET /api/session/detail/:centerId/:sessionId
- * Détail d'une session avec ses stagiaires
  */
 router.get('/detail/:centerId/:sessionId', async (req, res) => {
     try {
@@ -132,14 +132,11 @@ router.get('/detail/:centerId/:sessionId', async (req, res) => {
         // Récupérer les stagiaires de cette session
         const stagiairesSnapshot = await db.ref(`centers/${centerId}/stagiaires`).once('value');
         const stagiairesRaw = stagiairesSnapshot.val() || {};
-
-        const stagiaires = Object.values(stagiairesRaw)
-            .filter(s => s.sessionId === sessionId);
+        const stagiaires = Object.values(stagiairesRaw).filter(s => s.sessionId === sessionId);
 
         // Récupérer les formateurs
         const formateursSnapshot = await db.ref(`centers/${centerId}/formateurs`).once('value');
         const formateursRaw = formateursSnapshot.val() || {};
-
         const formateurs = (session.formateurIds || []).map(fId => {
             const f = formateursRaw[fId];
             return f ? { formateurId: fId, nom: f.nom, prenom: f.prenom } : null;
@@ -155,7 +152,6 @@ router.get('/detail/:centerId/:sessionId', async (req, res) => {
 
 /**
  * PUT /api/session/update/:sessionId
- * Modifier une session
  */
 router.put('/update/:sessionId', async (req, res) => {
     try {
@@ -166,7 +162,7 @@ router.put('/update/:sessionId', async (req, res) => {
             return res.status(400).json({ success: false, error: 'centerId requis' });
         }
 
-        const sessionRef = db.ref(`centers/${centerId}/sessions/${sessionId}`);
+        const sessionRef  = db.ref(`centers/${centerId}/sessions/${sessionId}`);
         const sessionSnap = await sessionRef.once('value');
 
         if (!sessionSnap.exists()) {
@@ -174,20 +170,17 @@ router.put('/update/:sessionId', async (req, res) => {
         }
 
         const oldSession = sessionSnap.val();
-        const updates = { updatedAt: Date.now() };
+        const updates    = { updatedAt: Date.now() };
 
-        if (titre) updates.titre = titre;
-        if (niveau) updates.niveau = niveau;
+        if (titre)     updates.titre     = titre;
+        if (niveau)    updates.niveau    = niveau;
         if (dateDebut) updates.dateDebut = new Date(dateDebut).getTime();
-        if (dateFin) updates.dateFin = new Date(dateFin).getTime();
+        if (dateFin)   updates.dateFin   = new Date(dateFin).getTime();
 
-        // Mise à jour des formateurs
         if (formateurIds !== undefined) {
-            // Retirer l'ancienne session des anciens formateurs
             for (const fId of (oldSession.formateurIds || [])) {
                 await db.ref(`centers/${centerId}/formateurs/${fId}/sessions/${sessionId}`).remove();
             }
-            // Ajouter aux nouveaux formateurs
             for (const fId of formateurIds) {
                 await db.ref(`centers/${centerId}/formateurs/${fId}/sessions/${sessionId}`).set(true);
             }
@@ -206,19 +199,18 @@ router.put('/update/:sessionId', async (req, res) => {
 
 /**
  * DELETE /api/session/delete/:sessionId
- * Supprimer une session (et désassocier les stagiaires)
  */
 router.delete('/delete/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
-        const { centerId } = req.query;
+        const { centerId }  = req.query;
 
         if (!centerId) {
             return res.status(400).json({ success: false, error: 'centerId requis' });
         }
 
         const sessionSnap = await db.ref(`centers/${centerId}/sessions/${sessionId}`).once('value');
-        const session = sessionSnap.val();
+        const session     = sessionSnap.val();
 
         if (!session) {
             return res.status(404).json({ success: false, error: 'Session introuvable' });
@@ -229,9 +221,9 @@ router.delete('/delete/:sessionId', async (req, res) => {
             await db.ref(`centers/${centerId}/formateurs/${fId}/sessions/${sessionId}`).remove();
         }
 
-        // Désassocier les stagiaires (on ne les supprime pas, on retire juste le sessionId)
+        // Désassocier les stagiaires
         const stagiairesSnap = await db.ref(`centers/${centerId}/stagiaires`).once('value');
-        const stagiaires = stagiairesSnap.val() || {};
+        const stagiaires     = stagiairesSnap.val() || {};
         for (const [sId, s] of Object.entries(stagiaires)) {
             if (s.sessionId === sessionId) {
                 await db.ref(`centers/${centerId}/stagiaires/${sId}/sessionId`).remove();
@@ -239,7 +231,6 @@ router.delete('/delete/:sessionId', async (req, res) => {
             }
         }
 
-        // Supprimer la session
         await db.ref(`centers/${centerId}/sessions/${sessionId}`).remove();
 
         res.json({ success: true, message: 'Session supprimée' });
