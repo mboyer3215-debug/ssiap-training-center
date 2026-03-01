@@ -130,8 +130,11 @@ function injectFormateurModal() {
 
 // ── Ouvrir modal ──
 function showAddFormateurModal() {
+    // Sécurité : injecter le modal s'il n'existe pas encore
+    injectFormateurModal();
+
     if (formateurs.length >= (centerData?.license?.maxFormateurs || 1)) {
-        showFormAlert('error', `⚠️ Limite atteinte : ${centerData.license.maxFormateurs} formateur(s) maximum sur votre licence.`);
+        alert(`⚠️ Limite atteinte : ${centerData.license.maxFormateurs} formateur(s) maximum sur votre licence.`);
         return;
     }
     editingFormateurId = null;
@@ -327,6 +330,7 @@ function displayFormateurs(list) {
 
 // ── Modifier ──
 function editFormateur(formateurId) {
+    injectFormateurModal(); // Sécurité
     const f = formateurs.find(x => x.formateurId === formateurId);
     if (!f) return;
     editingFormateurId = formateurId;
@@ -370,6 +374,7 @@ async function deleteFormateur(formateurId) {
 // ── Helpers ──
 function showFormAlert(type, msg) {
     const el = document.getElementById('form-alert');
+    if (!el) return;
     el.textContent = msg;
     el.style.display = 'block';
     el.style.background = type === 'error' ? '#fdecea' : '#e8f5ee';
