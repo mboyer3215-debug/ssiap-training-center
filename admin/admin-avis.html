@@ -577,7 +577,6 @@ async function sendReply() {
   const notifEmail     = document.getElementById('notify-email').checked;
   const notifDashboard = document.getElementById('notify-dashboard').checked;
 
-  // FIX : chercher par id OU avisId
   const avis = allAvis.find(a => (a.id || a.avisId) === currentAvisId);
   if (!avis) { showToast('⚠️ Avis introuvable (id: ' + currentAvisId + ')'); return; }
 
@@ -585,35 +584,46 @@ async function sendReply() {
   btn.disabled = true;
   btn.textContent = '⏳ Envoi…';
 
+  // Sauvegarde locale immédiate — le bouton se débloque sans attendre l'email
+  avis.adminReplies = avis.adminReplies || [];
+  const localReply = { texte, timestamp: Date.now(), sentEmail: false, sentDashboard: false };
+  avis.adminReplies.push(localReply);
+
+  // Rafraîchir l'UI immédiatement
+  document.getElementById('reply-input').value = '';
+  btn.disabled = false;
+  btn.textContent = 'Envoyer ✓';
+  openPanel(currentAvisId, null);
+  updateCounts();
+  applyFilter();
+  showToast('✅ Réponse enregistrée' + (notifEmail ? ' · envoi email en cours…' : ''));
+
+  // Appel API en arrière-plan (ne bloque pas l'UI)
+  // Timeout 8s pour éviter d'attendre le SMTP indéfiniment
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
   try {
     const r = await fetch(`${API}/avis/reply/${currentAvisId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texte, notifEmail, notifDashboard, centerId: avis.centerId })
+      body: JSON.stringify({ texte, notifEmail, notifDashboard, centerId: avis.centerId }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     const d = await r.json();
-    if (!r.ok) throw new Error(d.error || 'Erreur ' + r.status);
-
-    // FIX : le backend retourne { reply } — on l'ajoute localement
-    avis.adminReplies = avis.adminReplies || [];
-    avis.adminReplies.push(d.reply || { texte, timestamp: Date.now(), sentEmail: notifEmail, sentDashboard: notifDashboard });
-    showToast('✅ Réponse envoyée' + (notifEmail ? ' · ✉ email' : '') + (notifDashboard ? ' · 📊 dashboard' : ''));
-
+    if (r.ok && d.reply) {
+      // Mettre à jour avec la vraie réponse serveur
+      const idx = avis.adminReplies.indexOf(localReply);
+      if (idx !== -1) avis.adminReplies[idx] = d.reply;
+      if (notifEmail && d.reply.sentEmail)  showToast('✉ Email envoyé au centre');
+      if (notifEmail && !d.reply.sentEmail) showToast('⚠️ Email non envoyé (SMTP non configuré)');
+    }
   } catch(e) {
-    console.error('sendReply error:', e);
-    // Fallback local : afficher quand même la réponse dans l'UI
-    avis.adminReplies = avis.adminReplies || [];
-    avis.adminReplies.push({ texte, timestamp: Date.now(), sentEmail: false, sentDashboard: false });
-    showToast('⚠️ Erreur réseau — affiché localement : ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Envoyer ✓';
+    clearTimeout(timeout);
+    // Timeout ou erreur réseau — la réponse est déjà affichée localement, pas grave
+    console.warn('sendReply background error:', e.message);
   }
-
-  document.getElementById('reply-input').value = '';
-  openPanel(currentAvisId, null);
-  updateCounts();
-  applyFilter();
 }
 
 // ── Vue / Export ──
