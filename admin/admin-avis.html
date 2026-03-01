@@ -31,7 +31,6 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;min-height:100vh}
 
-/* ── TOPBAR ── */
 .topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:60}
 .topbar-brand{font-family:'Lora',serif;font-size:19px;font-weight:700;display:flex;align-items:center;gap:10px}
 .topbar-brand span{color:var(--terra)}
@@ -43,10 +42,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .btn-back{background:var(--subtle);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:.12s;font-weight:600}
 .btn-back:hover{color:var(--terra);border-color:var(--terra)}
 
-/* ── LAYOUT ── */
 .layout{display:grid;grid-template-columns:268px 1fr;min-height:calc(100vh - 52px)}
 
-/* ── SIDEBAR ── */
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:18px 12px;overflow-y:auto}
 .sf-title{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;padding:10px 8px 6px}
 .sf-divider{height:1px;background:var(--border);margin:8px 0}
@@ -81,16 +78,13 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .nps-val{font-family:'Lora',serif;font-size:30px;font-weight:700;color:var(--green)}
 .nps-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 
-/* ── MAIN ── */
 .main{display:flex;flex-direction:column;overflow:hidden}
 
-/* ── STATS BAR ── */
 .stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
 .stat-cell{background:var(--surface);padding:12px 16px;text-align:center}
 .stat-val{font-family:'Lora',serif;font-size:22px;font-weight:700;line-height:1;margin-bottom:2px}
 .stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-family:'DM Mono',monospace}
 
-/* ── TOOLBAR ── */
 .toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .search-box{flex:1;min-width:200px;max-width:300px;background:var(--subtle);border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;color:var(--text);outline:none;transition:.15s}
 .search-box:focus{border-color:var(--terra);background:var(--surface)}
@@ -103,12 +97,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .btn-export:hover{border-color:var(--terra);color:var(--terra)}
 .sort-select{background:var(--subtle);border:1.5px solid var(--border);color:var(--text);padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;outline:none}
 
-/* ── AVIS AREA ── */
 .avis-area{flex:1;overflow-y:auto;padding:16px 20px}
 .view-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
 .view-list{display:flex;flex-direction:column;gap:8px}
 
-/* ── AVIS CARD ── */
 .avis-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:.15s;cursor:pointer}
 .avis-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.08)}
 .avis-card.has-reply{border-left:3px solid var(--blue)}
@@ -147,7 +139,6 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .btn-reply:hover{border-color:var(--blue);color:var(--blue)}
 .btn-reply.replied{border-color:var(--green);color:var(--green)}
 
-/* ── PANEL ── */
 .panel{position:fixed;right:0;top:52px;bottom:0;width:420px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transform:translateX(100%);transition:.25s ease;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
 .panel.open{transform:none}
 .panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
@@ -184,9 +175,9 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .notif-check{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);flex:1;cursor:pointer}
 .notif-check input{accent-color:var(--terra);cursor:pointer}
 .btn-send{background:var(--terra);color:#fff;border:none;padding:8px 18px;border-radius:7px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
-.btn-send:hover{background:var(--terra-d)}
+.btn-send:hover:not(:disabled){background:var(--terra-d)}
+.btn-send:disabled{opacity:.5;cursor:not-allowed}
 
-/* ── EMPTY / TOAST ── */
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty-icon{font-size:44px;margin-bottom:12px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;font-size:12px;font-weight:600;z-index:200;opacity:0;transition:.3s;white-space:nowrap}
@@ -211,7 +202,6 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 </header>
 
 <div class="layout">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sf-title">Filtres</div>
     <div class="fi active" onclick="setFilter('all',this)" id="fi-all">
@@ -287,7 +277,6 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="stats-bar">
       <div class="stat-cell"><div class="stat-val" id="sv-total" style="color:var(--terra)">0</div><div class="stat-lbl">Total avis</div></div>
@@ -336,7 +325,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
     <div class="reply-actions">
       <label class="notif-check"><input type="checkbox" id="notify-email" checked> Email</label>
       <label class="notif-check"><input type="checkbox" id="notify-dashboard" checked> Dashboard</label>
-      <button class="btn-send" onclick="sendReply()">Envoyer ✓</button>
+      <button class="btn-send" id="btn-send" onclick="sendReply()">Envoyer ✓</button>
     </div>
   </div>
 </div>
@@ -345,17 +334,19 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 
 <script>
 const API = 'https://ssiap-training-center.onrender.com/api';
-let allAvis=[], displayed=[], currentAvisId=null;
-let geoFilter=null, activeFilter='all', isGridView=true;
+let allAvis = [], displayed = [], currentAvisId = null;
+let geoFilter = null, activeFilter = 'all', isGridView = true;
 
+// ── Chargement ──
 async function loadAvis() {
   try {
     const r = await fetch(`${API}/avis/list?limit=200`);
-    if(!r.ok) throw new Error();
+    if (!r.ok) throw new Error();
     const d = await r.json();
-    allAvis = d.avis||[];
+    allAvis = d.avis || [];
   } catch {
-    allAvis=[
+    // Données démo si API inaccessible
+    allAvis = [
       {id:'a1',role:'formateur',prenom:'Marie',nom:'Dupont',centreNom:'Centre SSIAP Paris',centreVille:'Paris',centreRegion:'Île-de-France',centreDept:'75',niveau:'2',noteGlobale:4.6,ratings:{questions:5,explications:5,interface:4,progression:4,rolespecific:5},positifs:['Questions pertinentes','Explications détaillées','Dashboard formateur'],negatifs:['Export PDF résultats'],nps:9,commentaire:'Excellent outil, mes stagiaires progressent nettement plus vite.',adminReplies:[],createdAt:Date.now()-86400000*2},
       {id:'a2',role:'stagiaire',prenom:'Thomas',nom:'Martin',centreNom:'Centre SSIAP Lyon',centreVille:'Lyon',centreRegion:'Auvergne-Rhône-Alpes',centreDept:'69',niveau:'1',noteGlobale:4.2,ratings:{questions:4,explications:4,interface:5,progression:4,rolespecific:4},positifs:['Interface intuitive','Accessible partout'],negatifs:['Mode hors-ligne'],nps:8,commentaire:'Très pratique pour réviser dans le métro.',adminReplies:[],createdAt:Date.now()-86400000*4},
       {id:'a3',role:'stagiaire',prenom:'Lucie',nom:'Bernard',centreNom:'Centre SSIAP Paris',centreVille:'Paris',centreRegion:'Île-de-France',centreDept:'75',niveau:'1',noteGlobale:5,ratings:{questions:5,explications:5,interface:5,progression:5,rolespecific:5},positifs:['Questions pertinentes','Prépare bien l\'examen'],negatifs:[],nps:10,commentaire:"J'ai eu 18/20 à mon examen SSIAP 1 !",adminReplies:[{texte:'Félicitations Lucie ! Votre réussite nous rend fiers 🎉',timestamp:Date.now()-86400000*5}],createdAt:Date.now()-86400000*6},
@@ -366,223 +357,295 @@ async function loadAvis() {
   buildGeoTree(); updateCounts(); applyFilter();
 }
 
+// ── Geo tree ──
 function buildGeoTree() {
-  const regions={};
-  allAvis.forEach(a=>{
-    const reg=a.centreRegion||'Autre', vil=a.centreVille||'—';
-    if(!regions[reg]) regions[reg]={villes:{}};
-    if(!regions[reg].villes[vil]) regions[reg].villes[vil]=new Set();
-    regions[reg].villes[vil].add(a.centreNom||'—');
+  const regions = {};
+  allAvis.forEach(a => {
+    const reg = a.centreRegion || 'Autre', vil = a.centreVille || '—';
+    if (!regions[reg]) regions[reg] = { villes: {} };
+    if (!regions[reg].villes[vil]) regions[reg].villes[vil] = new Set();
+    regions[reg].villes[vil].add(a.centreNom || '—');
   });
-  const tree=document.getElementById('geo-tree');
-  tree.innerHTML=Object.entries(regions).map(([reg,data])=>{
-    const regCount=allAvis.filter(a=>(a.centreRegion||'Autre')===reg).length;
-    const villesHtml=Object.entries(data.villes).map(([vil,centres])=>{
-      const vilCount=allAvis.filter(a=>a.centreVille===vil).length;
-      const centresHtml=[...centres].map(c=>{
-        const cCnt=allAvis.filter(a=>a.centreNom===c).length;
-        return`<div class="geo-child" onclick="setGeoFilter('centre','${c.replace(/'/g,"\\'")}',this)" style="padding-left:8px"><span style="font-size:10px">🏢</span>${c.slice(0,22)}<span class="geo-cnt">${cCnt}</span></div>`;
+  const tree = document.getElementById('geo-tree');
+  tree.innerHTML = Object.entries(regions).map(([reg, data]) => {
+    const regCount = allAvis.filter(a => (a.centreRegion || 'Autre') === reg).length;
+    const villesHtml = Object.entries(data.villes).map(([vil, centres]) => {
+      const vilCount = allAvis.filter(a => a.centreVille === vil).length;
+      const centresHtml = [...centres].map(c => {
+        const cCnt = allAvis.filter(a => a.centreNom === c).length;
+        return `<div class="geo-child" onclick="setGeoFilter('centre','${c.replace(/'/g,"\\'")}',this)" style="padding-left:8px"><span style="font-size:10px">🏢</span>${c.slice(0,22)}<span class="geo-cnt">${cCnt}</span></div>`;
       }).join('');
-      return`<div class="geo-child" onclick="setGeoFilter('ville','${vil}',this)"><span style="font-size:12px">📍</span>${vil}<span class="geo-cnt">${vilCount}</span></div>${centresHtml}`;
+      return `<div class="geo-child" onclick="setGeoFilter('ville','${vil}',this)"><span style="font-size:12px">📍</span>${vil}<span class="geo-cnt">${vilCount}</span></div>${centresHtml}`;
     }).join('');
-    return`<div><div class="geo-header" onclick="this.classList.toggle('expanded')"><span>🗺 ${reg}</span><span class="geo-cnt" style="font-size:10px">${regCount}</span><span class="geo-toggle">›</span></div><div class="geo-children">${villesHtml}</div></div>`;
+    return `<div><div class="geo-header" onclick="this.classList.toggle('expanded')"><span>🗺 ${reg}</span><span class="geo-cnt" style="font-size:10px">${regCount}</span><span class="geo-toggle">›</span></div><div class="geo-children">${villesHtml}</div></div>`;
   }).join('');
-  document.getElementById('cnt-national').textContent=allAvis.length;
+  document.getElementById('cnt-national').textContent = allAvis.length;
 }
 
-function setFilter(f,el) {
-  activeFilter=f; geoFilter=null;
-  document.querySelectorAll('.fi,.geo-child').forEach(i=>i.classList.remove('active'));
-  if(el) el.classList.add('active');
+// ── Filtres ──
+function setFilter(f, el) {
+  activeFilter = f; geoFilter = null;
+  document.querySelectorAll('.fi,.geo-child').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
   applyFilter();
 }
-function setGeoFilter(type,val,el) {
-  geoFilter=val?{type,val}:null; activeFilter='all';
-  document.querySelectorAll('.fi,.geo-child').forEach(i=>i.classList.remove('active'));
-  if(el) el.classList.add('active');
+function setGeoFilter(type, val, el) {
+  geoFilter = val ? { type, val } : null; activeFilter = 'all';
+  document.querySelectorAll('.fi,.geo-child').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
   applyFilter();
 }
-function setChip(f,el) {
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active'); activeFilter=f; geoFilter=null; applyFilter();
+function setChip(f, el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); activeFilter = f; geoFilter = null; applyFilter();
 }
 
 function applyFilter() {
-  let list=[...allAvis];
-  if(geoFilter) {
-    if(geoFilter.type==='centre') list=list.filter(a=>a.centreNom===geoFilter.val);
-    if(geoFilter.type==='ville')  list=list.filter(a=>a.centreVille===geoFilter.val);
-    if(geoFilter.type==='region') list=list.filter(a=>a.centreRegion===geoFilter.val);
+  let list = [...allAvis];
+  if (geoFilter) {
+    if (geoFilter.type === 'centre') list = list.filter(a => a.centreNom === geoFilter.val);
+    if (geoFilter.type === 'ville')  list = list.filter(a => a.centreVille === geoFilter.val);
+    if (geoFilter.type === 'region') list = list.filter(a => a.centreRegion === geoFilter.val);
   } else {
-    if(activeFilter==='formateur')  list=list.filter(a=>a.role==='formateur');
-    if(activeFilter==='stagiaire')  list=list.filter(a=>a.role==='stagiaire');
-    if(activeFilter==='replied')    list=list.filter(a=>(a.adminReplies||[]).length>0);
-    if(activeFilter==='noreplied')  list=list.filter(a=>!(a.adminReplies||[]).length);
-    if(activeFilter==='n1')         list=list.filter(a=>a.niveau==='1');
-    if(activeFilter==='n2')         list=list.filter(a=>a.niveau==='2');
-    if(activeFilter==='n3')         list=list.filter(a=>a.niveau==='3');
-    if(activeFilter==='note5')      list=list.filter(a=>Math.round(a.noteGlobale)===5);
-    if(activeFilter==='note4')      list=list.filter(a=>Math.round(a.noteGlobale)===4);
-    if(activeFilter==='note3')      list=list.filter(a=>Math.round(a.noteGlobale)===3);
-    if(activeFilter==='noteminus'||activeFilter==='low') list=list.filter(a=>a.noteGlobale<3);
+    if (activeFilter === 'formateur')  list = list.filter(a => a.role === 'formateur');
+    if (activeFilter === 'stagiaire')  list = list.filter(a => a.role === 'stagiaire');
+    if (activeFilter === 'replied')    list = list.filter(a => (a.adminReplies || []).length > 0);
+    if (activeFilter === 'noreplied')  list = list.filter(a => !(a.adminReplies || []).length);
+    if (activeFilter === 'n1')         list = list.filter(a => a.niveau === '1');
+    if (activeFilter === 'n2')         list = list.filter(a => a.niveau === '2');
+    if (activeFilter === 'n3')         list = list.filter(a => a.niveau === '3');
+    if (activeFilter === 'note5')      list = list.filter(a => Math.round(a.noteGlobale) === 5);
+    if (activeFilter === 'note4')      list = list.filter(a => Math.round(a.noteGlobale) === 4);
+    if (activeFilter === 'note3')      list = list.filter(a => Math.round(a.noteGlobale) === 3);
+    if (activeFilter === 'noteminus' || activeFilter === 'low') list = list.filter(a => a.noteGlobale < 3);
   }
-  displayed=list; updateStatsBar(list); renderAvis(list);
+  displayed = list; updateStatsBar(list); renderAvis(list);
 }
 
 function searchAvis(q) {
-  if(!q){applyFilter();return;}
-  const lq=q.toLowerCase();
-  const list=allAvis.filter(a=>(a.commentaire||'').toLowerCase().includes(lq)||(a.prenom||'').toLowerCase().includes(lq)||(a.centreNom||'').toLowerCase().includes(lq)||(a.positifs||[]).some(p=>p.toLowerCase().includes(lq)));
-  displayed=list; updateStatsBar(list); renderAvis(list);
+  if (!q) { applyFilter(); return; }
+  const lq = q.toLowerCase();
+  const list = allAvis.filter(a =>
+    (a.commentaire || '').toLowerCase().includes(lq) ||
+    (a.prenom || '').toLowerCase().includes(lq) ||
+    (a.nom || '').toLowerCase().includes(lq) ||
+    (a.centreNom || '').toLowerCase().includes(lq) ||
+    (a.positifs || []).some(p => p.toLowerCase().includes(lq))
+  );
+  displayed = list; updateStatsBar(list); renderAvis(list);
 }
 
 function sortAvis(val) {
-  const list=[...displayed];
-  if(val==='note-asc')  list.sort((a,b)=>a.noteGlobale-b.noteGlobale);
-  if(val==='note-desc') list.sort((a,b)=>b.noteGlobale-a.noteGlobale);
-  if(val==='recent')    list.sort((a,b)=>b.createdAt-a.createdAt);
-  if(val==='nps')       list.sort((a,b)=>(b.nps||0)-(a.nps||0));
-  displayed=list; renderAvis(list);
+  const list = [...displayed];
+  if (val === 'note-asc')  list.sort((a, b) => a.noteGlobale - b.noteGlobale);
+  if (val === 'note-desc') list.sort((a, b) => b.noteGlobale - a.noteGlobale);
+  if (val === 'recent')    list.sort((a, b) => b.createdAt - a.createdAt);
+  if (val === 'nps')       list.sort((a, b) => (b.nps || 0) - (a.nps || 0));
+  displayed = list; renderAvis(list);
 }
 
+// ── Stats ──
 function updateCounts() {
-  const c={all:allAvis.length,replied:allAvis.filter(a=>(a.adminReplies||[]).length>0).length,noreplied:allAvis.filter(a=>!(a.adminReplies||[]).length).length,form:allAvis.filter(a=>a.role==='formateur').length,stag:allAvis.filter(a=>a.role==='stagiaire').length,n1:allAvis.filter(a=>a.niveau==='1').length,n2:allAvis.filter(a=>a.niveau==='2').length,n3:allAvis.filter(a=>a.niveau==='3').length,5:allAvis.filter(a=>Math.round(a.noteGlobale)===5).length,4:allAvis.filter(a=>Math.round(a.noteGlobale)===4).length,3:allAvis.filter(a=>Math.round(a.noteGlobale)===3).length,low:allAvis.filter(a=>a.noteGlobale<3).length};
-  Object.entries(c).forEach(([k,v])=>{const el=document.getElementById('cnt-'+k);if(el)el.textContent=v;});
-  const moy=allAvis.length?(allAvis.reduce((s,a)=>s+a.noteGlobale,0)/allAvis.length).toFixed(1):'—';
-  const withNps=allAvis.filter(a=>a.nps!=null);
-  const nps=withNps.length?Math.round(((withNps.filter(a=>a.nps>=9).length-withNps.filter(a=>a.nps<7).length)/withNps.length)*100):null;
-  document.getElementById('sb-note').textContent=moy;
-  document.getElementById('sb-stars').textContent=starsStr(parseFloat(moy)||0);
-  document.getElementById('sb-from').textContent=allAvis.length+' avis';
-  document.getElementById('sb-nps').textContent=nps!==null?(nps>=0?'+':'')+nps:'—';
+  const c = {
+    all: allAvis.length,
+    replied: allAvis.filter(a => (a.adminReplies || []).length > 0).length,
+    noreplied: allAvis.filter(a => !(a.adminReplies || []).length).length,
+    form: allAvis.filter(a => a.role === 'formateur').length,
+    stag: allAvis.filter(a => a.role === 'stagiaire').length,
+    n1: allAvis.filter(a => a.niveau === '1').length,
+    n2: allAvis.filter(a => a.niveau === '2').length,
+    n3: allAvis.filter(a => a.niveau === '3').length,
+    5: allAvis.filter(a => Math.round(a.noteGlobale) === 5).length,
+    4: allAvis.filter(a => Math.round(a.noteGlobale) === 4).length,
+    3: allAvis.filter(a => Math.round(a.noteGlobale) === 3).length,
+    low: allAvis.filter(a => a.noteGlobale < 3).length
+  };
+  Object.entries(c).forEach(([k, v]) => { const el = document.getElementById('cnt-' + k); if (el) el.textContent = v; });
+  const moy = allAvis.length ? (allAvis.reduce((s, a) => s + a.noteGlobale, 0) / allAvis.length).toFixed(1) : '—';
+  const withNps = allAvis.filter(a => a.nps != null);
+  const nps = withNps.length ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100) : null;
+  document.getElementById('sb-note').textContent = moy;
+  document.getElementById('sb-stars').textContent = starsStr(parseFloat(moy) || 0);
+  document.getElementById('sb-from').textContent = allAvis.length + ' avis';
+  document.getElementById('sb-nps').textContent = nps !== null ? (nps >= 0 ? '+' : '') + nps : '—';
 }
 
 function updateStatsBar(list) {
-  const moy=list.length?(list.reduce((s,a)=>s+a.noteGlobale,0)/list.length).toFixed(1):'—';
-  const withNps=list.filter(a=>a.nps!=null);
-  const nps=withNps.length?Math.round(((withNps.filter(a=>a.nps>=9).length-withNps.filter(a=>a.nps<7).length)/withNps.length)*100):null;
-  document.getElementById('sv-total').textContent=list.length;
-  document.getElementById('sv-note').textContent=moy;
-  document.getElementById('sv-nps').textContent=nps!==null?(nps>=0?'+':'')+nps:'—';
-  document.getElementById('sv-sansr').textContent=list.filter(a=>!(a.adminReplies||[]).length).length;
-  document.getElementById('sv-centres').textContent=[...new Set(list.map(a=>a.centreNom||a.centerId).filter(Boolean))].length;
+  const moy = list.length ? (list.reduce((s, a) => s + a.noteGlobale, 0) / list.length).toFixed(1) : '—';
+  const withNps = list.filter(a => a.nps != null);
+  const nps = withNps.length ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100) : null;
+  document.getElementById('sv-total').textContent = list.length;
+  document.getElementById('sv-note').textContent = moy;
+  document.getElementById('sv-nps').textContent = nps !== null ? (nps >= 0 ? '+' : '') + nps : '—';
+  document.getElementById('sv-sansr').textContent = list.filter(a => !(a.adminReplies || []).length).length;
+  document.getElementById('sv-centres').textContent = [...new Set(list.map(a => a.centreNom || a.centerId).filter(Boolean))].length;
 }
 
-function starsStr(n){let s='';for(let i=1;i<=5;i++)s+=i<=n?'★':'☆';return s;}
+function starsStr(n) { let s = ''; for (let i = 1; i <= 5; i++) s += i <= n ? '★' : '☆'; return s; }
 
+// ── Rendu cards ──
 function renderAvis(list) {
-  const c=document.getElementById('avis-container');
-  if(!list.length){c.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>Aucun avis correspondant</div></div>';return;}
-  c.innerHTML=list.map(a=>buildCard(a)).join('');
+  const c = document.getElementById('avis-container');
+  if (!list.length) { c.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>Aucun avis correspondant</div></div>'; return; }
+  c.innerHTML = list.map(a => buildCard(a)).join('');
 }
 
 function buildCard(a) {
-  const note=parseFloat(a.noteGlobale||0).toFixed(1);
-  const nom=[a.prenom,a.nom].filter(Boolean).join(' ')||(a.role==='formateur'?'Formateur':'Stagiaire')+' anonyme';
-  const init=(a.prenom?.[0]||a.role?.[0]||'?').toUpperCase();
-  const hasR=(a.adminReplies||[]).length>0;
-  const npsC=a.nps>=9?'p':a.nps>=7?'n':'d';
-  const date=new Date(a.createdAt).toLocaleDateString('fr-FR');
-  const posT=(a.positifs||[]).slice(0,2).map(t=>`<span class="tag pos">${t}</span>`).join('');
-  const negT=(a.negatifs||[]).slice(0,1).map(t=>`<span class="tag neg">${t}</span>`).join('');
-  const nivT=a.niveau?`<span class="tag niv">SSIAP ${a.niveau}</span>`:'';
-  return`<div class="avis-card ${hasR?'has-reply':'pending-reply'}">
+  // FIX : utiliser a.id || a.avisId pour supporter les deux formats
+  const avisId = a.id || a.avisId;
+  const note = parseFloat(a.noteGlobale || 0).toFixed(1);
+  const nom = [a.prenom, a.nom].filter(Boolean).join(' ') || (a.role === 'formateur' ? 'Formateur' : 'Stagiaire') + ' anonyme';
+  const init = (a.prenom?.[0] || a.role?.[0] || '?').toUpperCase();
+  const hasR = (a.adminReplies || []).length > 0;
+  const npsC = a.nps >= 9 ? 'p' : a.nps >= 7 ? 'n' : 'd';
+  const date = new Date(a.createdAt).toLocaleDateString('fr-FR');
+  const posT = (a.positifs || []).slice(0, 2).map(t => `<span class="tag pos">${t}</span>`).join('');
+  const negT = (a.negatifs || []).slice(0, 1).map(t => `<span class="tag neg">${t}</span>`).join('');
+  const nivT = a.niveau ? `<span class="tag niv">SSIAP ${a.niveau}</span>` : '';
+  return `<div class="avis-card ${hasR ? 'has-reply' : 'pending-reply'}">
     <div class="card-top">
       <div class="card-who">
         <div class="who-left">
-          <div class="avatar ${a.role==='formateur'?'f':'s'}">${init}</div>
-          <div><div class="who-name">${nom}</div><div class="who-meta">${a.role==='formateur'?'👨‍🏫 Formateur':'🎓 Stagiaire'}</div></div>
+          <div class="avatar ${a.role === 'formateur' ? 'f' : 's'}">${init}</div>
+          <div><div class="who-name">${nom}</div><div class="who-meta">${a.role === 'formateur' ? '👨‍🏫 Formateur' : '🎓 Stagiaire'}</div></div>
         </div>
         <div class="who-right"><div class="card-note">${note}</div><div class="card-stars">${starsStr(parseFloat(note))}</div></div>
       </div>
       <div class="card-centre">
-        <span class="centre-tag">🏢 ${(a.centreNom||'—').slice(0,20)}</span>
-        ${a.centreVille?`<span class="geo-tag">📍 ${a.centreVille}</span>`:''}
+        <span class="centre-tag">🏢 ${(a.centreNom || '—').slice(0, 20)}</span>
+        ${a.centreVille ? `<span class="geo-tag">📍 ${a.centreVille}</span>` : ''}
       </div>
-      ${a.commentaire?`<div class="card-comment">${a.commentaire.slice(0,120)}${a.commentaire.length>120?'…':''}</div>`:''}
-      ${(posT||negT||nivT)?`<div class="card-tags">${nivT}${posT}${negT}</div>`:''}
+      ${a.commentaire ? `<div class="card-comment">${a.commentaire.slice(0, 120)}${a.commentaire.length > 120 ? '…' : ''}</div>` : ''}
+      ${(posT || negT || nivT) ? `<div class="card-tags">${nivT}${posT}${negT}</div>` : ''}
     </div>
     <div class="card-footer">
       <div class="card-footer-left">
-        ${a.nps!=null?`<div class="nps-bubble ${npsC}" title="NPS: ${a.nps}/10">${a.nps}</div>`:''}
+        ${a.nps != null ? `<div class="nps-bubble ${npsC}" title="NPS: ${a.nps}/10">${a.nps}</div>` : ''}
         <span class="card-date">${date}</span>
-        ${hasR?`<span class="reply-badge replied">✓ Répondu</span>`:`<span class="reply-badge pending">⏳ À traiter</span>`}
+        ${hasR ? `<span class="reply-badge replied">✓ Répondu</span>` : `<span class="reply-badge pending">⏳ À traiter</span>`}
       </div>
-      <button class="btn-reply ${hasR?'replied':''}" onclick="openPanel('${a.id}',event)">${hasR?'✉ Voir':'✉ Répondre'}</button>
+      <button class="btn-reply ${hasR ? 'replied' : ''}" onclick="openPanel('${avisId}',event)">${hasR ? '✉ Voir' : '✉ Répondre'}</button>
     </div>
   </div>`;
 }
 
-function openPanel(id,evt) {
-  if(evt) evt.stopPropagation();
-  currentAvisId=id;
-  const a=allAvis.find(x=>x.id===id);
-  if(!a) return;
-  const note=parseFloat(a.noteGlobale||0).toFixed(1);
-  const nom=[a.prenom,a.nom].filter(Boolean).join(' ')||'Anonyme';
-  const labels={questions:'Questions',explications:'Explications',interface:'Interface',progression:'Progression',rolespecific:'Outil rôle'};
-  document.getElementById('panel-body').innerHTML=`
+// ── Panel ──
+function openPanel(id, evt) {
+  if (evt) evt.stopPropagation();
+  currentAvisId = id;
+  // FIX : chercher par id OU avisId
+  const a = allAvis.find(x => (x.id || x.avisId) === id);
+  if (!a) { showToast('⚠️ Avis introuvable'); return; }
+
+  const note = parseFloat(a.noteGlobale || 0).toFixed(1);
+  const nom = [a.prenom, a.nom].filter(Boolean).join(' ') || 'Anonyme';
+  const labels = { questions: 'Questions', explications: 'Explications', interface: 'Interface', progression: 'Progression', rolespecific: 'Outil rôle' };
+
+  document.getElementById('panel-body').innerHTML = `
     <div style="text-align:center;margin-bottom:20px">
-      <div style="width:52px;height:52px;border-radius:50%;background:${a.role==='formateur'?'var(--blue-bg)':'var(--green-bg)'};color:${a.role==='formateur'?'var(--blue)':'var(--green)'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;margin:0 auto 8px">${(a.prenom?.[0]||'?').toUpperCase()}</div>
+      <div style="width:52px;height:52px;border-radius:50%;background:${a.role === 'formateur' ? 'var(--blue-bg)' : 'var(--green-bg)'};color:${a.role === 'formateur' ? 'var(--blue)' : 'var(--green)'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;margin:0 auto 8px">${(a.prenom?.[0] || '?').toUpperCase()}</div>
       <div style="font-family:'Lora',serif;font-size:18px;font-weight:600">${nom}</div>
-      <div style="font-size:11px;color:var(--muted)">${a.role==='formateur'?'👨‍🏫 Formateur':'🎓 Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px">🏢 ${a.centreNom||'—'}${a.centreVille?' · 📍 '+a.centreVille:''}</div>
+      <div style="font-size:11px;color:var(--muted)">${a.role === 'formateur' ? '👨‍🏫 Formateur' : '🎓 Stagiaire'}${a.niveau ? ' · SSIAP ' + a.niveau : ''}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">🏢 ${a.centreNom || '—'}${a.centreVille ? ' · 📍 ' + a.centreVille : ''}</div>
     </div>
     <div class="big-note">${note}/5</div>
     <div class="big-stars">${starsStr(parseFloat(note))}</div>
-    ${a.ratings?`<div class="ps-block"><div class="ps-label">Notes par critère</div>${Object.entries(a.ratings).filter(([,v])=>v>0).map(([k,v])=>`<div class="crit-row"><span class="crit-lbl">${labels[k]||k}</span><div class="crit-prog"><div class="crit-fill" style="width:${v/5*100}%"></div></div><span class="crit-val">${v}/5</span></div>`).join('')}</div>`:''}
-    ${a.commentaire?`<div class="ps-block"><div class="ps-label">Commentaire</div><div class="comment-bubble">${a.commentaire}</div></div>`:''}
-    ${(a.positifs||[]).length?`<div class="ps-block"><div class="ps-label">Points appréciés</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.positifs.map(p=>`<span class="tag pos">${p}</span>`).join('')}</div></div>`:''}
-    ${(a.negatifs||[]).length?`<div class="ps-block"><div class="ps-label">À améliorer</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.negatifs.map(n=>`<span class="tag neg">${n}</span>`).join('')}</div></div>`:''}
-    ${a.nps!=null?`<div class="ps-block"><div class="ps-label">NPS</div><div style="display:flex;align-items:center;gap:10px"><div class="nps-bubble ${a.nps>=9?'p':a.nps>=7?'n':'d'}" style="width:36px;height:36px;font-size:14px">${a.nps}</div><div style="font-size:12px;color:var(--muted)">${a.nps>=9?'Promoteur 🟢':a.nps>=7?'Passif 🟡':'Détracteur 🔴'} · ${a.nps}/10</div></div></div>`:''}
-    <div style="font-size:10px;color:var(--muted);margin-top:8px">Soumis le ${new Date(a.createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
+    ${a.ratings ? `<div class="ps-block"><div class="ps-label">Notes par critère</div>${Object.entries(a.ratings).filter(([, v]) => v > 0).map(([k, v]) => `<div class="crit-row"><span class="crit-lbl">${labels[k] || k}</span><div class="crit-prog"><div class="crit-fill" style="width:${v / 5 * 100}%"></div></div><span class="crit-val">${v}/5</span></div>`).join('')}</div>` : ''}
+    ${a.commentaire ? `<div class="ps-block"><div class="ps-label">Commentaire</div><div class="comment-bubble">${a.commentaire}</div></div>` : ''}
+    ${(a.positifs || []).length ? `<div class="ps-block"><div class="ps-label">Points appréciés</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.positifs.map(p => `<span class="tag pos">${p}</span>`).join('')}</div></div>` : ''}
+    ${(a.negatifs || []).length ? `<div class="ps-block"><div class="ps-label">À améliorer</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.negatifs.map(n => `<span class="tag neg">${n}</span>`).join('')}</div></div>` : ''}
+    ${a.nps != null ? `<div class="ps-block"><div class="ps-label">NPS</div><div style="display:flex;align-items:center;gap:10px"><div class="nps-bubble ${a.nps >= 9 ? 'p' : a.nps >= 7 ? 'n' : 'd'}" style="width:36px;height:36px;font-size:14px">${a.nps}</div><div style="font-size:12px;color:var(--muted)">${a.nps >= 9 ? 'Promoteur 🟢' : a.nps >= 7 ? 'Passif 🟡' : 'Détracteur 🔴'} · ${a.nps}/10</div></div></div>` : ''}
+    <div style="font-size:10px;color:var(--muted);margin-top:8px">Soumis le ${new Date(a.createdAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</div>
   `;
-  const replies=a.adminReplies||[];
-  document.getElementById('reply-thread').innerHTML=replies.length?replies.map(r=>`<div class="rm"><div class="rm-av admin">A</div><div class="rm-body"><div class="rm-name">Admin SSIAP · ${new Date(r.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div><div class="rm-bubble admin-bubble">${r.texte}</div>${r.sentEmail?`<div style="font-size:9px;color:var(--muted);margin-top:2px">✉ Email envoyé</div>`:''}</div></div>`).join(''):`<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px">Aucune réponse pour le moment</div>`;
-  document.getElementById('reply-input').value='';
+
+  const replies = a.adminReplies || [];
+  document.getElementById('reply-thread').innerHTML = replies.length
+    ? replies.map(r => `<div class="rm"><div class="rm-av admin">A</div><div class="rm-body"><div class="rm-name">Admin SSIAP · ${new Date(r.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div><div class="rm-bubble admin-bubble">${r.texte}</div>${r.sentEmail ? `<div style="font-size:9px;color:var(--muted);margin-top:2px">✉ Email envoyé</div>` : ''}</div></div>`).join('')
+    : `<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px">Aucune réponse pour le moment</div>`;
+
+  document.getElementById('reply-input').value = '';
   document.getElementById('panel').classList.add('open');
 }
 
-function closePanel(){document.getElementById('panel').classList.remove('open');currentAvisId=null;}
+function closePanel() { document.getElementById('panel').classList.remove('open'); currentAvisId = null; }
 
+// ── Envoi réponse — FIX PRINCIPAL ──
 async function sendReply() {
-  const texte=document.getElementById('reply-input').value.trim();
-  if(!texte) return;
-  const notifEmail=document.getElementById('notify-email').checked;
-  const notifDashboard=document.getElementById('notify-dashboard').checked;
-  const avis=allAvis.find(a=>a.id===currentAvisId);
-  if(!avis) return;
+  const texte = document.getElementById('reply-input').value.trim();
+  if (!texte) { showToast('⚠️ Écrivez une réponse'); return; }
+
+  const notifEmail     = document.getElementById('notify-email').checked;
+  const notifDashboard = document.getElementById('notify-dashboard').checked;
+
+  // FIX : chercher par id OU avisId
+  const avis = allAvis.find(a => (a.id || a.avisId) === currentAvisId);
+  if (!avis) { showToast('⚠️ Avis introuvable (id: ' + currentAvisId + ')'); return; }
+
+  const btn = document.getElementById('btn-send');
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi…';
+
   try {
-    const r=await fetch(`${API}/avis/reply/${currentAvisId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texte,notifEmail,notifDashboard,centerId:avis.centerId})});
-    if(!r.ok) throw new Error();
-  } catch {
-    avis.adminReplies=avis.adminReplies||[];
-    avis.adminReplies.push({texte,timestamp:Date.now(),sentEmail:notifEmail,sentDashboard:notifDashboard});
+    const r = await fetch(`${API}/avis/reply/${currentAvisId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texte, notifEmail, notifDashboard, centerId: avis.centerId })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Erreur ' + r.status);
+
+    // FIX : le backend retourne { reply } — on l'ajoute localement
+    avis.adminReplies = avis.adminReplies || [];
+    avis.adminReplies.push(d.reply || { texte, timestamp: Date.now(), sentEmail: notifEmail, sentDashboard: notifDashboard });
+    showToast('✅ Réponse envoyée' + (notifEmail ? ' · ✉ email' : '') + (notifDashboard ? ' · 📊 dashboard' : ''));
+
+  } catch(e) {
+    console.error('sendReply error:', e);
+    // Fallback local : afficher quand même la réponse dans l'UI
+    avis.adminReplies = avis.adminReplies || [];
+    avis.adminReplies.push({ texte, timestamp: Date.now(), sentEmail: false, sentDashboard: false });
+    showToast('⚠️ Erreur réseau — affiché localement : ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Envoyer ✓';
   }
-  document.getElementById('reply-input').value='';
-  openPanel(currentAvisId,null);
-  updateCounts(); applyFilter();
-  showToast(['Réponse envoyée',notifEmail?'✉ email':'',notifDashboard?'📊 dashboard':''].filter(Boolean).join(' · '));
+
+  document.getElementById('reply-input').value = '';
+  openPanel(currentAvisId, null);
+  updateCounts();
+  applyFilter();
 }
 
-function toggleView(){
-  isGridView=!isGridView;
-  document.getElementById('avis-container').className=isGridView?'view-grid':'view-list';
-  document.getElementById('view-btn').textContent=isGridView?'⊞ Grille':'☰ Liste';
+// ── Vue / Export ──
+function toggleView() {
+  isGridView = !isGridView;
+  document.getElementById('avis-container').className = isGridView ? 'view-grid' : 'view-list';
+  document.getElementById('view-btn').textContent = isGridView ? '⊞ Grille' : '☰ Liste';
 }
 
-function exportCSV(){
-  const rows=[['Prénom','Nom','Rôle','Centre','Ville','Niveau','Note','NPS','Commentaire','Répondu','Date']];
-  displayed.forEach(a=>rows.push([a.prenom||'',a.nom||'',a.role,a.centreNom||'',a.centreVille||'',a.niveau||'',a.noteGlobale,a.nps??'',(a.commentaire||'').replace(/"/g,"''"),(a.adminReplies||[]).length>0?'Oui':'Non',new Date(a.createdAt).toLocaleDateString('fr-FR')]));
-  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv);
-  a.download=`avis_ssiap_${new Date().toISOString().slice(0,10)}.csv`;
+function exportCSV() {
+  const rows = [['Prénom', 'Nom', 'Rôle', 'Centre', 'Ville', 'Niveau', 'Note', 'NPS', 'Commentaire', 'Répondu', 'Date']];
+  displayed.forEach(a => rows.push([
+    a.prenom || '', a.nom || '', a.role, a.centreNom || '', a.centreVille || '',
+    a.niveau || '', a.noteGlobale, a.nps ?? '',
+    (a.commentaire || '').replace(/"/g, "''"),
+    (a.adminReplies || []).length > 0 ? 'Oui' : 'Non',
+    new Date(a.createdAt).toLocaleDateString('fr-FR')
+  ]));
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+  a.download = `avis_ssiap_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   showToast('Export CSV téléchargé');
 }
 
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
 
 loadAvis();
 </script>
