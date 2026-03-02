@@ -6,6 +6,7 @@
 <title>Dashboard Formateur — SSIAP Training</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
   --rouge:#c25a3a;--rouge-hover:#aa4a2c;--rouge-light:#fdf2ee;--rouge-mid:#ecc4b4;
@@ -15,6 +16,7 @@
   --gold:#d4960a;--gold-light:#fef7e0;
   --green:#2e7d52;--green-light:#edf7f2;
   --blue:#2e5c8a;--blue-light:#eef4fb;
+  --forest:#1a4a32;
   --shadow-sm:0 1px 3px rgba(0,0,0,.07);--shadow:0 4px 12px rgba(0,0,0,.08);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -34,6 +36,14 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .nav-btn.active{background:rgba(255,255,255,.22);color:#fff}
 .header-right{display:flex;align-items:center;gap:10px}
 .formateur-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;font-size:11px;color:rgba(255,255,255,.85)}
+.btn{padding:9px 18px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;border:none;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(46,92,138,.2)}
+.btn-primary:hover{background:#1e3f64;transform:translateY(-1px)}
+.btn-rouge{background:var(--rouge);color:#fff}
+.btn-rouge:hover{background:var(--rouge-hover)}
+.btn-secondary{background:var(--subtle);color:var(--text2);border:1.5px solid var(--border)}
+.btn-export{background:var(--green);color:#fff}
+.btn-export:hover{background:#1a5235}
 .btn-logout{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75);padding:6px 14px;border-radius:7px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:.12s}
 .btn-logout:hover{background:rgba(255,255,255,.15)}
 
@@ -53,19 +63,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .scard-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .scard-hdr h3{margin:0}
 
-.btn{padding:9px 18px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;border:none;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(46,92,138,.2)}
-.btn-primary:hover{background:#1e3f64;transform:translateY(-1px)}
-.btn-rouge{background:var(--rouge);color:#fff}
-.btn-rouge:hover{background:var(--rouge-hover)}
-.btn-secondary{background:var(--subtle);color:var(--text2);border:1.5px solid var(--border)}
-.btn-export{background:var(--green);color:#fff}
-.btn-export:hover{background:#1a5235}
-
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);background:var(--subtle)}
-td{padding:12px;border-bottom:1px solid var(--border);font-size:13px}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--subtle)}
 
@@ -78,12 +79,12 @@ tr:hover td{background:var(--subtle)}
 
 .chart-wrap{height:220px;position:relative}
 
-.session-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;transition:.15s;cursor:pointer}
+.session-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;transition:.15s}
 .session-card:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
 .session-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
 .session-name{font-size:14px;font-weight:700}
 .session-meta{font-size:11px;color:var(--muted);margin-top:2px}
-.session-stats{display:flex;gap:16px;font-size:12px;color:var(--text2)}
+.session-stats{display:flex;gap:16px;font-size:12px;color:var(--text2);align-items:center}
 .session-stat span{font-weight:700;color:var(--text)}
 
 .loader{display:none;position:fixed;inset:0;background:rgba(247,244,240,.8);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px}
@@ -91,6 +92,99 @@ tr:hover td{background:var(--subtle)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty{text-align:center;padding:48px;color:var(--muted)}
 .empty-icon{font-size:40px;margin-bottom:12px}
+
+/* ── QR MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(30,26,23,.6);backdrop-filter:blur(3px);
+  z-index:100;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border-radius:18px;
+  width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px 16px;border-bottom:1px solid var(--border);
+}
+.modal-header h3{font-family:'Lora',serif;font-size:18px;font-weight:600}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px;border-radius:6px}
+.modal-close:hover{background:var(--subtle);color:var(--text)}
+.modal-body{padding:24px}
+
+/* QR session bloc */
+.qr-session-block{
+  text-align:center;
+  background:linear-gradient(135deg,var(--forest) 0%,#0c2118 100%);
+  border-radius:14px;padding:24px;margin-bottom:20px;
+}
+.qr-session-title{font-family:'Lora',serif;font-size:17px;color:#fff;font-weight:600;margin-bottom:4px}
+.qr-session-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:16px}
+#qr-session-canvas{display:flex;justify-content:center;margin-bottom:12px}
+#qr-session-canvas canvas,#qr-session-canvas img{border-radius:10px!important;border:6px solid #fff!important}
+.qr-url{font-size:10px;color:rgba(255,255,255,.35);word-break:break-all;padding:0 8px}
+
+/* QR stagiaires liste */
+.qr-stag-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qr-stag-card{
+  background:var(--subtle);border:1.5px solid var(--border);
+  border-radius:10px;padding:12px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  text-align:center;
+}
+.qr-stag-name{font-size:12px;font-weight:700;color:var(--text)}
+.qr-stag-pin{font-family:monospace;font-size:11px;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:4px;font-weight:700}
+.qr-stag-canvas canvas,.qr-stag-canvas img{border-radius:6px!important}
+
+/* ── PAGE IMPRESSION ── */
+#print-area{display:none}
+
+/* ── PRINT ── */
+@media print {
+  body > *:not(#print-area){display:none!important}
+  #print-area{display:block!important;padding:0;margin:0}
+
+  .print-page{
+    page-break-after:always;
+    padding:20mm;
+    font-family:'Plus Jakarta Sans',sans-serif;
+  }
+  .print-header{
+    display:flex;align-items:center;gap:12px;
+    border-bottom:2px solid #1a4a32;
+    padding-bottom:12px;margin-bottom:20px;
+  }
+  .print-brand{font-family:'Lora',serif;font-size:20px;font-weight:700;color:#1a4a32}
+  .print-session-info{margin-bottom:24px;padding:16px;background:#f4f7f5;border-radius:8px;border-left:4px solid #1a4a32}
+  .print-session-name{font-size:16px;font-weight:700;color:#1a4a32;margin-bottom:4px}
+  .print-session-dates{font-size:12px;color:#666}
+
+  /* QR session grande */
+  .print-session-qr{
+    text-align:center;margin:20px 0;padding:20px;
+    border:2px dashed #1a4a32;border-radius:12px;background:#f4f7f5;
+  }
+  .print-session-qr-title{font-size:13px;font-weight:700;color:#1a4a32;margin-bottom:4px}
+  .print-session-qr-sub{font-size:11px;color:#888;margin-bottom:12px}
+  .print-session-qr canvas,.print-session-qr img{display:block;margin:0 auto}
+
+  /* Grille stagiaires */
+  .print-stag-title{font-size:14px;font-weight:700;margin-bottom:12px;color:#1a4a32}
+  .print-stag-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .print-stag-card{
+    border:1px solid #ddd;border-radius:8px;padding:10px;
+    text-align:center;break-inside:avoid;
+  }
+  .print-stag-card-name{font-size:11px;font-weight:700;margin-bottom:2px}
+  .print-stag-card-pin{font-size:10px;color:#2e5c8a;font-family:monospace;background:#eef4fb;padding:2px 6px;border-radius:3px;margin-bottom:6px;display:inline-block}
+  .print-stag-card canvas,.print-stag-card img{display:block;margin:6px auto 0}
+  .print-stag-card-url{font-size:8px;color:#aaa;margin-top:4px;word-break:break-all}
+  .print-footer{margin-top:16px;font-size:9px;color:#bbb;text-align:center;border-top:1px solid #eee;padding-top:8px}
+}
 </style>
 </head>
 <body>
@@ -106,8 +200,8 @@ tr:hover td{background:var(--subtle)}
   <div class="header-right">
     <div class="formateur-pill" id="formateur-name">Formateur</div>
     <button class="btn btn-export" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="btn" style="background:#d4960a;color:#fff;box-shadow:0 2px 8px rgba(212,150,10,.25);"
-      onclick="window.location.href='../avis/formulaire-avis-formateur.html'">⭐ Donner mon avis</button>
+    <button class="btn" style="background:#d4960a;color:#fff"
+      onclick="window.location.href='../avis/formulaire-avis-formateur.html'">⭐ Mon avis</button>
     <button class="btn-logout" id="btn-logout">🚪 Déconnexion</button>
   </div>
 </header>
@@ -142,15 +236,27 @@ tr:hover td{background:var(--subtle)}
     <div class="scard">
       <div class="scard-hdr">
         <h3>Liste des stagiaires</h3>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <input type="text" placeholder="🔍 Rechercher…" id="search-stag" oninput="filterStagiaires(this.value)"
             style="border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);outline:none;color:var(--text)">
+          <!-- ★ NOUVEAU : bouton QR accès session -->
+          <button class="btn btn-primary" onclick="openQRModal()">📱 QR Accès session</button>
           <button class="btn btn-export" onclick="exportCSV()">⬇ CSV</button>
         </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Stagiaire</th><th>Session</th><th>Niveau</th><th>PIN</th><th>Statut</th><th>Créé le</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Stagiaire</th>
+              <th>Session</th>
+              <th>Niveau</th>
+              <th>PIN</th>
+              <th>QR Code</th>
+              <th>Statut</th>
+              <th>Créé le</th>
+            </tr>
+          </thead>
           <tbody id="stag-tbody"></tbody>
         </table>
       </div>
@@ -172,19 +278,70 @@ tr:hover td{background:var(--subtle)}
     </div>
   </div>
 
-  <!-- PAGE FORMATEUR -->
+  <!-- PROFIL -->
   <div id="page-formateur" class="page">
     <h2 class="page-title">Mon profil</h2>
-    <div class="scard">
-      <div id="formateur-info"></div>
+    <div class="scard"><div id="formateur-info"></div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL QR ACCÈS SESSION
+════════════════════════════════ -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📱 QR Code d'accès — Connexion Stagiaire</h3>
+      <button class="modal-close" onclick="closeQRModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Sélecteur de session -->
+      <div style="margin-bottom:18px">
+        <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Session</label>
+        <select id="qr-session-select" onchange="onQRSessionChange()"
+          style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);outline:none;color:var(--text)">
+          <option value="">— Sélectionner une session —</option>
+        </select>
+      </div>
+
+      <!-- QR de la session (URL de connexion générique) -->
+      <div class="qr-session-block" id="qr-session-block" style="display:none">
+        <div class="qr-session-title" id="qr-session-name">Session</div>
+        <div class="qr-session-sub">Scannez pour accéder à la page de connexion de cette session</div>
+        <div id="qr-session-canvas"></div>
+        <div class="qr-url" id="qr-session-url"></div>
+      </div>
+
+      <!-- QR par stagiaire -->
+      <div id="qr-stagiaires-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700">QR codes stagiaires</div>
+          <button class="btn btn-primary" onclick="printQRPage()" style="font-size:11px;padding:7px 14px">
+            🖨️ Imprimer tout
+          </button>
+        </div>
+        <div class="qr-stag-list" id="qr-stag-list"></div>
+      </div>
+
+      <div id="qr-empty" style="text-align:center;padding:32px;color:var(--muted)">
+        <div style="font-size:36px;margin-bottom:8px">📱</div>
+        <p style="font-size:13px">Sélectionnez une session pour afficher les QR codes</p>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- ════════════════════════════════
+     ZONE D'IMPRESSION (cachée)
+════════════════════════════════ -->
+<div id="print-area"></div>
 
 <div id="loader" class="loader"><div class="spinner"></div><p style="font-size:13px;color:var(--muted)">Chargement…</p></div>
 
 <script>
 const API = 'https://ssiap-training-center.onrender.com/api';
+const BASE_URL = 'https://ssiap-training-center.onrender.com';
 let formateurData = null;
 let allStagiaires = [];
 let allSessions = [];
@@ -218,45 +375,30 @@ async function loadOverview() {
   if (!formateurData) return;
   showLoader();
   try {
-    // Charger les sessions du centre filtrées par formateur
-    const centerId = formateurData.centerId;
+    const centerId    = formateurData.centerId;
     const formateurId = formateurData.formateurId || formateurData.id;
-
     if (centerId) {
       const r = await fetch(`${API}/session/list/${centerId}`);
       const d = await r.json();
-      // FIX : filtrer les sessions où ce formateur est assigné
       const toutes = d.sessions || [];
       allSessions = toutes.filter(s =>
         !s.formateurIds || s.formateurIds.length === 0 || s.formateurIds.includes(formateurId)
       );
     }
-
-    // KPIs depuis les sessions
     const nbStagiaires = allSessions.reduce((sum, s) => sum + (s.nbStagiaires || 0), 0);
     document.getElementById('kpi-stag').textContent     = nbStagiaires || '—';
     document.getElementById('kpi-sessions').textContent = allSessions.length || '—';
     document.getElementById('kpi-score').textContent    = '—';
     document.getElementById('kpi-taux').textContent     = '—';
-
     renderSessionsRecent(allSessions);
     buildCharts(allSessions);
-
   } catch(e) {
     console.error('Erreur overview:', e);
-    // Données démo
-    document.getElementById('kpi-stag').textContent     = '—';
-    document.getElementById('kpi-sessions').textContent = '—';
-    document.getElementById('kpi-score').textContent    = '—';
-    document.getElementById('kpi-taux').textContent     = '—';
     renderSessionsRecent([]);
     buildCharts([]);
-  } finally {
-    hideLoader();
-  }
+  } finally { hideLoader(); }
 }
 
-// FIX : mapping correct des champs Firebase → affichage
 function renderSessionsRecent(sessions) {
   const c = document.getElementById('sessions-recent');
   if (!sessions || !sessions.length) {
@@ -265,8 +407,7 @@ function renderSessionsRecent(sessions) {
   }
   const niveauLabel = { 'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC' };
   c.innerHTML = sessions.slice(0, 5).map(s => {
-    // FIX : les champs Firebase sont titre/dateDebut/status, pas nom/date/statut
-    const titre   = s.titre  || s.nom  || 'Session sans nom';
+    const titre   = s.titre || s.nom || 'Session sans nom';
     const niveau  = niveauLabel[s.niveau] || ('SSIAP ' + (s.niveau || '—'));
     const date    = s.dateDebut ? new Date(s.dateDebut).toLocaleDateString('fr-FR') : '—';
     const status  = s.status || s.statut || 'à venir';
@@ -283,6 +424,8 @@ function renderSessionsRecent(sessions) {
         <div class="session-stats">
           <div>Stagiaires : <span>${s.nbStagiaires || 0}</span></div>
           <div>Dates : <span>${date} → ${s.dateFin ? new Date(s.dateFin).toLocaleDateString('fr-FR') : '—'}</span></div>
+          <button class="btn btn-secondary" style="padding:5px 12px;font-size:11px;margin-left:auto"
+            onclick="openQRModalForSession('${s.sessionId}')">📱 QR Accès</button>
         </div>
       </div>`;
   }).join('');
@@ -308,7 +451,7 @@ function buildCharts(sessions) {
   if (chartScores) chartScores.destroy();
   chartScores = new Chart(ctx2, {
     type: 'doughnut',
-    data: { labels: ['Données', 'En attente'], datasets: [{ data: [sessions.length ? 75 : 0, sessions.length ? 25 : 100], backgroundColor: ['#2e7d52','#e8e2db'], borderWidth: 0 }] },
+    data: { labels: ['Données','En attente'], datasets: [{ data: [sessions.length ? 75 : 0, sessions.length ? 25 : 100], backgroundColor: ['#2e7d52','#e8e2db'], borderWidth: 0 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
   });
 }
@@ -318,26 +461,24 @@ async function loadStagiaires() {
   if (!formateurData) return;
   showLoader();
   try {
-    const centerId   = formateurData.centerId;
+    const centerId    = formateurData.centerId;
     const formateurId = formateurData.formateurId || formateurData.id;
-
     if (centerId) {
-      // Charger les sessions du formateur
       const rSess = await fetch(`${API}/session/list/${centerId}`);
       const dSess = await rSess.json();
       const mesSessions = (dSess.sessions || []).filter(s =>
         !s.formateurIds || s.formateurIds.length === 0 || s.formateurIds.includes(formateurId)
       );
-
-      // Charger les stagiaires de chaque session
       allStagiaires = [];
       for (const sess of mesSessions) {
         const rStag = await fetch(`${API}/stagiaire/list/${centerId}?sessionId=${sess.sessionId}`);
         const dStag = await rStag.json();
         const stagiaires = (dStag.stagiaires || []).map(s => ({
           ...s,
-          sessionTitre: sess.titre || sess.nom || 'Session',
-          sessionNiveau: sess.niveau
+          sessionTitre:  sess.titre || sess.nom || 'Session',
+          sessionNiveau: sess.niveau,
+          sessionId:     sess.sessionId,
+          centerId:      centerId,
         }));
         allStagiaires.push(...stagiaires);
       }
@@ -345,40 +486,252 @@ async function loadStagiaires() {
   } catch(e) {
     console.error('Erreur stagiaires:', e);
     allStagiaires = [];
-  } finally {
-    hideLoader();
-  }
+  } finally { hideLoader(); }
   renderStagiaires(allStagiaires);
 }
 
 function renderStagiaires(list) {
   const tbody = document.getElementById('stag-tbody');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Aucun stagiaire</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Aucun stagiaire</td></tr>';
     return;
   }
   const niveauLabel = { 'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC' };
-  tbody.innerHTML = list.map(s => `<tr>
-    <td><div style="font-weight:700">${s.prenom||''} ${s.nom||''}</div><div style="font-size:11px;color:var(--muted)">${s.email||''}</div></td>
-    <td style="font-size:12px">${s.sessionTitre || '—'}</td>
-    <td><span class="badge badge-blue">${niveauLabel[s.sessionNiveau] || s.sessionNiveau || '—'}</span></td>
-    <td><span style="font-family:monospace;background:var(--blue-light);padding:3px 8px;border-radius:5px;color:var(--blue);font-weight:700">${s.pin||'—'}</span></td>
-    <td><span class="badge ${s.status==='actif'?'badge-green':'badge-gray'}">${s.status||'—'}</span></td>
-    <td style="color:var(--muted);font-size:11px">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
-  </tr>`).join('');
+  tbody.innerHTML = list.map((s, idx) => `
+    <tr>
+      <td><div style="font-weight:700">${s.prenom||''} ${s.nom||''}</div><div style="font-size:11px;color:var(--muted)">${s.email||''}</div></td>
+      <td style="font-size:12px">${s.sessionTitre || '—'}</td>
+      <td><span class="badge badge-blue">${niveauLabel[s.sessionNiveau] || s.sessionNiveau || '—'}</span></td>
+      <td><span style="font-family:monospace;background:var(--blue-light);padding:3px 8px;border-radius:5px;color:var(--blue);font-weight:700">${s.pin||'—'}</span></td>
+      <td>
+        <div id="qr-inline-${idx}" style="width:48px;height:48px;cursor:pointer" title="Cliquer pour agrandir"
+          onclick="showStagiaireQR(${idx})"></div>
+      </td>
+      <td><span class="badge ${s.status==='actif'?'badge-green':'badge-gray'}">${s.status||'—'}</span></td>
+      <td style="color:var(--muted);font-size:11px">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
+    </tr>`).join('');
+
+  // Générer les mini QR inline pour chaque stagiaire
+  list.forEach((s, idx) => {
+    const qrData = buildStagiaireQRData(s);
+    try {
+      new QRCode(document.getElementById('qr-inline-'+idx), {
+        text: qrData, width: 48, height: 48,
+        colorDark: '#1a4a32', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) { console.warn('QR inline:', e); }
+  });
 }
 
-function filterStagiaires(q) {
-  const lq = q.toLowerCase();
-  renderStagiaires(allStagiaires.filter(s =>
-    (s.prenom+' '+s.nom).toLowerCase().includes(lq) ||
-    (s.sessionTitre||'').toLowerCase().includes(lq)
-  ));
+function buildStagiaireQRData(s) {
+  return JSON.stringify({
+    centerId:    s.centerId    || formateurData?.centerId || '',
+    sessionId:   s.sessionId  || '',
+    stagiaireId: s.stagiaireId || s.id || '',
+    pin:         s.pin || ''
+  });
+}
+
+function buildSessionLoginURL(centerId, sessionId) {
+  return `${BASE_URL}/stagiaire/stagiaire-login.html?centerId=${encodeURIComponent(centerId)}&sessionId=${encodeURIComponent(sessionId)}`;
+}
+
+// Agrandir le QR d'un stagiaire
+function showStagiaireQR(idx) {
+  const s = allStagiaires[idx];
+  if (!s) return;
+  const modal = document.getElementById('qr-modal');
+  modal.classList.add('open');
+  populateSessionSelect();
+  // Sélectionner la session du stagiaire
+  document.getElementById('qr-session-select').value = s.sessionId || '';
+  onQRSessionChange(s.sessionId, s);
+}
+
+// ── MODAL QR ──
+function openQRModal() {
+  document.getElementById('qr-modal').classList.add('open');
+  populateSessionSelect();
+  document.getElementById('qr-session-select').value = '';
+  document.getElementById('qr-session-block').style.display = 'none';
+  document.getElementById('qr-stagiaires-section').style.display = 'none';
+  document.getElementById('qr-empty').style.display = 'block';
+}
+
+function openQRModalForSession(sessionId) {
+  document.getElementById('qr-modal').classList.add('open');
+  populateSessionSelect();
+  document.getElementById('qr-session-select').value = sessionId;
+  onQRSessionChange(sessionId);
+}
+
+function closeQRModal() {
+  document.getElementById('qr-modal').classList.remove('open');
+}
+
+function populateSessionSelect() {
+  const sel = document.getElementById('qr-session-select');
+  const niveauLabel = { 'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC' };
+  sel.innerHTML = '<option value="">— Sélectionner une session —</option>' +
+    allSessions.map(s => {
+      const lbl = (s.titre || s.nom || 'Session') + ' · ' + (niveauLabel[s.niveau] || s.niveau || '');
+      return `<option value="${s.sessionId}">${lbl}</option>`;
+    }).join('');
+}
+
+function onQRSessionChange(forcedId, focusStag) {
+  const sessionId = forcedId || document.getElementById('qr-session-select').value;
+  if (forcedId) document.getElementById('qr-session-select').value = sessionId;
+  if (!sessionId) {
+    document.getElementById('qr-session-block').style.display   = 'none';
+    document.getElementById('qr-stagiaires-section').style.display = 'none';
+    document.getElementById('qr-empty').style.display           = 'block';
+    return;
+  }
+  document.getElementById('qr-empty').style.display = 'none';
+  const sess = allSessions.find(s => s.sessionId === sessionId);
+  if (!sess) return;
+  const centerId = formateurData.centerId;
+  const loginUrl = buildSessionLoginURL(centerId, sessionId);
+
+  // ── QR Session ──
+  const niveauLabel = { 'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC' };
+  document.getElementById('qr-session-name').textContent =
+    (sess.titre || 'Session') + ' · ' + (niveauLabel[sess.niveau] || sess.niveau || '');
+  document.getElementById('qr-session-url').textContent = loginUrl;
+
+  const qrCanvas = document.getElementById('qr-session-canvas');
+  qrCanvas.innerHTML = '';
+  new QRCode(qrCanvas, {
+    text: loginUrl, width: 160, height: 160,
+    colorDark: '#1a4a32', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById('qr-session-block').style.display = 'block';
+
+  // ── QR Stagiaires ──
+  const stagSess = allStagiaires.filter(s => s.sessionId === sessionId);
+  if (stagSess.length) {
+    const listEl = document.getElementById('qr-stag-list');
+    listEl.innerHTML = '';
+    stagSess.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'qr-stag-card';
+      const name  = [s.prenom, s.nom].filter(Boolean).join(' ') || 'Stagiaire';
+      const qrDiv = document.createElement('div');
+      qrDiv.className = 'qr-stag-canvas';
+      card.innerHTML = `<div class="qr-stag-name">${name}</div>
+        <div class="qr-stag-pin">PIN : ${s.pin || '—'}</div>`;
+      card.appendChild(qrDiv);
+      listEl.appendChild(card);
+      new QRCode(qrDiv, {
+        text: buildStagiaireQRData(s), width: 80, height: 80,
+        colorDark: '#2e5c8a', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+    document.getElementById('qr-stagiaires-section').style.display = 'block';
+  } else {
+    document.getElementById('qr-stagiaires-section').style.display = 'none';
+  }
+}
+
+// ── IMPRESSION ──
+function printQRPage() {
+  const sessionId = document.getElementById('qr-session-select').value;
+  const sess = allSessions.find(s => s.sessionId === sessionId);
+  if (!sess) return;
+
+  const centerId  = formateurData.centerId;
+  const loginUrl  = buildSessionLoginURL(centerId, sessionId);
+  const stagSess  = allStagiaires.filter(s => s.sessionId === sessionId);
+  const niveauLabel = { 'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC' };
+  const niv     = niveauLabel[sess.niveau] || ('SSIAP ' + sess.niveau) || 'SSIAP';
+  const debut   = sess.dateDebut ? new Date(sess.dateDebut).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'}) : '—';
+  const fin     = sess.dateFin   ? new Date(sess.dateFin).toLocaleDateString('fr-FR',   {day:'numeric',month:'long',year:'numeric'}) : '—';
+
+  const printArea = document.getElementById('print-area');
+  printArea.innerHTML = '';
+
+  // ── PAGE 1 : QR de session ──
+  const p1 = document.createElement('div');
+  p1.className = 'print-page';
+  p1.innerHTML = `
+    <div class="print-header">
+      <span style="font-size:28px">🔥</span>
+      <div>
+        <div class="print-brand">SSIAP Training</div>
+        <div style="font-size:10px;color:#666">Document d'accès à la session — ${new Date().toLocaleDateString('fr-FR')}</div>
+      </div>
+    </div>
+    <div class="print-session-info">
+      <div class="print-session-name">${sess.titre || 'Formation'} · ${niv}</div>
+      <div class="print-session-dates">📅 Du ${debut} au ${fin} · ${stagSess.length} stagiaire${stagSess.length>1?'s':''}</div>
+    </div>
+    <div class="print-session-qr">
+      <div class="print-session-qr-title">QR Code d'accès à la session</div>
+      <div class="print-session-qr-sub">Affichez ce QR code en salle — les stagiaires le scannent pour accéder à la page de connexion</div>
+      <div id="print-session-qr-canvas"></div>
+      <div style="font-size:9px;color:#999;margin-top:8px;word-break:break-all">${loginUrl}</div>
+    </div>
+    <div class="print-footer">SSIAP Training · ssiap-training-center.onrender.com · Document généré le ${new Date().toLocaleString('fr-FR')}</div>`;
+  printArea.appendChild(p1);
+
+  // Générer QR session
+  new QRCode(document.getElementById('print-session-qr-canvas'), {
+    text: loginUrl, width: 200, height: 200,
+    colorDark: '#1a4a32', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  // ── PAGE 2 : Fiches stagiaires ──
+  if (stagSess.length) {
+    const p2 = document.createElement('div');
+    p2.className = 'print-page';
+    p2.innerHTML = `
+      <div class="print-header">
+        <span style="font-size:28px">🔥</span>
+        <div>
+          <div class="print-brand">SSIAP Training — Fiches stagiaires</div>
+          <div style="font-size:10px;color:#666">${sess.titre || 'Formation'} · ${niv} · Du ${debut} au ${fin}</div>
+        </div>
+      </div>
+      <div class="print-stag-title">QR codes individuels — à distribuer à chaque stagiaire</div>
+      <div class="print-stag-grid" id="print-stag-grid"></div>
+      <div class="print-footer">SSIAP Training · Chaque QR code est unique et personnel · Ne pas diffuser</div>`;
+    printArea.appendChild(p2);
+
+    const grid = document.getElementById('print-stag-grid');
+    stagSess.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'print-stag-card';
+      const name    = [s.prenom, s.nom].filter(Boolean).join(' ') || 'Stagiaire';
+      const qrDiv   = document.createElement('div');
+      qrDiv.id      = 'print-qr-stag-' + i;
+      card.innerHTML = `
+        <div class="print-stag-card-name">${name}</div>
+        <div class="print-stag-card-pin">PIN : ${s.pin || '—'}</div>`;
+      card.appendChild(qrDiv);
+      const urlFiche = document.createElement('div');
+      urlFiche.className = 'print-stag-card-url';
+      urlFiche.textContent = 'SSIAP Training · ' + niv;
+      card.appendChild(urlFiche);
+      grid.appendChild(card);
+      new QRCode(qrDiv, {
+        text: buildStagiaireQRData(s), width: 90, height: 90,
+        colorDark: '#2e5c8a', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+  }
+
+  // Lancer l'impression après rendu des QR
+  setTimeout(() => window.print(), 400);
 }
 
 // ── Questions ──
 async function loadQuestionStats(niveau) {
-  const c = document.getElementById('questions-list');
   try {
     const fId = formateurData?.formateurId || formateurData?.id || 'demo';
     const r = await fetch(`${API}/formateur/questions-stats/${fId}?niveau=${niveau}`);
@@ -387,7 +740,7 @@ async function loadQuestionStats(niveau) {
   } catch {
     renderQuestions([
       { texte: "Quel est le rôle du SSIAP 1 en cas d'alarme ?", tauxEchec: 68, nTentatives: 45 },
-      { texte: "Quelle est la portée d'un extincteur CO2 ?", tauxEchec: 55, nTentatives: 38 },
+      { texte: "Quelle est la portée d'un extincteur CO2 ?",      tauxEchec: 55, nTentatives: 38 },
     ]);
   }
 }
@@ -405,7 +758,7 @@ function renderQuestions(list) {
     </div>`).join('');
 }
 
-// ── Profil formateur ──
+// ── Profil ──
 function loadFormateurProfile() {
   const el = document.getElementById('formateur-info');
   if (!formateurData) return;
@@ -427,13 +780,20 @@ function exportCSV() {
     s.createdAt ? new Date(s.createdAt).toLocaleDateString('fr-FR') : ''
   ]));
   const csv = rows.map(r => r.map(c => '"'+c+'"').join(';')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+  const a   = document.createElement('a');
+  a.href    = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
   a.download = 'stagiaires_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
 }
 
 // ── Helpers ──
+function filterStagiaires(q) {
+  const lq = q.toLowerCase();
+  renderStagiaires(allStagiaires.filter(s =>
+    (s.prenom+' '+s.nom).toLowerCase().includes(lq) ||
+    (s.sessionTitre||'').toLowerCase().includes(lq)
+  ));
+}
 function showLoader() { document.getElementById('loader').style.display = 'flex'; }
 function hideLoader() { document.getElementById('loader').style.display = 'none'; }
 
@@ -443,9 +803,12 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     window.location.href = 'formateur-login.html';
   }
 });
-
 document.getElementById('btn-new-session')?.addEventListener('click', () => {
   if (typeof showAddSessionModal === 'function') showAddSessionModal();
+});
+// Fermer le modal QR en cliquant en dehors
+document.getElementById('qr-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeQRModal();
 });
 
 loadOverview();
