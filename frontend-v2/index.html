@@ -1,612 +1,334 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Connexion Stagiaire — SSIAP Training</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --forest:   #1a4a32;
-  --forest-d: #112e1f;
-  --forest-m: rgba(255,255,255,.1);
-  --forest-b: rgba(255,255,255,.07);
-  --cream:    #c8e6d4;
-  --terra:    #c25a3a;
-  --terra-d:  #a34a2e;
-  --terra-l:  #fdf0eb;
-  --terra-m:  #e8c4b4;
-  --bg:       #f4f1ed;
-  --surface:  #ffffff;
-  --border:   #e2ddd8;
-  --text:     #1e1a17;
-  --muted:    #8c8078;
-  --subtle:   #f7f5f2;
-  --green:    #2e7d52;
-  --green-l:  #e8f5ee;
-  --gold:     #b8860b;
-  --gold-l:   #fef9e7;
-  --red:      #c0392b;
-  --red-l:    #fdecea;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{
-  background:var(--bg);
-  font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:14px;color:var(--text);
-  display:flex;min-height:100vh;
-}
-
-/* ═══ GAUCHE ═══ */
-.left{
-  width:44%;flex-shrink:0;
-  background:var(--forest);
-  background:linear-gradient(160deg,#1a4a32 0%,#112e1f 55%,#0c2118 100%);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:48px 40px;
-  position:relative;overflow:hidden;
-}
-/* cercles décoratifs */
-.left::before{content:'';position:absolute;width:320px;height:320px;border-radius:50%;border:1px solid rgba(255,255,255,.05);right:-80px;top:-80px}
-.left::after {content:'';position:absolute;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,.04);left:-60px;bottom:80px}
-
-.left-inner{position:relative;z-index:1;width:100%;max-width:300px}
-
-/* Brand */
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:44px}
-.brand-icon{
-  width:46px;height:46px;background:rgba(255,255,255,.12);
-  border-radius:14px;display:flex;align-items:center;justify-content:center;
-  font-size:22px;border:1px solid rgba(255,255,255,.1);flex-shrink:0;
-}
-.brand-text h1{font-family:'Lora',serif;font-size:19px;color:#fff;font-weight:700;line-height:1}
-.brand-text p{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
-
-/* Session card */
-.session-card{
-  background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:16px;padding:20px;
-  margin-bottom:24px;
-}
-.level-tag{
-  display:inline-flex;align-items:center;
-  background:var(--terra);color:#fff;
-  font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-  padding:3px 10px;border-radius:20px;margin-bottom:12px;
-}
-.session-titre{
-  font-family:'Lora',serif;font-size:21px;color:#fff;
-  font-weight:600;line-height:1.25;margin-bottom:14px;
-}
-.dates-block{display:flex;flex-direction:column;gap:5px}
-.date-line{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.55)}
-.date-line strong{color:rgba(255,255,255,.85);font-weight:600}
-.date-sep-bar{height:1px;background:rgba(255,255,255,.1);margin:2px 0}
-.duration-line{
-  margin-top:8px;font-size:11px;color:rgba(255,255,255,.35);
-  display:flex;align-items:center;gap:5px;
-}
-
-/* Status badge */
-.status-badge{
-  display:inline-flex;align-items:center;gap:7px;
-  border-radius:8px;padding:8px 14px;
-  font-size:12px;font-weight:700;width:100%;
-}
-.status-badge .s-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
-.status-badge small{font-weight:400;opacity:.75;display:block;font-size:11px;margin-top:1px}
-.status-badge.active{background:rgba(46,125,82,.2);color:var(--cream);border:1px solid rgba(200,230,212,.15)}
-.status-badge.future{background:rgba(184,134,11,.15);color:#f0c040;border:1px solid rgba(240,192,64,.12)}
-.status-badge.ended{background:rgba(192,57,43,.15);color:#e88;border:1px solid rgba(232,136,136,.1)}
-
-/* ═══ DROITE ═══ */
-.right{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  padding:40px 32px;background:var(--surface);
-  overflow-y:auto;
-}
-.login-box{width:100%;max-width:380px}
-
-.login-head{margin-bottom:28px}
-.login-head h2{font-family:'Lora',serif;font-size:24px;font-weight:600;color:var(--text);margin-bottom:5px}
-.login-head p{font-size:13px;color:var(--muted);line-height:1.5}
-
-/* TABS */
-.tabs{
-  display:grid;grid-template-columns:1fr 1fr;
-  background:var(--subtle);border:1.5px solid var(--border);
-  border-radius:11px;padding:3px;gap:3px;margin-bottom:22px;
-}
-.tab{
-  padding:9px;border-radius:9px;border:none;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;
-  background:transparent;color:var(--muted);transition:.15s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-}
-.tab.active{background:var(--surface);color:var(--terra);box-shadow:0 1px 4px rgba(0,0,0,.08)}
-
-/* PIN */
-.pin-form,.qr-form{display:none}
-.pin-form.active,.qr-form.active{display:block}
-
-.pin-hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px}
-
-.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
-.pin-dot{
-  width:58px;height:58px;border-radius:13px;
-  border:2px solid var(--border);background:var(--subtle);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;color:var(--muted);
-  transition:.12s;
-}
-.pin-dot.filled{background:var(--terra-l);border-color:var(--terra);font-size:26px;color:var(--terra);font-weight:900}
-.pin-dot.active-dot{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-l)}
-.pin-dot.error{border-color:var(--red);background:var(--red-l);animation:shake .4s ease}
-@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.num-btn{
-  height:52px;border:1.5px solid var(--border);border-radius:10px;
-  background:var(--surface);font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:18px;font-weight:700;color:var(--text);cursor:pointer;
-  transition:.1s;display:flex;align-items:center;justify-content:center;flex-direction:column;
-  box-shadow:0 1px 2px rgba(0,0,0,.04);
-}
-.num-btn:hover{background:var(--subtle);border-color:var(--terra-m)}
-.num-btn:active{transform:scale(.93);background:var(--terra-l);border-color:var(--terra)}
-.num-btn.zero{grid-column:2}
-.num-btn.del{background:var(--subtle);font-size:15px;color:var(--muted);box-shadow:none}
-.num-btn.del:hover{color:var(--red);border-color:rgba(192,57,43,.25)}
-.num-sub{font-size:7px;color:var(--muted);font-weight:500;letter-spacing:1px;line-height:1;margin-top:1px}
-
-.btn-login{
-  width:100%;padding:13px;border-radius:10px;border:none;
-  background:var(--terra);color:#fff;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;transition:.15s;
-  box-shadow:0 4px 12px rgba(194,90,58,.25);
-}
-.btn-login:hover:not(:disabled){background:var(--terra-d);transform:translateY(-1px);box-shadow:0 6px 16px rgba(194,90,58,.3)}
-.btn-login:disabled{opacity:.38;cursor:not-allowed;transform:none!important}
-
-/* QR */
-.qr-area{
-  background:var(--subtle);border:2px dashed var(--border);
-  border-radius:14px;padding:22px;text-align:center;
-  cursor:pointer;transition:.15s;margin-bottom:14px;
-}
-.qr-area:hover{border-color:var(--terra-m);background:var(--terra-l)}
-.qr-area.scanning{border-color:var(--terra);border-style:solid}
-.qr-icon{font-size:36px;margin-bottom:8px}
-.qr-title{font-size:13px;font-weight:700;margin-bottom:4px}
-.qr-sub{font-size:11px;color:var(--muted);line-height:1.6}
-#qr-video-wrap{display:none;border-radius:10px;overflow:hidden;margin-bottom:10px;position:relative;aspect-ratio:1;background:#111}
-#qr-video{width:100%;height:100%;object-fit:cover}
-.qr-crosshair{position:absolute;inset:18%;border:2px solid rgba(255,255,255,.8);border-radius:8px;pointer-events:none}
-.qr-stop{display:block;font-size:11px;color:var(--muted);cursor:pointer;text-align:center;margin-bottom:10px}
-.qr-stop:hover{color:var(--red)}
-.qr-alt{font-size:11px;color:var(--muted);text-align:center}
-.qr-alt a{color:var(--terra);cursor:pointer;font-weight:700}
-.qr-alt a:hover{text-decoration:underline}
-
-/* BLOQUÉ */
-.blocked{text-align:center;padding:12px 0}
-.blocked-icon{font-size:40px;margin-bottom:10px}
-.blocked-msg{font-size:12px;color:var(--muted);line-height:1.7}
-
-/* MSG */
-.msg{border-radius:8px;padding:9px 13px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
-.msg.error{background:var(--red-l);color:var(--red)}
-.msg.success{background:var(--green-l);color:var(--green)}
-.msg.show{display:block}
-
-/* Footer */
-.login-footer{margin-top:18px;text-align:center;font-size:12px;color:var(--muted)}
-.login-footer a{color:var(--terra);font-weight:600;text-decoration:none}
-.login-footer a:hover{text-decoration:underline}
-
-/* Spinner */
-.spinner-wrap{display:flex;align-items:center;justify-content:center;height:100vh;width:100%}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* RESPONSIVE */
-@media(max-width:720px){
-  html,body{height:auto}
-  .left{display:none}
-  .right{padding:32px 20px;background:var(--bg)}
-  .login-box{max-width:100%}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entraînement SSIAP - Révisions</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
-<!-- SPINNER initial -->
-<div class="spinner-wrap" id="loading"><div class="spinner"></div></div>
-
-<!-- ═══ GAUCHE ═══ -->
-<div class="left" id="left-panel" style="display:none">
-  <div class="left-inner">
-
-    <div class="brand">
-      <div class="brand-icon">🔥</div>
-      <div class="brand-text">
-        <h1>SSIAP Training</h1>
-        <p>Espace Stagiaire</p>
-      </div>
-    </div>
-
-    <div class="session-card">
-      <div class="level-tag" id="s-level">SSIAP —</div>
-      <div class="session-titre" id="s-titre">Formation</div>
-      <div class="dates-block">
-        <div class="date-line">🗓 Début&nbsp;<strong id="s-debut">—</strong></div>
-        <div class="date-sep-bar"></div>
-        <div class="date-line">🏁 Fin&nbsp;&nbsp;&nbsp;&nbsp;<strong id="s-fin">—</strong></div>
-      </div>
-      <div class="duration-line" id="s-duration"></div>
-    </div>
-
-    <div id="s-status"></div>
-
-  </div>
-</div>
-
-<!-- ═══ DROITE ═══ -->
-<div class="right" id="right-panel" style="display:none">
-  <div class="login-box">
-
-    <div class="login-head">
-      <h2>Connexion</h2>
-      <p>Saisissez votre code PIN personnel ou scannez votre QR code</p>
-    </div>
-
-    <div class="msg" id="msg"></div>
-
-    <!-- BLOQUÉ -->
-    <div id="blocked-wrap" style="display:none" class="blocked">
-      <div class="blocked-icon" id="b-icon"></div>
-      <p class="blocked-msg" id="b-msg"></p>
-    </div>
-
-    <!-- LOGIN -->
-    <div id="login-area">
-      <div class="tabs">
-        <button class="tab active" id="tab-pin" onclick="switchTab('pin')">🔢 Code PIN</button>
-        <button class="tab" id="tab-qr"  onclick="switchTab('qr')">📷 QR Code</button>
-      </div>
-
-      <!-- PIN -->
-      <div class="pin-form active" id="form-pin">
-        <p class="pin-hint">Votre code personnel à 4 chiffres</p>
-        <div class="pin-display" id="pin-display">
-          <div class="pin-dot" id="dot0"></div>
-          <div class="pin-dot" id="dot1"></div>
-          <div class="pin-dot" id="dot2"></div>
-          <div class="pin-dot" id="dot3"></div>
-        </div>
-        <div class="numpad">
-          <button class="num-btn" onclick="numPress('1')">1</button>
-          <button class="num-btn" onclick="numPress('2')">2<span class="num-sub">ABC</span></button>
-          <button class="num-btn" onclick="numPress('3')">3<span class="num-sub">DEF</span></button>
-          <button class="num-btn" onclick="numPress('4')">4<span class="num-sub">GHI</span></button>
-          <button class="num-btn" onclick="numPress('5')">5<span class="num-sub">JKL</span></button>
-          <button class="num-btn" onclick="numPress('6')">6<span class="num-sub">MNO</span></button>
-          <button class="num-btn" onclick="numPress('7')">7<span class="num-sub">PQRS</span></button>
-          <button class="num-btn" onclick="numPress('8')">8<span class="num-sub">TUV</span></button>
-          <button class="num-btn" onclick="numPress('9')">9<span class="num-sub">WXYZ</span></button>
-          <button class="num-btn zero" onclick="numPress('0')">0</button>
-          <button class="num-btn del"  onclick="numDel()">⌫</button>
-        </div>
-        <button class="btn-login" id="btn-login" onclick="loginPin()" disabled>Accéder à ma formation →</button>
-      </div>
-
-      <!-- QR -->
-      <div class="qr-form" id="form-qr">
-        <div class="qr-area" id="qr-area" onclick="startScan()">
-          <div id="qr-prompt">
-            <div class="qr-icon">📷</div>
-            <div class="qr-title">Scanner mon QR code</div>
-            <div class="qr-sub">Scannez le QR code<br>remis par votre formateur</div>
-          </div>
-          <div id="qr-video-wrap">
-            <video id="qr-video" autoplay muted playsinline></video>
-            <div class="qr-crosshair"></div>
-          </div>
-        </div>
-        <a class="qr-stop" id="qr-stop-btn" style="display:none" onclick="stopScan()">⏹ Arrêter la caméra</a>
-        <div class="qr-alt">Pas de QR code ? <a onclick="switchTab('pin')">Utiliser le code PIN →</a></div>
-      </div>
-    </div>
-
-    <div class="login-footer">
-      <a href="../center/center-login.html">Responsable de centre →</a>
-    </div>
-
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<!-- Firebase pour détection quiz en salle -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../shared/firebase-client-config.js"></script>
 <script>
-const API = 'https://ssiap-training-center.onrender.com/api';
-let pin = '';
-let sessionData = null;
-let scanStream = null, scanInterval = null;
+(function() {
+    const stagData = localStorage.getItem('ssiap_stagiaire');
+    const centerData = localStorage.getItem('ssiap_stagiaire_center');
+    if (!stagData || !centerData) return;
 
-// ── INIT ──
-async function init() {
-  const p = new URLSearchParams(window.location.search);
-  const centerId  = p.get('centerId')  || p.get('c') || '';
-  const sessionId = p.get('sessionId') || p.get('s') || '';
+    const stagiaire = JSON.parse(stagData);
+    const center = JSON.parse(centerData);
+    if (!stagiaire.sessionId || !center.centerId) return;
 
-  // Toujours afficher le formulaire, même sans params
-  if (!centerId || !sessionId) {
-    // Pas de contexte session : afficher le formulaire en mode générique
-    show();
-    document.getElementById('s-level').textContent = 'SSIAP Training';
-    document.getElementById('s-titre').textContent = 'Connexion Stagiaire';
-    document.getElementById('s-debut').textContent = '—';
-    document.getElementById('s-fin').textContent   = '—';
-    document.getElementById('s-status').innerHTML  =
-      `<div class="status-badge active"><div class="s-dot"></div><div>Scannez votre QR code<small>ou saisissez votre code PIN si vous avez le lien complet</small></div></div>`;
-    // Basculer automatiquement sur l'onglet QR si pas de params
-    sessionData = { centerId: '', sessionId: '' };
-    // Suggérer le QR en premier quand pas de contexte
-    setTimeout(() => switchTab('qr'), 100);
-    return;
-  }
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CLIENT_CONFIG);
+        const db = firebase.database();
+        const quizRef = db.ref(`centers/${center.centerId}/sessions/${stagiaire.sessionId}/quizSalle`);
 
-  try {
-    const r = await fetch(`${API}/session/public/${sessionId}?centerId=${centerId}`);
-    const d = await r.json();
-    if (!r.ok || !d.session) throw new Error();
-    sessionData = { ...d.session, centerId, sessionId };
-  } catch {
-    sessionData = {
-      centerId, sessionId,
-      niveau:    p.get('niveau') || '1',
-      titre:     p.get('titre')  || null,
-      dateDebut: p.get('debut')  ? Number(p.get('debut')) : null,
-      dateFin:   p.get('fin')    ? Number(p.get('fin'))   : null,
-      status:    'active',
-    };
-  }
+        quizRef.on('value', snap => {
+            const quiz = snap.val();
+            if (!quiz || (quiz.status !== 'attente' && quiz.status !== 'question')) return;
 
-  renderSession(sessionData);
-}
+            quizRef.off();
 
-function show() {
-  document.getElementById('loading').style.display      = 'none';
-  document.getElementById('left-panel').style.display   = 'flex';
-  document.getElementById('right-panel').style.display  = 'flex';
-}
+            const banner = document.createElement('div');
+            banner.style.cssText = `
+                position:fixed;top:0;left:0;right:0;bottom:0;
+                background:rgba(0,0,0,0.9);z-index:99999;
+                display:flex;align-items:center;justify-content:center;
+            `;
+            banner.innerHTML = `
+                <div style="background:#0f172a;border:2px solid #16a34a;border-radius:20px;
+                    padding:40px;text-align:center;max-width:380px;margin:20px;
+                    animation:popIn 0.4s ease;">
+                    <div style="font-size:60px;margin-bottom:16px;">🎮</div>
+                    <h2 style="color:#f8fafc;font-size:22px;margin-bottom:10px;">Quiz en salle !</h2>
+                    <p style="color:#94a3b8;font-size:15px;margin-bottom:24px;line-height:1.5;">
+                        Votre formateur lance un quiz.<br>Rejoignez-le maintenant !
+                    </p>
+                    <button onclick="rejoindrequiz()" style="
+                        width:100%;padding:16px;background:#16a34a;color:white;
+                        border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;">
+                        ▶️ Rejoindre le quiz
+                    </button>
+                </div>
+                <style>@keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}</style>
+            `;
+            document.body.appendChild(banner);
 
-function renderSession(s) {
-  show();
-  const niv   = s.niveau || '1';
-  const debut = fmtDate(s.dateDebut);
-  const fin   = fmtDate(s.dateFin);
+            window.rejoindrequiz = function() {
+                const url = `../stagiaire/quiz-salle-stagiaire.html`
+                    + `?centerId=${center.centerId}`
+                    + `&sessionId=${stagiaire.sessionId}`
+                    + `&stagiaireId=${stagiaire.stagiaireId}`
+                    + `&nom=${encodeURIComponent(stagiaire.nom)}`
+                    + `&prenom=${encodeURIComponent(stagiaire.prenom)}`
+                    + `&pin=${stagiaire.pin}`
+                    + `&api=https://ssiap-training-center.onrender.com/api`;
+                window.location.href = url;
+            };
+        });
 
-  document.getElementById('s-level').textContent = 'SSIAP ' + niv;
-  document.getElementById('s-titre').textContent = s.titre || ('Formation SSIAP ' + niv);
-  document.getElementById('s-debut').textContent = debut;
-  document.getElementById('s-fin').textContent   = fin;
-
-  if (s.dateDebut && s.dateFin) {
-    const days = Math.round((s.dateFin - s.dateDebut) / 86400000) + 1;
-    document.getElementById('s-duration').textContent =
-      '⏱ ' + days + ' jour' + (days > 1 ? 's' : '') + ' de formation';
-  }
-
-  const now   = Date.now();
-  const start = s.dateDebut || 0;
-  const end   = s.dateFin   || Infinity;
-  const st    = document.getElementById('s-status');
-
-  if (s.status === 'terminee' || now > end) {
-    st.innerHTML = `<div class="status-badge ended"><div class="s-dot"></div><div>Session terminée<small>Accès clôturé depuis le ${fin}</small></div></div>`;
-    block('🔒', `Votre accès à la formation SSIAP ${niv} est clôturé depuis le ${fin}. Contactez votre formateur.`);
-  } else if (now < start) {
-    const j = Math.ceil((start - now) / 86400000);
-    st.innerHTML = `<div class="status-badge future"><div class="s-dot"></div><div>Pas encore disponible<small>Commence dans ${j} jour${j>1?'s':''} (${debut})</small></div></div>`;
-    block('⏳', `Votre formation SSIAP ${niv} commence le ${debut}. Votre code PIN vous sera remis par votre formateur.`);
-  } else {
-    const reste = Math.ceil((end - now) / 86400000);
-    st.innerHTML = `<div class="status-badge active"><div class="s-dot"></div><div>Formation en cours<small>Encore ${reste} jour${reste>1?'s':''} (jusqu'au ${fin})</small></div></div>`;
-  }
-}
-
-function block(icon, msg) {
-  document.getElementById('login-area').style.display   = 'none';
-  document.getElementById('blocked-wrap').style.display = 'block';
-  document.getElementById('b-icon').textContent = icon;
-  document.getElementById('b-msg').textContent  = msg;
-}
-
-function showFatalError(titre, msg) {
-  show();
-  document.getElementById('s-level').textContent = '⚠️';
-  document.getElementById('s-titre').textContent = titre;
-  document.getElementById('s-debut').textContent = '—';
-  document.getElementById('s-fin').textContent   = '—';
-  block('⚠️', msg);
-}
-
-// ── NUMPAD ──
-function numPress(d) {
-  if (pin.length >= 4) return;
-  pin += d;
-  updateDots();
-  if (pin.length === 4) {
-    document.getElementById('btn-login').disabled = false;
-    setTimeout(loginPin, 160);
-  }
-}
-
-function numDel() {
-  pin = pin.slice(0, -1);
-  document.getElementById('btn-login').disabled = true;
-  updateDots();
-}
-
-function updateDots() {
-  for (let i = 0; i < 4; i++) {
-    const d = document.getElementById('dot' + i);
-    d.textContent = i < pin.length ? '●' : '';
-    d.className = 'pin-dot' +
-      (i < pin.length ? ' filled' : '') +
-      (i === pin.length && pin.length < 4 ? ' active-dot' : '');
-  }
-}
-
-function shakeDots() {
-  for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
-  setTimeout(() => { pin = ''; updateDots(); document.getElementById('btn-login').disabled = true; }, 500);
-}
-
-// ── LOGIN PIN ──
-async function loginPin() {
-  if (!sessionData) return;
-  // Sans centerId (accès direct sans QR), attendre le scan QR
-  if (!sessionData.centerId || !sessionData.sessionId) {
-    showMsg('⚠️ Utilisez le QR code fourni par votre formateur pour vous connecter', 'error');
-    shakeDots();
-    return;
-  }
-  const btn = document.getElementById('btn-login');
-  btn.disabled = true; btn.textContent = '⏳ Vérification…';
-  try {
-    const r = await fetch(`${API}/stagiaire/login`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ centerId: sessionData.centerId, sessionId: sessionData.sessionId, pin, loginType: 'pin' })
-    });
-    const d = await r.json();
-    if (!r.ok || !d.success) throw new Error(d.error || 'Code PIN incorrect');
-    handleSuccess(d);
-  } catch(e) {
-    showMsg('❌ ' + e.message, 'error');
-    shakeDots();
-    btn.disabled = false; btn.textContent = 'Accéder à ma formation →';
-  }
-}
-
-// ── QR ──
-// Le QR code encode : {"centerId":"...","sessionId":"...","stagiaireId":"...","pin":"1234"}
-function switchTab(t) {
-  ['pin','qr'].forEach(x => {
-    document.getElementById('tab-'+x).classList.toggle('active', x===t);
-    document.getElementById('form-'+x).classList.toggle('active', x===t);
-  });
-  hideMsg();
-  if (t === 'pin') stopScan();
-}
-
-async function startScan() {
-  if (scanStream) return;
-  try {
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    document.getElementById('qr-video').srcObject = scanStream;
-    document.getElementById('qr-prompt').style.display     = 'none';
-    document.getElementById('qr-video-wrap').style.display = 'block';
-    document.getElementById('qr-stop-btn').style.display   = 'block';
-    document.getElementById('qr-area').classList.add('scanning');
-    scanInterval = setInterval(() => tryDecodeQR(document.getElementById('qr-video')), 500);
-  } catch { showMsg('Caméra indisponible — utilisez le code PIN', 'error'); }
-}
-
-function stopScan() {
-  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
-  clearInterval(scanInterval); scanInterval = null;
-  document.getElementById('qr-prompt').style.display     = 'block';
-  document.getElementById('qr-video-wrap').style.display = 'none';
-  document.getElementById('qr-stop-btn').style.display   = 'none';
-  document.getElementById('qr-area').classList.remove('scanning');
-}
-
-function tryDecodeQR(video) {
-  // Méthode 1 : BarcodeDetector natif (Chrome 83+, Edge, Safari 17+)
-  if ('BarcodeDetector' in window) {
-    new BarcodeDetector({ formats: ['qr_code'] }).detect(video)
-      .then(codes => { if (codes.length) { stopScan(); handleQRCode(codes[0].rawValue); } })
-      .catch(() => tryDecodeQRwithJsQR(video));
-    return;
-  }
-  // Méthode 2 : jsQR (universel, fonctionne partout)
-  tryDecodeQRwithJsQR(video);
-}
-
-function tryDecodeQRwithJsQR(video) {
-  if (!window.jsQR) return;
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width  = video.videoWidth  || 320;
-    canvas.height = video.videoHeight || 320;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-    if (code && code.data) { stopScan(); handleQRCode(code.data); }
-  } catch(e) {}
-}
-
-async function handleQRCode(raw) {
-  showMsg('⏳ Vérification en cours…', 'success');
-  try {
-    let data;
-    try { data = JSON.parse(raw); } catch { data = Object.fromEntries(new URL(raw).searchParams); }
-    const r = await fetch(`${API}/stagiaire/login`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        centerId:    data.centerId    || sessionData?.centerId,
-        sessionId:   data.sessionId   || sessionData?.sessionId,
-        stagiaireId: data.stagiaireId || '',
-        pin:         data.pin         || '',
-        loginType:   'qr'
-      })
-    });
-    const d = await r.json();
-    if (!r.ok || !d.success) throw new Error(d.error || 'QR invalide ou expiré');
-    handleSuccess(d);
-  } catch(e) { showMsg('❌ ' + e.message, 'error'); }
-}
-
-function handleSuccess(d) {
-  showMsg('✅ Bienvenue !', 'success');
-  localStorage.setItem('ssiap_stagiaire', JSON.stringify({
-    stagiaireId: d.stagiaireId,
-    centerId:    sessionData.centerId,
-    sessionId:   sessionData.sessionId,
-    prenom:      d.prenom || '',
-    nom:         d.nom    || '',
-    niveau:      sessionData.niveau,
-  }));
-  setTimeout(() => { // Rediriger vers l'index du frontend QCM
-  window.location.href = d.redirectUrl || '/'; }, 500);
-}
-
-function fmtDate(ts) {
-  if (!ts) return '—';
-  return new Date(typeof ts === 'number' ? ts : ts)
-    .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-function showMsg(t, type) {
-  const el = document.getElementById('msg');
-  el.textContent = t; el.className = `msg ${type} show`;
-}
-function hideMsg() { document.getElementById('msg').className = 'msg'; }
-
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('form-pin').classList.contains('active')) return;
-  if (e.key >= '0' && e.key <= '9') numPress(e.key);
-  if (e.key === 'Backspace') numDel();
-  if (e.key === 'Enter' && pin.length === 4) loginPin();
-});
-
-updateDots();
-init();
+    } catch(e) { console.error('Quiz listener error:', e); }
+})();
 </script>
+
+<body>
+    <!-- PAGE CONNEXION -->
+    <div id="page-connexion" class="page active">
+        <div class="container">
+            <div class="logo-ssiap">
+                <div class="flame">🔥</div>
+                <h1>ENTRAÎNEMENT SSIAP</h1>
+                <p class="subtitle">Plateforme de Révision</p>
+            </div>
+            
+            <!-- Bandeau stagiaire connecté (affiché si connecté via login) -->
+            <div id="stagiaire-connecte-banner" style="display:none;
+                background:linear-gradient(135deg,#16a34a,#15803d);
+                color:white;border-radius:12px;padding:16px 20px;
+                margin-bottom:20px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+                <div>
+                    <div style="font-weight:700;font-size:16px;" id="banner-nom"></div>
+                    <div style="font-size:13px;opacity:0.85;" id="banner-session"></div>
+                </div>
+                <button onclick="deconnecterStagiaire()"
+                    style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);
+                    color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;">
+                    🚪 Changer
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>Configuration de votre session</h2>
+                
+                <form id="form-connexion">
+                    <div class="form-group">
+                        <label for="nom">Nom</label>
+                        <input type="text" id="nom" placeholder="Dupont" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prenom">Prénom</label>
+                        <input type="text" id="prenom" placeholder="Jean" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email (optionnel)</label>
+                        <input type="email" id="email" placeholder="jean.dupont@exemple.fr">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Niveau SSIAP</label>
+                        <div class="niveau-selector">
+                            <button type="button" class="btn-niveau" data-niveau="1">
+                                <span class="niveau-numero">1</span>
+                                <span class="niveau-label">Agent de sécurité</span>
+                            </button>
+                            <button type="button" class="btn-niveau" data-niveau="2">
+                                <span class="niveau-numero">2</span>
+                                <span class="niveau-label">Chef d'équipe</span>
+                            </button>
+                            <button type="button" class="btn-niveau" data-niveau="3">
+                                <span class="niveau-numero">3</span>
+                                <span class="niveau-label">Chef de service</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="groupe-partie" style="display: none;">
+                        <label>Thématique à réviser</label>
+                        <div class="partie-selector">
+                            <label class="partie-option">
+                                <input type="radio" name="partie" value="toutes" checked>
+                                <span>✨ Toutes les parties</span>
+                            </label>
+                            <div id="parties-list"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="groupe-nombre" style="display: none;">
+                        <label>Nombre de questions</label>
+                        <div class="nombre-selector">
+                            <button type="button" class="btn-nombre" data-nombre="5">5</button>
+                            <button type="button" class="btn-nombre" data-nombre="10">10</button>
+                            <button type="button" class="btn-nombre" data-nombre="15">15</button>
+                            <button type="button" class="btn-nombre" data-nombre="20">20</button>
+                            <button type="button" class="btn-nombre" data-nombre="25">25</button>
+                            <button type="button" class="btn-nombre" data-nombre="30">30</button>
+                            <button type="button" class="btn-nombre" data-nombre="40">40</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" disabled id="btn-demarrer">
+                        🚀 Démarrer l'entraînement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE ENTRAÎNEMENT -->
+    <div id="page-entrainement" class="page">
+        <div class="entrainement-header">
+            <div class="entrainement-info">
+                <span id="entrainement-stagiaire"></span>
+                <span class="separator">•</span>
+                <span>SSIAP <span id="entrainement-niveau"></span></span>
+                <span class="separator">•</span>
+                <span id="entrainement-partie"></span>
+            </div>
+            <div class="entrainement-progress">
+                <span>Question <span id="question-numero">1</span> / <span id="question-total">30</span></span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card question-card">
+                <div class="question-header">
+                    <span class="question-badge">Question <span id="current-question-num">1</span></span>
+                </div>
+                <h2 class="question-text" id="question-text"></h2>
+                <div class="options-container" id="options-container"></div>
+                <div class="question-actions">
+                    <button class="btn btn-secondary" id="btn-precedent" style="visibility: hidden;">← Précédent</button>
+                    <button class="btn btn-primary" id="btn-suivant">Suivant →</button>
+                    <button class="btn btn-success" id="btn-terminer" style="display: none;">✓ Terminer l'entraînement</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE RÉSULTATS -->
+    <div id="page-resultats" class="page">
+        <div class="container">
+            <div class="card results-card">
+                <div class="results-header">
+                    <div class="score-circle" id="score-circle">
+                        <svg viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="90" class="score-bg"/>
+                            <circle cx="100" cy="100" r="90" class="score-fill" id="score-svg"/>
+                        </svg>
+                        <div class="score-content">
+                            <span class="score-value" id="score-value">0</span>
+                            <span class="score-total">/ <span id="score-total">30</span></span>
+                            <span class="score-percentage" id="score-percentage">0%</span>
+                        </div>
+                    </div>
+                    <div class="results-info">
+                        <h2 id="results-title">Résultats de votre entraînement</h2>
+                        <p id="results-message"></p>
+                        <div class="results-stats">
+                            <div class="stat"><span class="stat-label">Bonnes réponses</span><span class="stat-value correct" id="stat-correct">0</span></div>
+                            <div class="stat"><span class="stat-label">Erreurs</span><span class="stat-value incorrect" id="stat-incorrect">0</span></div>
+                            <div class="stat"><span class="stat-label">Temps</span><span class="stat-value" id="stat-time">0 min</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="results-details" id="results-details"></div>
+                <div class="results-actions">
+                    <button class="btn btn-primary" id="btn-nouvel-entrainement">🔄 Nouvel entraînement</button>
+                    <button class="btn btn-secondary" id="btn-voir-historique">📊 Voir mon historique</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader" class="loader" style="display: none;">
+        <div class="spinner"></div>
+        <p>Préparation de votre entraînement...</p>
+    </div>
+
+    <script src="app.js"></script>
+
+    <!-- AUTO-REMPLISSAGE si stagiaire connecté via login -->
+    <script>
+    (function() {
+        const stagRaw = localStorage.getItem('ssiap_stagiaire');
+        if (!stagRaw) return;
+
+        const stag = JSON.parse(stagRaw);
+        if (!stag.stagiaireId) return; // pas un vrai stagiaire connecté
+
+        // Extraire le niveau depuis la session (ex: "SSIAP1" → "1")
+        const niveauStr = stag.session?.niveau || '';
+        const niveauNum = niveauStr.replace(/[^0-9]/g, '') || '1';
+
+        // Afficher le bandeau
+        const banner = document.getElementById('stagiaire-connecte-banner');
+        if (banner) {
+            banner.style.display = 'flex';
+            document.getElementById('banner-nom').textContent =
+                `👤 ${stag.nom} ${stag.prenom}`;
+            document.getElementById('banner-session').textContent =
+                stag.session?.titre
+                    ? `${stag.session.titre} • SSIAP ${niveauNum}`
+                    : `SSIAP ${niveauNum}`;
+        }
+
+        // Remplir les champs cachés (app.js les lira)
+        window.STAGIAIRE_CONNECTE = {
+            nom: stag.nom,
+            prenom: stag.prenom,
+            email: stag.email || '',
+            niveau: niveauNum,
+            stagiaireId: stag.stagiaireId,
+            sessionId: stag.sessionId,
+            centerId: JSON.parse(localStorage.getItem('ssiap_stagiaire_center') || '{}').centerId
+        };
+
+        // Attendre que app.js soit chargé puis auto-remplir
+        window.addEventListener('load', () => {
+            const nomEl = document.getElementById('nom');
+            const prenomEl = document.getElementById('prenom');
+            const emailEl = document.getElementById('email');
+
+            if (nomEl) { nomEl.value = stag.nom; nomEl.readOnly = true; }
+            if (prenomEl) { prenomEl.value = stag.prenom; prenomEl.readOnly = true; }
+            if (emailEl && stag.email) emailEl.value = stag.email;
+
+            // Cliquer sur le bon bouton niveau
+            const btnNiveau = document.querySelector(`.btn-niveau[data-niveau="${niveauNum}"]`);
+            if (btnNiveau) btnNiveau.click();
+
+            // Donner le focus sur nombre de questions si disponible
+            setTimeout(() => {
+                // Sélectionner 10 questions par défaut
+                const btn10 = document.querySelector('.btn-nombre[data-nombre="10"]');
+                if (btn10) btn10.click();
+            }, 300);
+        });
+    })();
+
+    window.deconnecterStagiaire = function() {
+        if (confirm('Se déconnecter et revenir au formulaire libre ?')) {
+            localStorage.removeItem('ssiap_stagiaire');
+            localStorage.removeItem('ssiap_stagiaire_center');
+            window.location.reload();
+        }
+    };
+	
+    </script>
+	<!-- OU : flottant en bas de page à ajouter avant </body> : -->
+	<div id="avis-float" style="
+	  position:fixed;bottom:20px;right:20px;z-index:100;
+	  background:#2e7d52;color:#fff;
+	  padding:12px 18px;border-radius:12px;
+	  font-family:'Plus Jakarta Sans',sans-serif;
+	  font-size:13px;font-weight:700;
+	  cursor:pointer;
+	  box-shadow:0 4px 16px rgba(46,125,82,.35);
+	  display:flex;align-items:center;gap:8px;
+	  transition:.15s;
+	" onclick="window.location.href='../avis/formulaire-avis-stagiaire.html'"
+	   onmouseover="this.style.transform='translateY(-2px)'"
+	   onmouseout="this.style.transform='translateY(0)'">
+	  ⭐ Donner mon avis
+	</div>
+
 </body>
 </html>
