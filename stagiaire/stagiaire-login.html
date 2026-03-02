@@ -583,9 +583,8 @@ function handleSuccess(d) {
     nom:         d.nom    || '',
     niveau:      sessionData.niveau,
   }));
-  setTimeout(() => { // Chemin absolu pour éviter les problèmes de routing Render
-  const dashboardUrl = d.redirectUrl || '/stagiaire/stagiaire-dashboard.html';
-  window.location.href = dashboardUrl; }, 500);
+  setTimeout(() => { // Rediriger vers l'index du frontend QCM
+  window.location.href = d.redirectUrl || '/'; }, 500);
 }
 
 function fmtDate(ts) {
