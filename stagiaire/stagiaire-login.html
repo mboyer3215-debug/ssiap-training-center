@@ -350,9 +350,11 @@ async function init() {
     document.getElementById('s-debut').textContent = '—';
     document.getElementById('s-fin').textContent   = '—';
     document.getElementById('s-status').innerHTML  =
-      `<div class="status-badge active"><div class="s-dot"></div><div>Saisissez votre code PIN<small>Le PIN contient votre centre et votre session</small></div></div>`;
-    // En mode sans params, le PIN doit contenir toutes les infos → on laisse le form actif
+      `<div class="status-badge active"><div class="s-dot"></div><div>Scannez votre QR code<small>ou saisissez votre code PIN si vous avez le lien complet</small></div></div>`;
+    // Basculer automatiquement sur l'onglet QR si pas de params
     sessionData = { centerId: '', sessionId: '' };
+    // Suggérer le QR en premier quand pas de contexte
+    setTimeout(() => switchTab('qr'), 100);
     return;
   }
 
@@ -467,6 +469,12 @@ function shakeDots() {
 // ── LOGIN PIN ──
 async function loginPin() {
   if (!sessionData) return;
+  // Sans centerId (accès direct sans QR), attendre le scan QR
+  if (!sessionData.centerId || !sessionData.sessionId) {
+    showMsg('⚠️ Utilisez le QR code fourni par votre formateur pour vous connecter', 'error');
+    shakeDots();
+    return;
+  }
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = '⏳ Vérification…';
   try {
@@ -475,7 +483,7 @@ async function loginPin() {
       body: JSON.stringify({ centerId: sessionData.centerId, sessionId: sessionData.sessionId, pin, loginType: 'pin' })
     });
     const d = await r.json();
-    if (!r.ok || !d.success) throw new Error(d.error || 'Code incorrect');
+    if (!r.ok || !d.success) throw new Error(d.error || 'Code PIN incorrect');
     handleSuccess(d);
   } catch(e) {
     showMsg('❌ ' + e.message, 'error');
