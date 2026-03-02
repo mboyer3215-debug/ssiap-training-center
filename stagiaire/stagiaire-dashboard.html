@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace Stagiaire — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#1a4a32;--forest-d:#112e1f;
+  --terra:#c25a3a;--terra-l:#fdf0eb;
+  --bg:#f4f1ed;--surface:#fff;--border:#e2ddd8;
+  --text:#1e1a17;--muted:#8c8078;--subtle:#f7f5f2;
+  --green:#2e7d52;--green-l:#e8f5ee;--green-m:#a8d5be;
+  --blue:#2e5c8a;--blue-l:#eef4fb;
+  --gold:#b8860b;--gold-l:#fef9e7;
+  --red:#c0392b;--red-l:#fdecea;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);min-height:100vh}
+
+.header{
+  background:linear-gradient(135deg,var(--forest) 0%,var(--forest-d) 100%);
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;box-shadow:0 3px 12px rgba(26,74,50,.3);
+  position:sticky;top:0;z-index:50;
+}
+.h-brand{font-family:'Lora',serif;font-size:17px;color:#fff;font-weight:600;display:flex;align-items:center;gap:8px}
+.h-right{display:flex;align-items:center;gap:10px}
+.h-name{font-size:11px;color:rgba(255,255,255,.7);background:rgba(255,255,255,.12);padding:4px 12px;border-radius:20px}
+.btn-logout{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:7px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer}
+.btn-logout:hover{background:rgba(255,255,255,.12)}
+
+.container{max-width:900px;margin:0 auto;padding:28px 20px}
+
+/* SESSION BANNER */
+.session-banner{
+  background:var(--forest);
+  background:linear-gradient(135deg,#1a4a32 0%,#112e1f 100%);
+  border-radius:16px;padding:20px 24px;margin-bottom:24px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.s-left{}
+.s-level{display:inline-flex;background:var(--terra);color:#fff;font-size:11px;font-weight:800;padding:2px 10px;border-radius:20px;margin-bottom:8px}
+.s-title{font-family:'Lora',serif;font-size:18px;color:#fff;font-weight:600;margin-bottom:4px}
+.s-dates{font-size:12px;color:rgba(255,255,255,.5)}
+.s-status{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.8);font-weight:600;flex-shrink:0}
+.s-dot{width:7px;height:7px;border-radius:50%;background:var(--green-m);flex-shrink:0;box-shadow:0 0 6px var(--green-m)}
+
+/* NIVEAUX / SÉLECTEUR */
+.level-tabs{display:flex;gap:8px;margin-bottom:20px}
+.level-tab{
+  flex:1;padding:12px;border:2px solid var(--border);border-radius:12px;
+  background:var(--surface);cursor:pointer;text-align:center;transition:.15s;
+}
+.level-tab.active{border-color:var(--forest);background:var(--green-l)}
+.level-tab:hover:not(.active){border-color:var(--green-m)}
+.level-tab-num{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--forest);line-height:1}
+.level-tab-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.level-tab-q{font-size:11px;font-weight:600;color:var(--green);margin-top:3px}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.kpi-val{font-size:26px;font-weight:800;line-height:1;margin-bottom:3px}
+.kpi-lbl{font-size:11px;color:var(--muted)}
+
+/* MODES */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.mode-card{
+  background:var(--surface);border:2px solid var(--border);border-radius:14px;
+  padding:20px;cursor:pointer;transition:.15s;text-align:center;
+}
+.mode-card:hover{border-color:var(--forest);box-shadow:0 4px 14px rgba(26,74,50,.12);transform:translateY(-2px)}
+.mode-icon{font-size:32px;margin-bottom:8px}
+.mode-title{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.mode-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.mode-btn{
+  display:inline-block;margin-top:12px;padding:8px 18px;border-radius:8px;border:none;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;
+}
+.mode-btn-green{background:var(--forest);color:#fff}
+.mode-btn-blue{background:var(--blue);color:#fff}
+
+/* LOADING */
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .7s linear infinite;margin:40px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.msg-box{border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;margin-bottom:16px}
+.msg-box.error{background:var(--red-l);color:var(--red)}
+.msg-box.info{background:var(--blue-l);color:var(--blue)}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="h-brand">🔥 SSIAP Training</div>
+  <div class="h-right">
+    <div class="h-name" id="h-name">Stagiaire</div>
+    <button class="btn-logout" onclick="logout()">🚪 Déconnexion</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Bannière session -->
+  <div class="session-banner" id="session-banner">
+    <div class="s-left">
+      <div class="s-level" id="s-level">SSIAP —</div>
+      <div class="s-title" id="s-title">Formation</div>
+      <div class="s-dates" id="s-dates">Chargement…</div>
+    </div>
+    <div class="s-status"><div class="s-dot"></div><span>Session en cours</span></div>
+  </div>
+
+  <!-- Message d'erreur si besoin -->
+  <div id="msg-area"></div>
+
+  <!-- KPI progression -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val" id="kpi-score" style="color:var(--green)">—</div><div class="kpi-lbl">Score moyen</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-sessions" style="color:var(--blue)">—</div><div class="kpi-lbl">Sessions réalisées</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-taux" style="color:var(--gold)">—</div><div class="kpi-lbl">Taux de réussite</div></div>
+  </div>
+
+  <!-- Sélecteur niveau -->
+  <div class="level-tabs" id="level-tabs"></div>
+
+  <!-- Modes d'entraînement -->
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startMode('entrainement')">
+      <div class="mode-icon">📝</div>
+      <div class="mode-title">Entraînement libre</div>
+      <div class="mode-sub">Parcourez les questions à votre rythme. Corrigé immédiat après chaque réponse.</div>
+      <button class="mode-btn mode-btn-green">Commencer →</button>
+    </div>
+    <div class="mode-card" onclick="startMode('examen')">
+      <div class="mode-icon">🎯</div>
+      <div class="mode-title">Examen blanc</div>
+      <div class="mode-sub">20 questions en temps limité. Résultats et score final à la fin.</div>
+      <button class="mode-btn mode-btn-blue">Simuler l'examen →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://ssiap-training-center.onrender.com/api';
+
+// Auth
+const stored = localStorage.getItem('ssiap_stagiaire');
+if (!stored) { window.location.href = '/stagiaire/stagiaire-login.html'; }
+let stagData = {};
+try {
+  stagData = JSON.parse(stored);
+} catch(e) { window.location.href = '/stagiaire/stagiaire-login.html'; }
+
+// Nom
+document.getElementById('h-name').textContent =
+  [stagData.prenom, stagData.nom].filter(Boolean).join(' ') || 'Stagiaire';
+
+// Bannière session
+const niv = stagData.niveau || '1';
+document.getElementById('s-level').textContent = 'SSIAP ' + niv;
+document.getElementById('s-title').textContent = 'Formation SSIAP ' + niv;
+
+// Charger infos session
+async function loadSession() {
+  try {
+    const r = await fetch(`${API}/session/public/${stagData.sessionId}?centerId=${stagData.centerId}`);
+    const d = await r.json();
+    if (d.session) {
+      const s = d.session;
+      const debut = s.dateDebut ? new Date(s.dateDebut).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}) : '—';
+      const fin   = s.dateFin   ? new Date(s.dateFin).toLocaleDateString('fr-FR',  {day:'numeric',month:'long',year:'numeric'}) : '—';
+      document.getElementById('s-title').textContent = s.titre || ('Formation SSIAP ' + niv);
+      document.getElementById('s-dates').textContent = 'Du ' + debut + ' au ' + fin;
+    }
+  } catch {}
+}
+
+// Niveaux
+function renderLevels() {
+  const tabs = document.getElementById('level-tabs');
+  const niveaux = ['1','2','3'];
+  tabs.innerHTML = niveaux.map(n => `
+    <div class="level-tab ${n === niv ? 'active' : ''}" onclick="selectNiveau('${n}')">
+      <div class="level-tab-num">${n}</div>
+      <div class="level-tab-lbl">SSIAP</div>
+      <div class="level-tab-q">200 questions</div>
+    </div>`).join('');
+}
+
+function selectNiveau(n) {
+  document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.level-tab')[parseInt(n)-1]?.classList.add('active');
+  stagData._selectedNiveau = n;
+}
+
+// Démarrer un mode
+function startMode(mode) {
+  const selectedNiv = stagData._selectedNiveau || niv;
+  const params = new URLSearchParams({
+    niveau:      selectedNiv,
+    centerId:    stagData.centerId  || '',
+    sessionId:   stagData.sessionId || '',
+    stagiaireId: stagData.stagiaireId || '',
+    mode:        mode,
+  });
+  window.location.href = '/stagiaire/stagiaire-qcm.html?' + params.toString();
+}
+
+function logout() {
+  if (confirm('Se déconnecter ?')) {
+    localStorage.removeItem('ssiap_stagiaire');
+    window.location.href = '/stagiaire/stagiaire-login.html';
+  }
+}
+
+// Init
+loadSession();
+renderLevels();
+</script>
+</body>
+</html>
