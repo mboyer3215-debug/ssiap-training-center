@@ -329,6 +329,7 @@ body{
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 let pin = '';
@@ -526,10 +527,29 @@ function stopScan() {
 }
 
 function tryDecodeQR(video) {
-  if (!('BarcodeDetector' in window)) return;
-  new BarcodeDetector({ formats: ['qr_code'] }).detect(video)
-    .then(codes => { if (codes.length) { stopScan(); handleQRCode(codes[0].rawValue); } })
-    .catch(() => {});
+  // Méthode 1 : BarcodeDetector natif (Chrome 83+, Edge, Safari 17+)
+  if ('BarcodeDetector' in window) {
+    new BarcodeDetector({ formats: ['qr_code'] }).detect(video)
+      .then(codes => { if (codes.length) { stopScan(); handleQRCode(codes[0].rawValue); } })
+      .catch(() => tryDecodeQRwithJsQR(video));
+    return;
+  }
+  // Méthode 2 : jsQR (universel, fonctionne partout)
+  tryDecodeQRwithJsQR(video);
+}
+
+function tryDecodeQRwithJsQR(video) {
+  if (!window.jsQR) return;
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width  = video.videoWidth  || 320;
+    canvas.height = video.videoHeight || 320;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+    if (code && code.data) { stopScan(); handleQRCode(code.data); }
+  } catch(e) {}
 }
 
 async function handleQRCode(raw) {
@@ -563,7 +583,9 @@ function handleSuccess(d) {
     nom:         d.nom    || '',
     niveau:      sessionData.niveau,
   }));
-  setTimeout(() => { window.location.href = d.redirectUrl || '../stagiaire/stagiaire-dashboard.html'; }, 500);
+  setTimeout(() => { // Chemin absolu pour éviter les problèmes de routing Render
+  const dashboardUrl = d.redirectUrl || '/stagiaire/stagiaire-dashboard.html';
+  window.location.href = dashboardUrl; }, 500);
 }
 
 function fmtDate(ts) {
