@@ -7,311 +7,429 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --green:    #1e6b4a;
-  --green-d:  #154f37;
-  --green-l:  #e8f5ee;
-  --green-m:  #c3e5d4;
-  --bg:       #f4f7f5;
+  --forest:   #1a4a32;
+  --forest-d: #112e1f;
+  --forest-m: rgba(255,255,255,.1);
+  --forest-b: rgba(255,255,255,.07);
+  --cream:    #c8e6d4;
+  --terra:    #c25a3a;
+  --terra-d:  #a34a2e;
+  --terra-l:  #fdf0eb;
+  --terra-m:  #e8c4b4;
+  --bg:       #f4f1ed;
   --surface:  #ffffff;
-  --border:   #dde8e2;
-  --text:     #1a2e25;
-  --muted:    #7a9487;
-  --subtle:   #eef4f1;
-  --gold:     #c9920a;
+  --border:   #e2ddd8;
+  --text:     #1e1a17;
+  --muted:    #8c8078;
+  --subtle:   #f7f5f2;
+  --green:    #2e7d52;
+  --green-l:  #e8f5ee;
+  --gold:     #b8860b;
+  --gold-l:   #fef9e7;
   --red:      #c0392b;
+  --red-l:    #fdecea;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
+html,body{height:100%}
 body{
   background:var(--bg);
   font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:14px;
-  color:var(--text);
-  display:flex;
-  min-height:100vh;
+  font-size:14px;color:var(--text);
+  display:flex;min-height:100vh;
 }
 
-/* ── GAUCHE ── */
-.left-panel{
-  width:42%;flex-shrink:0;
-  background:var(--green);
-  background:linear-gradient(160deg,#1e6b4a 0%,#154f37 60%,#0f3825 100%);
+/* ═══ GAUCHE ═══ */
+.left{
+  width:44%;flex-shrink:0;
+  background:var(--forest);
+  background:linear-gradient(160deg,#1a4a32 0%,#112e1f 55%,#0c2118 100%);
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  padding:48px;
+  padding:48px 40px;
   position:relative;overflow:hidden;
 }
-.left-panel::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 80% at 20% 80%,rgba(30,107,74,.5) 0%,transparent 70%),
-             radial-gradient(ellipse 60% 60% at 80% 20%,rgba(201,146,10,.08) 0%,transparent 60%);
-}
-.circles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
-.c{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.06)}
-.c1{width:300px;height:300px;top:-80px;right:-60px}
-.c2{width:200px;height:200px;bottom:60px;left:-60px}
-.c3{width:140px;height:140px;bottom:180px;right:40px;border-color:rgba(201,146,10,.12)}
-.left-content{position:relative;z-index:1;text-align:center;max-width:320px}
-.brand{display:flex;align-items:center;gap:14px;margin-bottom:48px;justify-content:center}
-.brand-icon{
-  width:52px;height:52px;background:rgba(255,255,255,.12);
-  border-radius:16px;display:flex;align-items:center;justify-content:center;
-  font-size:26px;border:1px solid rgba(255,255,255,.15);
-}
-.brand-name{font-family:'Lora',serif;font-size:22px;color:#fff;font-weight:700}
-.brand-name span{color:rgba(255,255,255,.55);font-weight:400;font-size:14px;display:block;font-family:'Plus Jakarta Sans',sans-serif;margin-top:2px}
-.hero-title{font-family:'Lora',serif;font-size:32px;color:#fff;line-height:1.2;margin-bottom:16px;font-weight:600}
-.hero-title em{color:var(--green-m);font-style:italic}
-.hero-sub{font-size:13px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:40px}
-.feat-list{display:flex;flex-direction:column;gap:10px;text-align:left}
-.feat{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.07);border-radius:10px;border:1px solid rgba(255,255,255,.08)}
-.feat-icon{font-size:16px;flex-shrink:0}
-.feat-text{font-size:12px;color:rgba(255,255,255,.7);line-height:1.4}
-.feat-text strong{color:#fff;font-weight:600}
-.levels-bar{display:flex;gap:6px;margin-top:32px;justify-content:center}
-.lev{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 6px;text-align:center}
-.lev-n{font-family:'Lora',serif;font-size:20px;font-weight:700;color:#fff}
-.lev-l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.lev-c{font-size:10px;color:var(--green-m);font-weight:600;margin-top:3px}
+/* cercles décoratifs */
+.left::before{content:'';position:absolute;width:320px;height:320px;border-radius:50%;border:1px solid rgba(255,255,255,.05);right:-80px;top:-80px}
+.left::after {content:'';position:absolute;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,.04);left:-60px;bottom:80px}
 
-/* ── DROITE ── */
-.right-panel{
-  flex:1;
-  display:flex;align-items:center;justify-content:center;
-  padding:40px 32px;
+.left-inner{position:relative;z-index:1;width:100%;max-width:300px}
+
+/* Brand */
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:44px}
+.brand-icon{
+  width:46px;height:46px;background:rgba(255,255,255,.12);
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;border:1px solid rgba(255,255,255,.1);flex-shrink:0;
+}
+.brand-text h1{font-family:'Lora',serif;font-size:19px;color:#fff;font-weight:700;line-height:1}
+.brand-text p{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
+
+/* Session card */
+.session-card{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;padding:20px;
+  margin-bottom:24px;
+}
+.level-tag{
+  display:inline-flex;align-items:center;
+  background:var(--terra);color:#fff;
+  font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  padding:3px 10px;border-radius:20px;margin-bottom:12px;
+}
+.session-titre{
+  font-family:'Lora',serif;font-size:21px;color:#fff;
+  font-weight:600;line-height:1.25;margin-bottom:14px;
+}
+.dates-block{display:flex;flex-direction:column;gap:5px}
+.date-line{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.55)}
+.date-line strong{color:rgba(255,255,255,.85);font-weight:600}
+.date-sep-bar{height:1px;background:rgba(255,255,255,.1);margin:2px 0}
+.duration-line{
+  margin-top:8px;font-size:11px;color:rgba(255,255,255,.35);
+  display:flex;align-items:center;gap:5px;
+}
+
+/* Status badge */
+.status-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  border-radius:8px;padding:8px 14px;
+  font-size:12px;font-weight:700;width:100%;
+}
+.status-badge .s-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.status-badge small{font-weight:400;opacity:.75;display:block;font-size:11px;margin-top:1px}
+.status-badge.active{background:rgba(46,125,82,.2);color:var(--cream);border:1px solid rgba(200,230,212,.15)}
+.status-badge.future{background:rgba(184,134,11,.15);color:#f0c040;border:1px solid rgba(240,192,64,.12)}
+.status-badge.ended{background:rgba(192,57,43,.15);color:#e88;border:1px solid rgba(232,136,136,.1)}
+
+/* ═══ DROITE ═══ */
+.right{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:40px 32px;background:var(--surface);
   overflow-y:auto;
 }
-.login-box{width:100%;max-width:400px}
-.login-head{margin-bottom:32px}
-.login-head h2{font-family:'Lora',serif;font-size:26px;font-weight:600;color:var(--text);margin-bottom:6px}
-.login-head p{font-size:13px;color:var(--muted)}
+.login-box{width:100%;max-width:380px}
 
-/* ── TABS ── */
-.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--subtle);border:1.5px solid var(--border);border-radius:12px;padding:4px;gap:4px;margin-bottom:28px}
-.tab{
-  padding:10px 16px;border-radius:9px;border:none;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;
-  background:transparent;color:var(--muted);transition:.2s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
+.login-head{margin-bottom:28px}
+.login-head h2{font-family:'Lora',serif;font-size:24px;font-weight:600;color:var(--text);margin-bottom:5px}
+.login-head p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* TABS */
+.tabs{
+  display:grid;grid-template-columns:1fr 1fr;
+  background:var(--subtle);border:1.5px solid var(--border);
+  border-radius:11px;padding:3px;gap:3px;margin-bottom:22px;
 }
-.tab.active{background:var(--surface);color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.tab{
+  padding:9px;border-radius:9px;border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;
+  background:transparent;color:var(--muted);transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.tab.active{background:var(--surface);color:var(--terra);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
-/* ── PIN FORM ── */
+/* PIN */
 .pin-form,.qr-form{display:none}
 .pin-form.active,.qr-form.active{display:block}
 
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.field input{
-  width:100%;background:var(--subtle);border:1.5px solid var(--border);
-  border-radius:9px;padding:11px 14px;font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:13px;color:var(--text);outline:none;transition:.15s;
-}
-.field input:focus{border-color:var(--green);background:var(--surface);box-shadow:0 0 0 3px var(--green-l)}
-.field input::placeholder{color:var(--muted)}
+.pin-hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px}
 
-/* ── PIN DOTS ── */
-.pin-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.pin-display{
-  display:flex;gap:12px;justify-content:center;
-  margin-bottom:16px;
-}
+.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
 .pin-dot{
-  width:52px;height:52px;border-radius:12px;
+  width:58px;height:58px;border-radius:13px;
   border:2px solid var(--border);background:var(--subtle);
   display:flex;align-items:center;justify-content:center;
-  font-size:22px;font-weight:800;color:var(--green);
-  transition:.15s;
+  font-size:11px;color:var(--muted);
+  transition:.12s;
 }
-.pin-dot.filled{background:var(--green-l);border-color:var(--green)}
-.pin-dot.active{border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
-.pin-dot.error{border-color:var(--red);background:#fdecea}
+.pin-dot.filled{background:var(--terra-l);border-color:var(--terra);font-size:26px;color:var(--terra);font-weight:900}
+.pin-dot.active-dot{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-l)}
+.pin-dot.error{border-color:var(--red);background:var(--red-l);animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .num-btn{
-  height:54px;border:1.5px solid var(--border);border-radius:10px;
+  height:52px;border:1.5px solid var(--border);border-radius:10px;
   background:var(--surface);font-family:'Plus Jakarta Sans',sans-serif;
   font-size:18px;font-weight:700;color:var(--text);cursor:pointer;
-  transition:.12s;display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:0;
+  transition:.1s;display:flex;align-items:center;justify-content:center;flex-direction:column;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
-.num-btn:hover{background:var(--subtle);border-color:var(--green-m)}
-.num-btn:active{transform:scale(.95);background:var(--green-l)}
+.num-btn:hover{background:var(--subtle);border-color:var(--terra-m)}
+.num-btn:active{transform:scale(.93);background:var(--terra-l);border-color:var(--terra)}
 .num-btn.zero{grid-column:2}
-.num-btn.del{background:var(--subtle);font-size:16px;color:var(--muted)}
-.num-btn.del:hover{color:var(--red);border-color:var(--red)}
-.num-sub{font-size:7px;color:var(--muted);font-weight:500;letter-spacing:1px;text-transform:uppercase;line-height:1;margin-top:1px}
+.num-btn.del{background:var(--subtle);font-size:15px;color:var(--muted);box-shadow:none}
+.num-btn.del:hover{color:var(--red);border-color:rgba(192,57,43,.25)}
+.num-sub{font-size:7px;color:var(--muted);font-weight:500;letter-spacing:1px;line-height:1;margin-top:1px}
 
-/* ── QR ── */
-.qr-area{
-  background:var(--subtle);border:2px dashed var(--border);
-  border-radius:14px;padding:24px;text-align:center;margin-bottom:20px;
-  cursor:pointer;transition:.15s;
-}
-.qr-area:hover{border-color:var(--green-m);background:var(--green-l)}
-.qr-area.scanning{border-color:var(--green);border-style:solid}
-.qr-icon{font-size:42px;margin-bottom:12px}
-.qr-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
-.qr-sub{font-size:12px;color:var(--muted)}
-#qr-video-wrap{display:none;border-radius:12px;overflow:hidden;margin-bottom:12px;position:relative;aspect-ratio:1;background:#000}
-#qr-video{width:100%;height:100%;object-fit:cover}
-.qr-crosshair{
-  position:absolute;inset:15%;border:2px solid rgba(255,255,255,.8);border-radius:8px;
-  background:transparent;pointer-events:none;
-}
-.qr-crosshair::before,.qr-crosshair::after{
-  content:'';position:absolute;background:var(--green);border-radius:2px;
-}
-.qr-crosshair::before{width:20px;height:3px;top:-1px;left:-1px}
-.qr-crosshair::after{width:3px;height:20px;top:-1px;left:-1px}
-.qr-stop{margin-top:8px;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
-.qr-stop:hover{color:var(--red)}
-.qr-manual{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
-.qr-manual a{color:var(--green);cursor:pointer;font-weight:600;text-decoration:none}
-.qr-manual a:hover{text-decoration:underline}
-
-/* ── BTN SUBMIT ── */
 .btn-login{
-  width:100%;padding:14px;border-radius:10px;border:none;
-  background:var(--green);color:#fff;
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:var(--terra);color:#fff;
   font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
   cursor:pointer;transition:.15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 4px 14px rgba(30,107,74,.3);
+  box-shadow:0 4px 12px rgba(194,90,58,.25);
 }
-.btn-login:hover{background:var(--green-d);transform:translateY(-1px);box-shadow:0 6px 18px rgba(30,107,74,.35)}
-.btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-login:hover:not(:disabled){background:var(--terra-d);transform:translateY(-1px);box-shadow:0 6px 16px rgba(194,90,58,.3)}
+.btn-login:disabled{opacity:.38;cursor:not-allowed;transform:none!important}
 
-/* ── FOOTER ── */
-.login-footer{margin-top:20px;text-align:center;font-size:12px;color:var(--muted)}
-.login-footer a{color:var(--green);font-weight:600;text-decoration:none}
-.login-footer a:hover{text-decoration:underline}
+/* QR */
+.qr-area{
+  background:var(--subtle);border:2px dashed var(--border);
+  border-radius:14px;padding:22px;text-align:center;
+  cursor:pointer;transition:.15s;margin-bottom:14px;
+}
+.qr-area:hover{border-color:var(--terra-m);background:var(--terra-l)}
+.qr-area.scanning{border-color:var(--terra);border-style:solid}
+.qr-icon{font-size:36px;margin-bottom:8px}
+.qr-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.qr-sub{font-size:11px;color:var(--muted);line-height:1.6}
+#qr-video-wrap{display:none;border-radius:10px;overflow:hidden;margin-bottom:10px;position:relative;aspect-ratio:1;background:#111}
+#qr-video{width:100%;height:100%;object-fit:cover}
+.qr-crosshair{position:absolute;inset:18%;border:2px solid rgba(255,255,255,.8);border-radius:8px;pointer-events:none}
+.qr-stop{display:block;font-size:11px;color:var(--muted);cursor:pointer;text-align:center;margin-bottom:10px}
+.qr-stop:hover{color:var(--red)}
+.qr-alt{font-size:11px;color:var(--muted);text-align:center}
+.qr-alt a{color:var(--terra);cursor:pointer;font-weight:700}
+.qr-alt a:hover{text-decoration:underline}
 
-/* ── ERROR / SUCCESS ── */
-.msg{border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
-.msg.error{background:#fdecea;color:var(--red);border:1px solid rgba(192,57,43,.2)}
-.msg.success{background:var(--green-l);color:var(--green);border:1px solid var(--green-m)}
+/* BLOQUÉ */
+.blocked{text-align:center;padding:12px 0}
+.blocked-icon{font-size:40px;margin-bottom:10px}
+.blocked-msg{font-size:12px;color:var(--muted);line-height:1.7}
+
+/* MSG */
+.msg{border-radius:8px;padding:9px 13px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+.msg.error{background:var(--red-l);color:var(--red)}
+.msg.success{background:var(--green-l);color:var(--green)}
 .msg.show{display:block}
 
-/* ── RESPONSIVE ── */
-@media(max-width:780px){
-  .left-panel{display:none}
-  .right-panel{padding:32px 20px}
-  html,body{overflow:auto}
+/* Footer */
+.login-footer{margin-top:18px;text-align:center;font-size:12px;color:var(--muted)}
+.login-footer a{color:var(--terra);font-weight:600;text-decoration:none}
+.login-footer a:hover{text-decoration:underline}
+
+/* Spinner */
+.spinner-wrap{display:flex;align-items:center;justify-content:center;height:100vh;width:100%}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESPONSIVE */
+@media(max-width:720px){
+  html,body{height:auto}
+  .left{display:none}
+  .right{padding:32px 20px;background:var(--bg)}
+  .login-box{max-width:100%}
 }
 </style>
 </head>
 <body>
 
-<div class="left-panel">
-  <div class="circles"><div class="c c1"></div><div class="c c2"></div><div class="c c3"></div></div>
-  <div class="left-content">
+<!-- SPINNER initial -->
+<div class="spinner-wrap" id="loading"><div class="spinner"></div></div>
+
+<!-- ═══ GAUCHE ═══ -->
+<div class="left" id="left-panel" style="display:none">
+  <div class="left-inner">
+
     <div class="brand">
       <div class="brand-icon">🔥</div>
-      <div class="brand-name">SSIAP Training<span>Espace Stagiaire</span></div>
+      <div class="brand-text">
+        <h1>SSIAP Training</h1>
+        <p>Espace Stagiaire</p>
+      </div>
     </div>
-    <h1 class="hero-title">Préparez-vous à <em>l'examen</em></h1>
-    <p class="hero-sub">Accédez à votre espace personnel d'entraînement avec votre code PIN ou votre QR code.</p>
-    <div class="feat-list">
-      <div class="feat"><span class="feat-icon">📝</span><div class="feat-text"><strong>200 questions par niveau</strong><br>Banque complète SSIAP 1, 2 & 3</div></div>
-      <div class="feat"><span class="feat-icon">📊</span><div class="feat-text"><strong>Suivi en temps réel</strong><br>Progression et statistiques personnelles</div></div>
-      <div class="feat"><span class="feat-icon">🎯</span><div class="feat-text"><strong>Mode examen blanc</strong><br>Simulez les conditions réelles</div></div>
+
+    <div class="session-card">
+      <div class="level-tag" id="s-level">SSIAP —</div>
+      <div class="session-titre" id="s-titre">Formation</div>
+      <div class="dates-block">
+        <div class="date-line">🗓 Début&nbsp;<strong id="s-debut">—</strong></div>
+        <div class="date-sep-bar"></div>
+        <div class="date-line">🏁 Fin&nbsp;&nbsp;&nbsp;&nbsp;<strong id="s-fin">—</strong></div>
+      </div>
+      <div class="duration-line" id="s-duration"></div>
     </div>
-    <div class="levels-bar">
-      <div class="lev"><div class="lev-n">1</div><div class="lev-l">SSIAP</div><div class="lev-c">200 q</div></div>
-      <div class="lev"><div class="lev-n">2</div><div class="lev-l">SSIAP</div><div class="lev-c">200 q</div></div>
-      <div class="lev"><div class="lev-n">3</div><div class="lev-l">SSIAP</div><div class="lev-c">200 q</div></div>
-    </div>
+
+    <div id="s-status"></div>
+
   </div>
 </div>
 
-<div class="right-panel">
+<!-- ═══ DROITE ═══ -->
+<div class="right" id="right-panel" style="display:none">
   <div class="login-box">
-    <div class="login-head">
-      <h2>Connexion Stagiaire</h2>
-      <p>Utilisez votre code PIN ou scannez votre QR code</p>
-    </div>
 
-    <div class="tabs">
-      <button class="tab active" id="tab-pin" onclick="switchTab('pin')">
-        🔢 Code PIN
-      </button>
-      <button class="tab" id="tab-qr" onclick="switchTab('qr')">
-        📷 QR Code
-      </button>
+    <div class="login-head">
+      <h2>Connexion</h2>
+      <p>Saisissez votre code PIN personnel ou scannez votre QR code</p>
     </div>
 
     <div class="msg" id="msg"></div>
 
-    <!-- ── FORMULAIRE PIN ── -->
-    <div class="pin-form active" id="form-pin">
-      <div class="field">
-        <label>Centre de formation</label>
-        <input type="text" id="centerId" placeholder="ID ou nom du centre" autocomplete="off">
-      </div>
-      <div class="pin-label">Votre code PIN (4 chiffres)</div>
-      <div class="pin-display" id="pin-display">
-        <div class="pin-dot" id="dot0"></div>
-        <div class="pin-dot" id="dot1"></div>
-        <div class="pin-dot" id="dot2"></div>
-        <div class="pin-dot" id="dot3"></div>
-      </div>
-      <input type="hidden" id="pin-value" value="">
-      <div class="numpad">
-        <button class="num-btn" onclick="numPress('1')">1<span class="num-sub"> </span></button>
-        <button class="num-btn" onclick="numPress('2')">2<span class="num-sub">ABC</span></button>
-        <button class="num-btn" onclick="numPress('3')">3<span class="num-sub">DEF</span></button>
-        <button class="num-btn" onclick="numPress('4')">4<span class="num-sub">GHI</span></button>
-        <button class="num-btn" onclick="numPress('5')">5<span class="num-sub">JKL</span></button>
-        <button class="num-btn" onclick="numPress('6')">6<span class="num-sub">MNO</span></button>
-        <button class="num-btn" onclick="numPress('7')">7<span class="num-sub">PQRS</span></button>
-        <button class="num-btn" onclick="numPress('8')">8<span class="num-sub">TUV</span></button>
-        <button class="num-btn" onclick="numPress('9')">9<span class="num-sub">WXYZ</span></button>
-        <button class="num-btn zero" onclick="numPress('0')">0</button>
-        <button class="num-btn del" onclick="numDel()">⌫</button>
-      </div>
-      <button class="btn-login" id="btn-pin-login" onclick="loginPin()" disabled>
-        🔓 Accéder à mon espace
-      </button>
+    <!-- BLOQUÉ -->
+    <div id="blocked-wrap" style="display:none" class="blocked">
+      <div class="blocked-icon" id="b-icon"></div>
+      <p class="blocked-msg" id="b-msg"></p>
     </div>
 
-    <!-- ── FORMULAIRE QR ── -->
-    <div class="qr-form" id="form-qr">
-      <div class="qr-area" id="qr-area" onclick="startScan()">
-        <div id="qr-prompt">
-          <div class="qr-icon">📷</div>
-          <div class="qr-title">Scanner mon QR code</div>
-          <div class="qr-sub">Appuyez pour activer la caméra<br>et scanner le code fourni par votre formateur</div>
-        </div>
-        <div id="qr-video-wrap">
-          <video id="qr-video" autoplay muted playsinline></video>
-          <div class="qr-crosshair"></div>
-        </div>
+    <!-- LOGIN -->
+    <div id="login-area">
+      <div class="tabs">
+        <button class="tab active" id="tab-pin" onclick="switchTab('pin')">🔢 Code PIN</button>
+        <button class="tab" id="tab-qr"  onclick="switchTab('qr')">📷 QR Code</button>
       </div>
-      <p class="qr-stop" id="qr-stop-btn" style="display:none" onclick="stopScan()">⏹ Arrêter la caméra</p>
-      <div class="qr-manual">Pas de QR code ? <a onclick="switchTab('pin')">Utiliser un code PIN →</a></div>
+
+      <!-- PIN -->
+      <div class="pin-form active" id="form-pin">
+        <p class="pin-hint">Votre code personnel à 4 chiffres</p>
+        <div class="pin-display" id="pin-display">
+          <div class="pin-dot" id="dot0"></div>
+          <div class="pin-dot" id="dot1"></div>
+          <div class="pin-dot" id="dot2"></div>
+          <div class="pin-dot" id="dot3"></div>
+        </div>
+        <div class="numpad">
+          <button class="num-btn" onclick="numPress('1')">1</button>
+          <button class="num-btn" onclick="numPress('2')">2<span class="num-sub">ABC</span></button>
+          <button class="num-btn" onclick="numPress('3')">3<span class="num-sub">DEF</span></button>
+          <button class="num-btn" onclick="numPress('4')">4<span class="num-sub">GHI</span></button>
+          <button class="num-btn" onclick="numPress('5')">5<span class="num-sub">JKL</span></button>
+          <button class="num-btn" onclick="numPress('6')">6<span class="num-sub">MNO</span></button>
+          <button class="num-btn" onclick="numPress('7')">7<span class="num-sub">PQRS</span></button>
+          <button class="num-btn" onclick="numPress('8')">8<span class="num-sub">TUV</span></button>
+          <button class="num-btn" onclick="numPress('9')">9<span class="num-sub">WXYZ</span></button>
+          <button class="num-btn zero" onclick="numPress('0')">0</button>
+          <button class="num-btn del"  onclick="numDel()">⌫</button>
+        </div>
+        <button class="btn-login" id="btn-login" onclick="loginPin()" disabled>Accéder à ma formation →</button>
+      </div>
+
+      <!-- QR -->
+      <div class="qr-form" id="form-qr">
+        <div class="qr-area" id="qr-area" onclick="startScan()">
+          <div id="qr-prompt">
+            <div class="qr-icon">📷</div>
+            <div class="qr-title">Scanner mon QR code</div>
+            <div class="qr-sub">Scannez le QR code<br>remis par votre formateur</div>
+          </div>
+          <div id="qr-video-wrap">
+            <video id="qr-video" autoplay muted playsinline></video>
+            <div class="qr-crosshair"></div>
+          </div>
+        </div>
+        <a class="qr-stop" id="qr-stop-btn" style="display:none" onclick="stopScan()">⏹ Arrêter la caméra</a>
+        <div class="qr-alt">Pas de QR code ? <a onclick="switchTab('pin')">Utiliser le code PIN →</a></div>
+      </div>
     </div>
 
     <div class="login-footer">
-      <a href="../center/center-login.html">Accès responsable de centre →</a>
+      <a href="../center/center-login.html">Responsable de centre →</a>
     </div>
+
   </div>
 </div>
 
 <script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 let pin = '';
-let scanStream = null;
-let scanInterval = null;
+let sessionData = null;
+let scanStream = null, scanInterval = null;
 
-// ── TABS ──
-function switchTab(tab) {
-  document.getElementById('tab-pin').classList.toggle('active', tab === 'pin');
-  document.getElementById('tab-qr').classList.toggle('active', tab === 'qr');
-  document.getElementById('form-pin').classList.toggle('active', tab === 'pin');
-  document.getElementById('form-qr').classList.toggle('active', tab === 'qr');
-  hideMsg();
-  if (tab === 'pin') stopScan();
+// ── INIT ──
+async function init() {
+  const p = new URLSearchParams(window.location.search);
+  const centerId  = p.get('centerId')  || p.get('c') || '';
+  const sessionId = p.get('sessionId') || p.get('s') || '';
+
+  // Toujours afficher le formulaire, même sans params
+  if (!centerId || !sessionId) {
+    // Pas de contexte session : afficher le formulaire en mode générique
+    show();
+    document.getElementById('s-level').textContent = 'SSIAP Training';
+    document.getElementById('s-titre').textContent = 'Connexion Stagiaire';
+    document.getElementById('s-debut').textContent = '—';
+    document.getElementById('s-fin').textContent   = '—';
+    document.getElementById('s-status').innerHTML  =
+      `<div class="status-badge active"><div class="s-dot"></div><div>Saisissez votre code PIN<small>Le PIN contient votre centre et votre session</small></div></div>`;
+    // En mode sans params, le PIN doit contenir toutes les infos → on laisse le form actif
+    sessionData = { centerId: '', sessionId: '' };
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API}/session/public/${sessionId}?centerId=${centerId}`);
+    const d = await r.json();
+    if (!r.ok || !d.session) throw new Error();
+    sessionData = { ...d.session, centerId, sessionId };
+  } catch {
+    sessionData = {
+      centerId, sessionId,
+      niveau:    p.get('niveau') || '1',
+      titre:     p.get('titre')  || null,
+      dateDebut: p.get('debut')  ? Number(p.get('debut')) : null,
+      dateFin:   p.get('fin')    ? Number(p.get('fin'))   : null,
+      status:    'active',
+    };
+  }
+
+  renderSession(sessionData);
+}
+
+function show() {
+  document.getElementById('loading').style.display      = 'none';
+  document.getElementById('left-panel').style.display   = 'flex';
+  document.getElementById('right-panel').style.display  = 'flex';
+}
+
+function renderSession(s) {
+  show();
+  const niv   = s.niveau || '1';
+  const debut = fmtDate(s.dateDebut);
+  const fin   = fmtDate(s.dateFin);
+
+  document.getElementById('s-level').textContent = 'SSIAP ' + niv;
+  document.getElementById('s-titre').textContent = s.titre || ('Formation SSIAP ' + niv);
+  document.getElementById('s-debut').textContent = debut;
+  document.getElementById('s-fin').textContent   = fin;
+
+  if (s.dateDebut && s.dateFin) {
+    const days = Math.round((s.dateFin - s.dateDebut) / 86400000) + 1;
+    document.getElementById('s-duration').textContent =
+      '⏱ ' + days + ' jour' + (days > 1 ? 's' : '') + ' de formation';
+  }
+
+  const now   = Date.now();
+  const start = s.dateDebut || 0;
+  const end   = s.dateFin   || Infinity;
+  const st    = document.getElementById('s-status');
+
+  if (s.status === 'terminee' || now > end) {
+    st.innerHTML = `<div class="status-badge ended"><div class="s-dot"></div><div>Session terminée<small>Accès clôturé depuis le ${fin}</small></div></div>`;
+    block('🔒', `Votre accès à la formation SSIAP ${niv} est clôturé depuis le ${fin}. Contactez votre formateur.`);
+  } else if (now < start) {
+    const j = Math.ceil((start - now) / 86400000);
+    st.innerHTML = `<div class="status-badge future"><div class="s-dot"></div><div>Pas encore disponible<small>Commence dans ${j} jour${j>1?'s':''} (${debut})</small></div></div>`;
+    block('⏳', `Votre formation SSIAP ${niv} commence le ${debut}. Votre code PIN vous sera remis par votre formateur.`);
+  } else {
+    const reste = Math.ceil((end - now) / 86400000);
+    st.innerHTML = `<div class="status-badge active"><div class="s-dot"></div><div>Formation en cours<small>Encore ${reste} jour${reste>1?'s':''} (jusqu'au ${fin})</small></div></div>`;
+  }
+}
+
+function block(icon, msg) {
+  document.getElementById('login-area').style.display   = 'none';
+  document.getElementById('blocked-wrap').style.display = 'block';
+  document.getElementById('b-icon').textContent = icon;
+  document.getElementById('b-msg').textContent  = msg;
+}
+
+function showFatalError(titre, msg) {
+  show();
+  document.getElementById('s-level').textContent = '⚠️';
+  document.getElementById('s-titre').textContent = titre;
+  document.getElementById('s-debut').textContent = '—';
+  document.getElementById('s-fin').textContent   = '—';
+  block('⚠️', msg);
 }
 
 // ── NUMPAD ──
@@ -320,162 +438,146 @@ function numPress(d) {
   pin += d;
   updateDots();
   if (pin.length === 4) {
-    document.getElementById('btn-pin-login').disabled = false;
-    // Auto-submit si centerId déjà rempli
-    const cid = document.getElementById('centerId').value.trim();
-    if (cid) setTimeout(loginPin, 200);
+    document.getElementById('btn-login').disabled = false;
+    setTimeout(loginPin, 160);
   }
 }
 
 function numDel() {
   pin = pin.slice(0, -1);
-  document.getElementById('btn-pin-login').disabled = true;
-  updateDots(false);
+  document.getElementById('btn-login').disabled = true;
+  updateDots();
 }
 
-function updateDots(ok = true) {
+function updateDots() {
   for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById('dot' + i);
-    dot.classList.toggle('filled', i < pin.length);
-    dot.classList.toggle('active', i === pin.length);
-    dot.classList.remove('error');
-    dot.textContent = i < pin.length ? '•' : '';
+    const d = document.getElementById('dot' + i);
+    d.textContent = i < pin.length ? '●' : '';
+    d.className = 'pin-dot' +
+      (i < pin.length ? ' filled' : '') +
+      (i === pin.length && pin.length < 4 ? ' active-dot' : '');
   }
 }
 
 function shakeDots() {
-  const dots = document.getElementById('pin-display');
-  dots.style.animation = 'none';
   for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
-  setTimeout(() => { pin = ''; updateDots(); document.getElementById('btn-pin-login').disabled = true; }, 600);
+  setTimeout(() => { pin = ''; updateDots(); document.getElementById('btn-login').disabled = true; }, 500);
 }
 
 // ── LOGIN PIN ──
 async function loginPin() {
-  const centerId = document.getElementById('centerId').value.trim();
-  if (!centerId) { showMsg('Entrez l\'identifiant du centre', 'error'); return; }
-  if (pin.length < 4) { showMsg('Entrez votre code PIN (4 chiffres)', 'error'); return; }
-
-  const btn = document.getElementById('btn-pin-login');
-  btn.disabled = true;
-  btn.textContent = '⏳ Connexion…';
-
+  if (!sessionData) return;
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = '⏳ Vérification…';
   try {
     const r = await fetch(`${API}/stagiaire/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ centerId, pin, loginType: 'pin' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ centerId: sessionData.centerId, sessionId: sessionData.sessionId, pin, loginType: 'pin' })
     });
     const d = await r.json();
-    if (!r.ok || !d.success) throw new Error(d.error || 'PIN incorrect');
-    handleLoginSuccess(d);
-  } catch (e) {
+    if (!r.ok || !d.success) throw new Error(d.error || 'Code incorrect');
+    handleSuccess(d);
+  } catch(e) {
     showMsg('❌ ' + e.message, 'error');
     shakeDots();
-    btn.disabled = false;
-    btn.innerHTML = '🔓 Accéder à mon espace';
+    btn.disabled = false; btn.textContent = 'Accéder à ma formation →';
   }
 }
 
-// ── QR SCAN ──
+// ── QR ──
+// Le QR code encode : {"centerId":"...","sessionId":"...","stagiaireId":"...","pin":"1234"}
+function switchTab(t) {
+  ['pin','qr'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+    document.getElementById('form-'+x).classList.toggle('active', x===t);
+  });
+  hideMsg();
+  if (t === 'pin') stopScan();
+}
+
 async function startScan() {
   if (scanStream) return;
   try {
     scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    const video = document.getElementById('qr-video');
-    video.srcObject = scanStream;
-    document.getElementById('qr-prompt').style.display = 'none';
+    document.getElementById('qr-video').srcObject = scanStream;
+    document.getElementById('qr-prompt').style.display     = 'none';
     document.getElementById('qr-video-wrap').style.display = 'block';
-    document.getElementById('qr-stop-btn').style.display = 'block';
+    document.getElementById('qr-stop-btn').style.display   = 'block';
     document.getElementById('qr-area').classList.add('scanning');
-    // Polling scan toutes les 500ms avec canvas
-    scanInterval = setInterval(() => tryDecodeQR(video), 500);
-  } catch (e) {
-    showMsg('📷 Caméra non disponible — utilisez le code PIN', 'error');
-  }
+    scanInterval = setInterval(() => tryDecodeQR(document.getElementById('qr-video')), 500);
+  } catch { showMsg('Caméra indisponible — utilisez le code PIN', 'error'); }
 }
 
 function stopScan() {
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
-  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
-  document.getElementById('qr-prompt').style.display = 'block';
+  clearInterval(scanInterval); scanInterval = null;
+  document.getElementById('qr-prompt').style.display     = 'block';
   document.getElementById('qr-video-wrap').style.display = 'none';
-  document.getElementById('qr-stop-btn').style.display = 'none';
+  document.getElementById('qr-stop-btn').style.display   = 'none';
   document.getElementById('qr-area').classList.remove('scanning');
 }
 
 function tryDecodeQR(video) {
-  // BarcodeDetector API (Chrome 83+, Edge, Safari 17+)
-  if (!('BarcodeDetector' in window)) return; // silently skip on unsupported
-  const bd = new BarcodeDetector({ formats: ['qr_code'] });
-  bd.detect(video).then(codes => {
-    if (codes.length > 0) {
-      stopScan();
-      handleQRCode(codes[0].rawValue);
-    }
-  }).catch(() => {});
+  if (!('BarcodeDetector' in window)) return;
+  new BarcodeDetector({ formats: ['qr_code'] }).detect(video)
+    .then(codes => { if (codes.length) { stopScan(); handleQRCode(codes[0].rawValue); } })
+    .catch(() => {});
 }
 
 async function handleQRCode(raw) {
+  showMsg('⏳ Vérification en cours…', 'success');
   try {
-    // Format attendu : JSON {"centerId":"...","stagiaireId":"...","token":"..."} ou URL avec params
     let data;
     try { data = JSON.parse(raw); } catch { data = Object.fromEntries(new URL(raw).searchParams); }
-    if (!data.centerId || (!data.stagiaireId && !data.token)) throw new Error('QR code invalide');
-
-    showMsg('⏳ Vérification en cours…', 'success');
     const r = await fetch(`${API}/stagiaire/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...data, loginType: 'qr' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        centerId:    data.centerId    || sessionData?.centerId,
+        sessionId:   data.sessionId   || sessionData?.sessionId,
+        stagiaireId: data.stagiaireId || '',
+        pin:         data.pin         || '',
+        loginType:   'qr'
+      })
     });
     const d = await r.json();
-    if (!r.ok || !d.success) throw new Error(d.error || 'QR code expiré');
-    handleLoginSuccess(d);
-  } catch (e) {
-    showMsg('❌ ' + e.message, 'error');
-  }
+    if (!r.ok || !d.success) throw new Error(d.error || 'QR invalide ou expiré');
+    handleSuccess(d);
+  } catch(e) { showMsg('❌ ' + e.message, 'error'); }
 }
 
-// ── SUCCÈS ──
-function handleLoginSuccess(data) {
-  showMsg('✅ Connexion réussie !', 'success');
-  // Sauvegarder session
+function handleSuccess(d) {
+  showMsg('✅ Bienvenue !', 'success');
   localStorage.setItem('ssiap_stagiaire', JSON.stringify({
-    stagiaireId: data.stagiaireId,
-    centerId:    data.centerId,
-    nom:         data.nom,
-    prenom:      data.prenom,
-    niveau:      data.niveau,
-    sessionId:   data.sessionId,
+    stagiaireId: d.stagiaireId,
+    centerId:    sessionData.centerId,
+    sessionId:   sessionData.sessionId,
+    prenom:      d.prenom || '',
+    nom:         d.nom    || '',
+    niveau:      sessionData.niveau,
   }));
-  localStorage.setItem('ssiap_stagiaire_token', data.stagiaireId);
-  setTimeout(() => {
-    window.location.href = data.redirectUrl || '../stagiaire/stagiaire-dashboard.html';
-  }, 600);
+  setTimeout(() => { window.location.href = d.redirectUrl || '../stagiaire/stagiaire-dashboard.html'; }, 500);
 }
 
-// ── UI HELPERS ──
-function showMsg(txt, type) {
+function fmtDate(ts) {
+  if (!ts) return '—';
+  return new Date(typeof ts === 'number' ? ts : ts)
+    .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+function showMsg(t, type) {
   const el = document.getElementById('msg');
-  el.textContent = txt;
-  el.className = `msg ${type} show`;
+  el.textContent = t; el.className = `msg ${type} show`;
 }
-function hideMsg() {
-  document.getElementById('msg').className = 'msg';
-}
+function hideMsg() { document.getElementById('msg').className = 'msg'; }
 
-// Keyboard support for PIN
 document.addEventListener('keydown', e => {
-  if (document.getElementById('form-pin').classList.contains('active')) {
-    if (e.key >= '0' && e.key <= '9') numPress(e.key);
-    if (e.key === 'Backspace') numDel();
-    if (e.key === 'Enter' && pin.length === 4) loginPin();
-  }
+  if (!document.getElementById('form-pin').classList.contains('active')) return;
+  if (e.key >= '0' && e.key <= '9') numPress(e.key);
+  if (e.key === 'Backspace') numDel();
+  if (e.key === 'Enter' && pin.length === 4) loginPin();
 });
 
-// Init
 updateDots();
+init();
 </script>
 </body>
 </html>
