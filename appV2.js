@@ -1,87 +1,68 @@
-// app.js - Interface Stagiaire ENTRAÎNEMENT SSIAP - VERSION FINALE
+// app.js - Interface Stagiaire ENTRAÎNEMENT SSIAP
 
 const API_URL = 'https://ssiap-training-center.onrender.com/api';
 
-let currentUser = null;
-let currentSession = null;
-let questions = [];
+let currentUser        = null;
+let currentSession     = null;
+let questions          = [];
 let currentQuestionIndex = 0;
-let userAnswers = {};
-let niveauSelected = null;
-let partieSelected = 'toutes';
+let userAnswers        = {};
+let niveauSelected     = null;
+let partieSelected     = 'toutes';
 let nbQuestionsSelected = null;
-let partiesConfig = [];
-let sessionStartTime = null;
+let partiesConfig      = [];
+let sessionStartTime   = null;
 
-// ========== GESTION DES PAGES ==========
-
-function showPage(pageId) {
+// ── Pages ──
+function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
+    document.getElementById(id).classList.add('active');
 }
+function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+function hideLoader() { document.getElementById('loader').style.display = 'none'; }
 
-function showLoader() {
-    document.getElementById('loader').style.display = 'flex';
-}
-
-function hideLoader() {
-    document.getElementById('loader').style.display = 'none';
-}
-
-// ========== PAGE CONNEXION ==========
+// ══════════════════════════════════════
+//  PAGE CONNEXION
+// ══════════════════════════════════════
 
 const btnsNiveau = document.querySelectorAll('.btn-niveau');
-
 btnsNiveau.forEach(btn => {
     btn.addEventListener('click', async function() {
         btnsNiveau.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         niveauSelected = parseInt(this.dataset.niveau);
-        
         await loadNiveauConfig(niveauSelected);
-        
         document.getElementById('groupe-partie').style.display = 'block';
         document.getElementById('groupe-nombre').style.display = 'block';
-        
         checkFormValidity();
     });
 });
 
 async function loadNiveauConfig(niveau) {
     try {
-        const response = await fetch(`${API_URL}/entrainement/config/${niveau}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            partiesConfig = data.config.parties;
-            
-            const partiesList = document.getElementById('parties-list');
-            partiesList.innerHTML = '';
-            
-            partiesConfig.forEach((partie, index) => {
-                const label = document.createElement('label');
-                label.className = 'partie-option';
-                label.innerHTML = `
-                    <input type="radio" name="partie" value="${partie.id}">
-                    <span>${index + 1}. ${partie.label}</span>
-                `;
-                partiesList.appendChild(label);
+        const r = await fetch(`${API_URL}/entrainement/config/${niveau}`);
+        const d = await r.json();
+        if (!d.success) return;
+        partiesConfig = d.config.parties;
+        const list = document.getElementById('parties-list');
+        list.innerHTML = '';
+        partiesConfig.forEach((partie, i) => {
+            const lbl = document.createElement('label');
+            lbl.className = 'partie-option';
+            lbl.innerHTML = `<input type="radio" name="partie" value="${partie.id}">
+                             <span>${i + 1}. ${partie.label}</span>`;
+            list.appendChild(lbl);
+        });
+        document.querySelectorAll('input[name="partie"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                partieSelected = this.value;
+                checkFormValidity();
             });
-            
-            document.querySelectorAll('input[name="partie"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    partieSelected = this.value;
-                    checkFormValidity();
-                });
-            });
-        }
-    } catch (error) {
-        console.error('Erreur chargement config:', error);
-    }
+        });
+    } catch(e) { console.error('Config niveau:', e); }
 }
 
 const btnsNombre = document.querySelectorAll('.btn-nombre');
-
 btnsNombre.forEach(btn => {
     btn.addEventListener('click', function() {
         btnsNombre.forEach(b => b.classList.remove('active'));
@@ -92,325 +73,275 @@ btnsNombre.forEach(btn => {
 });
 
 function checkFormValidity() {
-    const nom = document.getElementById('nom').value.trim();
+    const nom    = document.getElementById('nom').value.trim();
     const prenom = document.getElementById('prenom').value.trim();
-    const btnDemarrer = document.getElementById('btn-demarrer');
-    
-    const isValid = nom && prenom && niveauSelected && nbQuestionsSelected;
-    btnDemarrer.disabled = !isValid;
+    const valid  = nom && prenom && niveauSelected && nbQuestionsSelected;
+    document.getElementById('btn-demarrer').disabled = !valid;
 }
 
 document.getElementById('nom').addEventListener('input', checkFormValidity);
 document.getElementById('prenom').addEventListener('input', checkFormValidity);
 
+// ── SUBMIT ──
 document.getElementById('form-connexion').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const nom = document.getElementById('nom').value.trim();
+
+    const nom    = document.getElementById('nom').value.trim();
     const prenom = document.getElementById('prenom').value.trim();
-    const email = document.getElementById('email').value.trim();
-    
+    const email  = document.getElementById('email').value.trim();
+
     if (!niveauSelected || !nbQuestionsSelected) {
         alert('Veuillez sélectionner un niveau et un nombre de questions');
         return;
     }
-    
+
     showLoader();
-    
+
     try {
-        const responseStagiaire = await fetch(`${API_URL}/stagiaires`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nom, prenom, email })
-        });
-        
-        const dataStagiaire = await responseStagiaire.json();
-        
-        if (!dataStagiaire.success) {
-            throw new Error('Erreur création stagiaire');
+        // ── Cas 1 : stagiaire connecté via centre (localStorage) ──
+        const stagConnecte = window.STAGIAIRE_CONNECTE || null;
+
+        if (stagConnecte && stagConnecte.stagiaireId) {
+            // Utiliser directement les données du stagiaire connecté
+            currentUser = {
+                userId:     stagConnecte.stagiaireId,
+                stagiaireId:stagConnecte.stagiaireId,
+                nom:        stagConnecte.nom    || nom,
+                prenom:     stagConnecte.prenom || prenom,
+                email:      stagConnecte.email  || email,
+                centerId:   stagConnecte.centerId  || '',
+                sessionId:  stagConnecte.sessionId || '',
+            };
+        } else {
+            // ── Cas 2 : utilisateur libre (sans session centre) ──
+            // Créer un utilisateur temporaire local sans appel API
+            currentUser = {
+                userId: 'local_' + Date.now(),
+                nom, prenom, email,
+                centerId: '', sessionId: '',
+            };
         }
-        
-        currentUser = dataStagiaire.stagiaire;
-        
-        const responseEntrainement = await fetch(`${API_URL}/entrainement/start`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: currentUser.userId,
-                niveau: niveauSelected,
-                partieId: partieSelected,
-                nbQuestions: nbQuestionsSelected
-            })
-        });
-        
-        const dataEntrainement = await responseEntrainement.json();
-        
-        if (!dataEntrainement.success) {
-            throw new Error('Erreur démarrage entraînement');
-        }
-        
-        currentSession = {
-            sessionId: dataEntrainement.sessionId,
-            niveau: niveauSelected,
-            partieId: partieSelected
+
+        // ── Démarrer l'entraînement QCM ──
+        const body = {
+            userId:      currentUser.userId,
+            niveau:      niveauSelected,
+            partieId:    partieSelected,
+            nbQuestions: nbQuestionsSelected,
         };
-        
-        questions = dataEntrainement.questions;
+        // Enrichir avec les données centre si disponibles
+        if (currentUser.centerId) body.centerId  = currentUser.centerId;
+        if (currentUser.sessionId) body.sessionId = currentUser.sessionId;
+
+        const r = await fetch(`${API_URL}/entrainement/start`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || 'Erreur démarrage entraînement');
+
+        currentSession = {
+            sessionId: d.sessionId,
+            niveau:    niveauSelected,
+            partieId:  partieSelected
+        };
+        questions            = d.questions;
         currentQuestionIndex = 0;
-        userAnswers = {};
-        sessionStartTime = Date.now();
-        
+        userAnswers          = {};
+        sessionStartTime     = Date.now();
+
         initEntrainement();
         showPage('page-entrainement');
-        
-    } catch (error) {
-        console.error('Erreur:', error);
-        alert('Une erreur est survenue. Veuillez réessayer.');
+
+    } catch(err) {
+        console.error('Erreur démarrage:', err);
+        alert('Erreur : ' + err.message + '\nVérifiez votre connexion et réessayez.');
     } finally {
         hideLoader();
     }
 });
 
-// ========== PAGE ENTRAÎNEMENT ==========
+// ══════════════════════════════════════
+//  PAGE ENTRAÎNEMENT
+// ══════════════════════════════════════
 
 function initEntrainement() {
-    document.getElementById('entrainement-stagiaire').textContent = `${currentUser.nom} ${currentUser.prenom}`;
+    document.getElementById('entrainement-stagiaire').textContent =
+        `${currentUser.prenom} ${currentUser.nom}`;
     document.getElementById('entrainement-niveau').textContent = currentSession.niveau;
-    
+
     let partieLabel = 'Toutes les parties';
     if (currentSession.partieId !== 'toutes') {
-        const partie = partiesConfig.find(p => p.id === currentSession.partieId);
-        if (partie) {
-            partieLabel = partie.label;
-        }
+        const p = partiesConfig.find(p => p.id === currentSession.partieId);
+        if (p) partieLabel = p.label;
     }
     document.getElementById('entrainement-partie').textContent = partieLabel;
-    
     document.getElementById('question-total').textContent = questions.length;
-    
     displayQuestion();
 }
 
 function displayQuestion() {
-    const question = questions[currentQuestionIndex];
-    const questionNum = currentQuestionIndex + 1;
-    
-    document.getElementById('question-numero').textContent = questionNum;
-    document.getElementById('current-question-num').textContent = questionNum;
-    
-    const progress = (questionNum / questions.length) * 100;
-    document.getElementById('progress-fill').style.width = `${progress}%`;
-    
-    document.getElementById('question-text').textContent = question.question;
-    
-    const optionsContainer = document.getElementById('options-container');
-    optionsContainer.innerHTML = '';
-    
-    question.options.forEach((option, index) => {
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'option';
-        optionDiv.dataset.index = index;
-        
-        const savedAnswer = userAnswers[question.id] || [];
-        if (savedAnswer.includes(index)) {
-            optionDiv.classList.add('selected');
-        }
-        
-        optionDiv.innerHTML = `
-            <div class="option-checkbox"></div>
-            <div class="option-text">${option}</div>
-        `;
-        
-        optionDiv.addEventListener('click', () => toggleOption(question.id, index));
-        optionsContainer.appendChild(optionDiv);
+    const q   = questions[currentQuestionIndex];
+    const num = currentQuestionIndex + 1;
+
+    document.getElementById('question-numero').textContent     = num;
+    document.getElementById('current-question-num').textContent = num;
+    document.getElementById('progress-fill').style.width = `${(num / questions.length) * 100}%`;
+    document.getElementById('question-text').textContent = q.question;
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    q.options.forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.dataset.index = i;
+        const saved = userAnswers[q.id] || [];
+        if (saved.includes(i)) div.classList.add('selected');
+        div.innerHTML = `<div class="option-checkbox"></div><div class="option-text">${opt}</div>`;
+        div.addEventListener('click', () => toggleOption(q.id, i));
+        container.appendChild(div);
     });
-    
-    document.getElementById('btn-precedent').style.visibility = 
+
+    document.getElementById('btn-precedent').style.visibility =
         currentQuestionIndex === 0 ? 'hidden' : 'visible';
-    
-    const isLastQuestion = currentQuestionIndex === questions.length - 1;
-    document.getElementById('btn-suivant').style.display = isLastQuestion ? 'none' : 'block';
-    document.getElementById('btn-terminer').style.display = isLastQuestion ? 'block' : 'none';
+    const last = currentQuestionIndex === questions.length - 1;
+    document.getElementById('btn-suivant').style.display  = last ? 'none'  : 'block';
+    document.getElementById('btn-terminer').style.display = last ? 'block' : 'none';
 }
 
 function toggleOption(questionId, optionIndex) {
-    const optionDiv = document.querySelector(`.option[data-index="${optionIndex}"]`);
-    
-    if (!userAnswers[questionId]) {
-        userAnswers[questionId] = [];
-    }
-    
-    const answerIndex = userAnswers[questionId].indexOf(optionIndex);
-    
-    if (answerIndex > -1) {
-        userAnswers[questionId].splice(answerIndex, 1);
-        optionDiv.classList.remove('selected');
+    const div = document.querySelector(`.option[data-index="${optionIndex}"]`);
+    if (!userAnswers[questionId]) userAnswers[questionId] = [];
+    const idx = userAnswers[questionId].indexOf(optionIndex);
+    if (idx > -1) {
+        userAnswers[questionId].splice(idx, 1);
+        div.classList.remove('selected');
     } else {
         userAnswers[questionId].push(optionIndex);
-        optionDiv.classList.add('selected');
+        div.classList.add('selected');
     }
-    
     saveAnswer(questionId, userAnswers[questionId]);
 }
 
 async function saveAnswer(questionId, answers) {
+    if (!currentSession?.sessionId) return;
     try {
         await fetch(`${API_URL}/entrainement/answer`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sessionId: currentSession.sessionId,
-                questionId: questionId,
-                answers: answers
-            })
+            body: JSON.stringify({ sessionId: currentSession.sessionId, questionId, answers })
         });
-    } catch (error) {
-        console.error('Erreur sauvegarde réponse:', error);
-    }
+    } catch(e) { console.error('Sauvegarde réponse:', e); }
 }
 
 document.getElementById('btn-suivant').addEventListener('click', () => {
-    if (currentQuestionIndex < questions.length - 1) {
-        currentQuestionIndex++;
-        displayQuestion();
-    }
+    if (currentQuestionIndex < questions.length - 1) { currentQuestionIndex++; displayQuestion(); }
 });
-
 document.getElementById('btn-precedent').addEventListener('click', () => {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        displayQuestion();
-    }
+    if (currentQuestionIndex > 0) { currentQuestionIndex--; displayQuestion(); }
 });
 
 document.getElementById('btn-terminer').addEventListener('click', async () => {
-    if (!confirm('Êtes-vous sûr de vouloir terminer cet entraînement ?')) {
-        return;
-    }
-    
+    if (!confirm('Terminer cet entraînement ?')) return;
     showLoader();
-    
     try {
-        const response = await fetch(`${API_URL}/entrainement/finish`, {
+        const r = await fetch(`${API_URL}/entrainement/finish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sessionId: currentSession.sessionId
-            })
+            body: JSON.stringify({ sessionId: currentSession.sessionId })
         });
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-            throw new Error('Erreur calcul score');
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || 'Erreur calcul score');
+
+        const t   = Date.now() - sessionStartTime;
+        const min = Math.floor(t / 60000);
+        const sec = Math.floor((t % 60000) / 1000);
+        d.results.tempsAffiche = min > 0 ? `${min} min ${sec}s` : `${sec}s`;
+
+        // Sauvegarder le résultat dans l'historique stagiaire (centre)
+        if (currentUser.centerId && currentUser.sessionId && currentUser.stagiaireId) {
+            try {
+                await fetch(`${API_URL}/stagiaire/save-result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        centerId:    currentUser.centerId,
+                        sessionId:   currentUser.sessionId,
+                        stagiaireId: currentUser.stagiaireId,
+                        score:       d.results.score,
+                        total:       d.results.total,
+                        pct:         d.results.percentage,
+                        niveau:      currentSession.niveau,
+                        partieId:    currentSession.partieId,
+                    })
+                });
+            } catch(e) { console.warn('Historique non sauvegardé:', e); }
         }
-        
-        const tempsTotal = Date.now() - sessionStartTime;
-        const minutes = Math.floor(tempsTotal / 60000);
-        const secondes = Math.floor((tempsTotal % 60000) / 1000);
-        const tempsAffiche = minutes > 0 ? `${minutes} min ${secondes}s` : `${secondes}s`;
-        
-        data.results.tempsAffiche = tempsAffiche;
-        
-        displayResults(data.results);
+
+        displayResults(d.results);
         showPage('page-resultats');
-        
-    } catch (error) {
-        console.error('Erreur:', error);
-        alert('Une erreur est survenue lors du calcul du score.');
+    } catch(err) {
+        console.error('Erreur finish:', err);
+        alert('Erreur lors du calcul du score : ' + err.message);
     } finally {
         hideLoader();
     }
 });
 
-// ========== PAGE RÉSULTATS ==========
+// ══════════════════════════════════════
+//  PAGE RÉSULTATS
+// ══════════════════════════════════════
 
 function displayResults(results) {
     const { score, total, percentage, details, tempsAffiche } = results;
-    
-    document.getElementById('score-value').textContent = score;
-    document.getElementById('score-total').textContent = total;
+
+    document.getElementById('score-value').textContent      = score;
+    document.getElementById('score-total').textContent      = total;
     document.getElementById('score-percentage').textContent = `${percentage}%`;
-    
-    const circle = document.getElementById('score-circle');
-    const svg = document.getElementById('score-svg');
+
     const circumference = 565;
-    const offset = circumference - (percentage / 100) * circumference;
-    svg.style.strokeDashoffset = offset;
-    
-    const isPassed = parseFloat(percentage) >= 50;
-    circle.classList.toggle('fail', !isPassed);
-    
-    const titleEl = document.getElementById('results-title');
-    const messageEl = document.getElementById('results-message');
-    
-    if (isPassed) {
-        titleEl.textContent = '🎉 Excellent travail !';
-        titleEl.style.color = 'var(--vert-evacuation)';
-        messageEl.textContent = `Vous avez obtenu ${percentage}% de bonnes réponses. Continuez ainsi !`;
-    } else {
-        titleEl.textContent = '📚 Continuez vos révisions';
-        titleEl.style.color = 'var(--rouge-incendie)';
-        messageEl.textContent = `Score : ${percentage}%. Identifiez vos axes d'amélioration ci-dessous.`;
-    }
-    
-    document.getElementById('stat-correct').textContent = score;
+    document.getElementById('score-svg').style.strokeDashoffset =
+        circumference - (percentage / 100) * circumference;
+    document.getElementById('score-circle').classList.toggle('fail', parseFloat(percentage) < 50);
+
+    const passed = parseFloat(percentage) >= 50;
+    document.getElementById('results-title').textContent   = passed ? '🎉 Excellent travail !' : '📚 Continuez vos révisions';
+    document.getElementById('results-title').style.color   = passed ? 'var(--vert-evacuation)' : 'var(--rouge-incendie)';
+    document.getElementById('results-message').textContent = passed
+        ? `Vous avez obtenu ${percentage}% de bonnes réponses. Continuez ainsi !`
+        : `Score : ${percentage}%. Identifiez vos axes d'amélioration ci-dessous.`;
+
+    document.getElementById('stat-correct').textContent   = score;
     document.getElementById('stat-incorrect').textContent = total - score;
-    document.getElementById('stat-time').textContent = tempsAffiche || '0s';
-    
-    const detailsContainer = document.getElementById('results-details');
-    detailsContainer.innerHTML = '<h3 style="margin-bottom: 20px;">Correction détaillée</h3>';
-    
-    details.forEach((detail, index) => {
-        const isCorrect = detail.isCorrect;
-        
-        const detailDiv = document.createElement('div');
-        detailDiv.className = `detail-question ${isCorrect ? 'correct' : 'incorrect'}`;
-        
-        // Afficher les réponses
-        let reponsesHTML = '';
-        if (detail.userAnswerLabels && detail.userAnswerLabels.length > 0) {
-            reponsesHTML = `
-                <div style="margin-top: 10px; font-size: 14px;">
-                    <strong>Votre réponse :</strong> ${detail.userAnswerLabels.join(', ')}
-                </div>
-            `;
-        }
-        if (detail.correctAnswerLabels && detail.correctAnswerLabels.length > 0) {
-            reponsesHTML += `
-                <div style="margin-top: 5px; font-size: 14px; color: var(--vert-evacuation);">
-                    <strong>Bonne(s) réponse(s) :</strong> ${detail.correctAnswerLabels.join(', ')}
-                </div>
-            `;
-        }
-        
-        detailDiv.innerHTML = `
+    document.getElementById('stat-time').textContent      = tempsAffiche || '0s';
+
+    const container = document.getElementById('results-details');
+    container.innerHTML = '<h3 style="margin-bottom:20px">Correction détaillée</h3>';
+
+    (details || []).forEach((detail, i) => {
+        const div = document.createElement('div');
+        div.className = `detail-question ${detail.isCorrect ? 'correct' : 'incorrect'}`;
+        let rep = '';
+        if (detail.userAnswerLabels?.length)
+            rep += `<div style="margin-top:10px;font-size:14px"><strong>Votre réponse :</strong> ${detail.userAnswerLabels.join(', ')}</div>`;
+        if (detail.correctAnswerLabels?.length)
+            rep += `<div style="margin-top:5px;font-size:14px;color:var(--vert-evacuation)"><strong>Bonne(s) réponse(s) :</strong> ${detail.correctAnswerLabels.join(', ')}</div>`;
+        div.innerHTML = `
             <div class="detail-header">
-                <span>Question ${index + 1}</span>
-                <span class="detail-badge ${isCorrect ? 'correct' : 'incorrect'}">
-                    ${isCorrect ? '✓ Correct' : '✗ Incorrect'}
-                </span>
+                <span>Question ${i + 1}</span>
+                <span class="detail-badge ${detail.isCorrect ? 'correct' : 'incorrect'}">${detail.isCorrect ? '✓ Correct' : '✗ Incorrect'}</span>
             </div>
             <div class="detail-question-text">${detail.question}</div>
-            ${reponsesHTML}
-            ${detail.explanation ? `
-                <div class="detail-explanation">
-                    <strong>💡 Explication :</strong> ${detail.explanation}
-                </div>
-            ` : ''}
-        `;
-        
-        detailsContainer.appendChild(detailDiv);
+            ${rep}
+            ${detail.explanation ? `<div class="detail-explanation"><strong>💡 Explication :</strong> ${detail.explanation}</div>` : ''}`;
+        container.appendChild(div);
     });
 }
 
-document.getElementById('btn-nouvel-entrainement').addEventListener('click', () => {
-    location.reload();
-});
-
+document.getElementById('btn-nouvel-entrainement').addEventListener('click', () => location.reload());
 document.getElementById('btn-voir-historique').addEventListener('click', () => {
     alert('Fonctionnalité "Historique" disponible prochainement !');
 });
 
-console.log('🔥 Interface Entraînement SSIAP - VERSION FINALE');
-console.log('API URL:', API_URL);
+console.log('🔥 SSIAP Entraînement — API:', API_URL);

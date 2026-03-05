@@ -4,216 +4,96 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Connexion Stagiaire — SSIAP Training</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
-:root {
-  --forest:   #1a4a32;
-  --forest-d: #112e1f;
-  --forest-m: rgba(255,255,255,.1);
-  --forest-b: rgba(255,255,255,.07);
-  --cream:    #c8e6d4;
-  --terra:    #c25a3a;
-  --terra-d:  #a34a2e;
-  --terra-l:  #fdf0eb;
-  --terra-m:  #e8c4b4;
-  --bg:       #f4f1ed;
-  --surface:  #ffffff;
-  --border:   #e2ddd8;
-  --text:     #1e1a17;
-  --muted:    #8c8078;
-  --subtle:   #f7f5f2;
-  --green:    #2e7d52;
-  --green-l:  #e8f5ee;
-  --gold:     #b8860b;
-  --gold-l:   #fef9e7;
-  --red:      #c0392b;
-  --red-l:    #fdecea;
+:root{
+  --forest:#1a4a32;--forest-d:#112e1f;
+  --terra:#c25a3a;--terra-d:#a34a2e;--terra-l:#fdf0eb;
+  --bg:#f4f1ed;--surface:#fff;--border:#e2ddd8;
+  --text:#1e1a17;--muted:#8c8078;--subtle:#f7f5f2;
+  --green:#2e7d52;--green-l:#e8f5ee;
+  --red:#c0392b;--red-l:#fdecea;
+  --blue:#2e5c8a;--blue-l:#eef4fb;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{
-  background:var(--bg);
-  font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:14px;color:var(--text);
-  display:flex;min-height:100vh;
-}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);display:flex;min-height:100vh}
 
-/* ═══ GAUCHE ═══ */
-.left{
-  width:44%;flex-shrink:0;
-  background:var(--forest);
-  background:linear-gradient(160deg,#1a4a32 0%,#112e1f 55%,#0c2118 100%);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:48px 40px;
-  position:relative;overflow:hidden;
-}
-/* cercles décoratifs */
+.left{width:44%;flex-shrink:0;background:linear-gradient(160deg,#1a4a32 0%,#112e1f 55%,#0c2118 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;position:relative;overflow:hidden}
 .left::before{content:'';position:absolute;width:320px;height:320px;border-radius:50%;border:1px solid rgba(255,255,255,.05);right:-80px;top:-80px}
-.left::after {content:'';position:absolute;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,.04);left:-60px;bottom:80px}
-
+.left::after{content:'';position:absolute;width:200px;height:200px;border-radius:50%;border:1px solid rgba(255,255,255,.04);left:-60px;bottom:80px}
 .left-inner{position:relative;z-index:1;width:100%;max-width:300px}
-
-/* Brand */
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:44px}
-.brand-icon{
-  width:46px;height:46px;background:rgba(255,255,255,.12);
-  border-radius:14px;display:flex;align-items:center;justify-content:center;
-  font-size:22px;border:1px solid rgba(255,255,255,.1);flex-shrink:0;
-}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:40px}
+.brand-icon{width:46px;height:46px;background:rgba(255,255,255,.12);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
 .brand-text h1{font-family:'Lora',serif;font-size:19px;color:#fff;font-weight:700;line-height:1}
 .brand-text p{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
-
-/* Session card */
-.session-card{
-  background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:16px;padding:20px;
-  margin-bottom:24px;
-}
-.level-tag{
-  display:inline-flex;align-items:center;
-  background:var(--terra);color:#fff;
-  font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-  padding:3px 10px;border-radius:20px;margin-bottom:12px;
-}
-.session-titre{
-  font-family:'Lora',serif;font-size:21px;color:#fff;
-  font-weight:600;line-height:1.25;margin-bottom:14px;
-}
+.session-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;margin-bottom:20px}
+.level-tag{display:inline-flex;align-items:center;background:var(--terra);color:#fff;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+.session-titre{font-family:'Lora',serif;font-size:20px;color:#fff;font-weight:600;line-height:1.25;margin-bottom:14px}
 .dates-block{display:flex;flex-direction:column;gap:5px}
 .date-line{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.55)}
 .date-line strong{color:rgba(255,255,255,.85);font-weight:600}
 .date-sep-bar{height:1px;background:rgba(255,255,255,.1);margin:2px 0}
-.duration-line{
-  margin-top:8px;font-size:11px;color:rgba(255,255,255,.35);
-  display:flex;align-items:center;gap:5px;
-}
-
-/* Status badge */
-.status-badge{
-  display:inline-flex;align-items:center;gap:7px;
-  border-radius:8px;padding:8px 14px;
-  font-size:12px;font-weight:700;width:100%;
-}
+.duration-line{margin-top:8px;font-size:11px;color:rgba(255,255,255,.35);display:flex;align-items:center;gap:5px}
+.status-badge{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;width:100%}
 .status-badge .s-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
 .status-badge small{font-weight:400;opacity:.75;display:block;font-size:11px;margin-top:1px}
-.status-badge.active{background:rgba(46,125,82,.2);color:var(--cream);border:1px solid rgba(200,230,212,.15)}
-.status-badge.future{background:rgba(184,134,11,.15);color:#f0c040;border:1px solid rgba(240,192,64,.12)}
-.status-badge.ended{background:rgba(192,57,43,.15);color:#e88;border:1px solid rgba(232,136,136,.1)}
+.status-badge.active{background:rgba(46,125,82,.2);color:#6fcf97;border:1px solid rgba(46,125,82,.25)}
+.status-badge.future{background:rgba(212,150,10,.15);color:#f2c94c;border:1px solid rgba(212,150,10,.2)}
+.status-badge.done{background:rgba(192,57,43,.15);color:#e57373;border:1px solid rgba(192,57,43,.2)}
 
-/* ═══ DROITE ═══ */
-.right{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  padding:40px 32px;background:var(--surface);
-  overflow-y:auto;
-}
-.login-box{width:100%;max-width:380px}
-
-.login-head{margin-bottom:28px}
-.login-head h2{font-family:'Lora',serif;font-size:24px;font-weight:600;color:var(--text);margin-bottom:5px}
-.login-head p{font-size:13px;color:var(--muted);line-height:1.5}
-
-/* TABS */
-.tabs{
-  display:grid;grid-template-columns:1fr 1fr;
-  background:var(--subtle);border:1.5px solid var(--border);
-  border-radius:11px;padding:3px;gap:3px;margin-bottom:22px;
-}
-.tab{
-  padding:9px;border-radius:9px;border:none;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;
-  background:transparent;color:var(--muted);transition:.15s;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-}
-.tab.active{background:var(--surface);color:var(--terra);box-shadow:0 1px 4px rgba(0,0,0,.08)}
-
-/* PIN */
-.pin-form,.qr-form{display:none}
-.pin-form.active,.qr-form.active{display:block}
-
-.pin-hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px}
-
-.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:18px}
-.pin-dot{
-  width:58px;height:58px;border-radius:13px;
-  border:2px solid var(--border);background:var(--subtle);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;color:var(--muted);
-  transition:.12s;
-}
-.pin-dot.filled{background:var(--terra-l);border-color:var(--terra);font-size:26px;color:var(--terra);font-weight:900}
-.pin-dot.active-dot{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-l)}
-.pin-dot.error{border-color:var(--red);background:var(--red-l);animation:shake .4s ease}
-@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.num-btn{
-  height:52px;border:1.5px solid var(--border);border-radius:10px;
-  background:var(--surface);font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:18px;font-weight:700;color:var(--text);cursor:pointer;
-  transition:.1s;display:flex;align-items:center;justify-content:center;flex-direction:column;
-  box-shadow:0 1px 2px rgba(0,0,0,.04);
-}
-.num-btn:hover{background:var(--subtle);border-color:var(--terra-m)}
-.num-btn:active{transform:scale(.93);background:var(--terra-l);border-color:var(--terra)}
-.num-btn.zero{grid-column:2}
-.num-btn.del{background:var(--subtle);font-size:15px;color:var(--muted);box-shadow:none}
-.num-btn.del:hover{color:var(--red);border-color:rgba(192,57,43,.25)}
-.num-sub{font-size:7px;color:var(--muted);font-weight:500;letter-spacing:1px;line-height:1;margin-top:1px}
-
-.btn-login{
-  width:100%;padding:13px;border-radius:10px;border:none;
-  background:var(--terra);color:#fff;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;transition:.15s;
-  box-shadow:0 4px 12px rgba(194,90,58,.25);
-}
-.btn-login:hover:not(:disabled){background:var(--terra-d);transform:translateY(-1px);box-shadow:0 6px 16px rgba(194,90,58,.3)}
-.btn-login:disabled{opacity:.38;cursor:not-allowed;transform:none!important}
-
-/* QR */
-.qr-area{
-  background:var(--subtle);border:2px dashed var(--border);
-  border-radius:14px;padding:22px;text-align:center;
-  cursor:pointer;transition:.15s;margin-bottom:14px;
-}
-.qr-area:hover{border-color:var(--terra-m);background:var(--terra-l)}
-.qr-area.scanning{border-color:var(--terra);border-style:solid}
-.qr-icon{font-size:36px;margin-bottom:8px}
-.qr-title{font-size:13px;font-weight:700;margin-bottom:4px}
-.qr-sub{font-size:11px;color:var(--muted);line-height:1.6}
-#qr-video-wrap{display:none;border-radius:10px;overflow:hidden;margin-bottom:10px;position:relative;aspect-ratio:1;background:#111}
-#qr-video{width:100%;height:100%;object-fit:cover}
-.qr-crosshair{position:absolute;inset:18%;border:2px solid rgba(255,255,255,.8);border-radius:8px;pointer-events:none}
-.qr-stop{display:block;font-size:11px;color:var(--muted);cursor:pointer;text-align:center;margin-bottom:10px}
-.qr-stop:hover{color:var(--red)}
-.qr-alt{font-size:11px;color:var(--muted);text-align:center}
-.qr-alt a{color:var(--terra);cursor:pointer;font-weight:700}
-.qr-alt a:hover{text-decoration:underline}
-
-/* BLOQUÉ */
-.blocked{text-align:center;padding:12px 0}
-.blocked-icon{font-size:40px;margin-bottom:10px}
-.blocked-msg{font-size:12px;color:var(--muted);line-height:1.7}
-
-/* MSG */
+.right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 36px;overflow-y:auto}
+.login-box{width:100%;max-width:400px}
+.login-head{margin-bottom:24px}
+.login-head h2{font-family:'Lora',serif;font-size:26px;font-weight:600;margin-bottom:6px}
+.login-head p{font-size:13px;color:var(--muted)}
 .msg{border-radius:8px;padding:9px 13px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
 .msg.error{background:var(--red-l);color:var(--red)}
 .msg.success{background:var(--green-l);color:var(--green)}
 .msg.show{display:block}
-
-/* Footer */
+.blocked{text-align:center;padding:28px 16px;background:var(--subtle);border-radius:14px;border:1.5px solid var(--border)}
+.blocked-icon{font-size:40px;margin-bottom:10px}
+.blocked-msg{font-size:13px;color:var(--muted);line-height:1.5}
+.tabs{display:flex;gap:4px;background:var(--subtle);border-radius:10px;padding:3px;margin-bottom:20px}
+.tab{flex:1;padding:9px;border:none;border-radius:8px;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:.15s}
+.tab.active{background:var(--surface);color:var(--terra);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.pin-hint{font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center}
+.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.pin-dot{width:52px;height:56px;border:2px solid var(--border);border-radius:12px;background:var(--subtle);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;transition:.15s;color:var(--terra)}
+.pin-dot.filled{background:var(--terra-l);border-color:var(--terra)}
+.pin-dot.active-dot{border-color:var(--terra);box-shadow:0 0 0 3px rgba(194,90,58,.15)}
+.pin-dot.error{border-color:var(--red);background:var(--red-l);animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.num-btn{height:56px;border:1.5px solid var(--border);background:var(--surface);border-radius:12px;font-size:18px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:.12s;color:var(--text)}
+.num-btn:hover{background:var(--subtle);border-color:var(--terra);transform:translateY(-1px)}
+.num-btn:active{transform:scale(.95)}
+.num-sub{font-size:8px;font-weight:500;color:var(--muted);letter-spacing:.5px}
+.num-btn.del{font-size:20px;background:var(--subtle)}
+.num-btn.zero{grid-column:2}
+.btn-login{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--terra),var(--terra-d));color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+.btn-login:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 12px rgba(194,90,58,.3)}
+.btn-login:disabled{opacity:.45;cursor:not-allowed}
+.pin-form,.qr-form{display:none}
+.pin-form.active,.qr-form.active{display:block}
+.qr-area{width:100%;aspect-ratio:1;border:2px dashed var(--border);border-radius:16px;background:var(--subtle);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:.2s;margin-bottom:12px}
+.qr-area:hover,.qr-area.scanning{border-color:var(--terra);background:var(--terra-l)}
+.qr-prompt{text-align:center;pointer-events:none}
+.qr-icon{font-size:40px;margin-bottom:10px}
+.qr-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.qr-sub{font-size:12px;color:var(--muted);line-height:1.5}
+#qr-video-wrap{display:none;width:100%;height:100%;position:absolute;inset:0}
+#qr-video{width:100%;height:100%;object-fit:cover}
+.qr-crosshair{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,rgba(194,90,58,.6) 2px,transparent 2px) 0 0/30px 30px no-repeat,linear-gradient(to bottom,rgba(194,90,58,.6) 2px,transparent 2px) 0 0/30px 30px no-repeat,linear-gradient(to left,rgba(194,90,58,.6) 2px,transparent 2px) 100% 0/30px 30px no-repeat,linear-gradient(to bottom,rgba(194,90,58,.6) 2px,transparent 2px) 100% 0/30px 30px no-repeat,linear-gradient(to right,rgba(194,90,58,.6) 2px,transparent 2px) 0 100%/30px 30px no-repeat,linear-gradient(to top,rgba(194,90,58,.6) 2px,transparent 2px) 0 100%/30px 30px no-repeat,linear-gradient(to left,rgba(194,90,58,.6) 2px,transparent 2px) 100% 100%/30px 30px no-repeat,linear-gradient(to top,rgba(194,90,58,.6) 2px,transparent 2px) 100% 100%/30px 30px no-repeat}
+.qr-stop{display:block;text-align:center;font-size:12px;color:var(--red);font-weight:600;cursor:pointer;margin-bottom:8px}
+.qr-alt{text-align:center;font-size:12px;color:var(--muted)}
+.qr-alt a{color:var(--terra);font-weight:600;cursor:pointer}
 .login-footer{margin-top:18px;text-align:center;font-size:12px;color:var(--muted)}
 .login-footer a{color:var(--terra);font-weight:600;text-decoration:none}
-.login-footer a:hover{text-decoration:underline}
-
-/* Spinner */
 .spinner-wrap{display:flex;align-items:center;justify-content:center;height:100vh;width:100%}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* RESPONSIVE */
 @media(max-width:720px){
   html,body{height:auto}
   .left{display:none}
@@ -224,21 +104,14 @@ body{
 </head>
 <body>
 
-<!-- SPINNER initial -->
 <div class="spinner-wrap" id="loading"><div class="spinner"></div></div>
 
-<!-- ═══ GAUCHE ═══ -->
 <div class="left" id="left-panel" style="display:none">
   <div class="left-inner">
-
     <div class="brand">
       <div class="brand-icon">🔥</div>
-      <div class="brand-text">
-        <h1>SSIAP Training</h1>
-        <p>Espace Stagiaire</p>
-      </div>
+      <div class="brand-text"><h1>SSIAP Training</h1><p>Espace Stagiaire</p></div>
     </div>
-
     <div class="session-card">
       <div class="level-tag" id="s-level">SSIAP —</div>
       <div class="session-titre" id="s-titre">Formation</div>
@@ -249,37 +122,26 @@ body{
       </div>
       <div class="duration-line" id="s-duration"></div>
     </div>
-
     <div id="s-status"></div>
-
   </div>
 </div>
 
-<!-- ═══ DROITE ═══ -->
 <div class="right" id="right-panel" style="display:none">
   <div class="login-box">
-
     <div class="login-head">
       <h2>Connexion</h2>
       <p>Saisissez votre code PIN personnel ou scannez votre QR code</p>
     </div>
-
     <div class="msg" id="msg"></div>
-
-    <!-- BLOQUÉ -->
     <div id="blocked-wrap" style="display:none" class="blocked">
       <div class="blocked-icon" id="b-icon"></div>
       <p class="blocked-msg" id="b-msg"></p>
     </div>
-
-    <!-- LOGIN -->
     <div id="login-area">
       <div class="tabs">
         <button class="tab active" id="tab-pin" onclick="switchTab('pin')">🔢 Code PIN</button>
-        <button class="tab" id="tab-qr"  onclick="switchTab('qr')">📷 QR Code</button>
+        <button class="tab" id="tab-qr" onclick="switchTab('qr')">📷 QR Code</button>
       </div>
-
-      <!-- PIN -->
       <div class="pin-form active" id="form-pin">
         <p class="pin-hint">Votre code personnel à 4 chiffres</p>
         <div class="pin-display" id="pin-display">
@@ -299,17 +161,15 @@ body{
           <button class="num-btn" onclick="numPress('8')">8<span class="num-sub">TUV</span></button>
           <button class="num-btn" onclick="numPress('9')">9<span class="num-sub">WXYZ</span></button>
           <button class="num-btn zero" onclick="numPress('0')">0</button>
-          <button class="num-btn del"  onclick="numDel()">⌫</button>
+          <button class="num-btn del" onclick="numDel()">⌫</button>
         </div>
         <button class="btn-login" id="btn-login" onclick="loginPin()" disabled>Accéder à ma formation →</button>
       </div>
-
-      <!-- QR -->
       <div class="qr-form" id="form-qr">
-        <div class="qr-area" id="qr-area" onclick="startScan()">
+        <div class="qr-area" id="qr-area">
           <div id="qr-prompt">
             <div class="qr-icon">📷</div>
-            <div class="qr-title">Scanner mon QR code</div>
+            <div class="qr-title">Appuyez pour activer la caméra</div>
             <div class="qr-sub">Scannez le QR code<br>remis par votre formateur</div>
           </div>
           <div id="qr-video-wrap">
@@ -321,15 +181,12 @@ body{
         <div class="qr-alt">Pas de QR code ? <a onclick="switchTab('pin')">Utiliser le code PIN →</a></div>
       </div>
     </div>
-
     <div class="login-footer">
       <a href="../center/center-login.html">Responsable de centre →</a>
     </div>
-
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 let pin = '';
@@ -338,27 +195,27 @@ let scanStream = null, scanInterval = null;
 
 // ── INIT ──
 async function init() {
-  const p = new URLSearchParams(window.location.search);
-  const centerId  = p.get('centerId')  || p.get('c') || '';
-  const sessionId = p.get('sessionId') || p.get('s') || '';
+  const p          = new URLSearchParams(window.location.search);
+  const centerId   = p.get('centerId')    || p.get('c')  || '';
+  const sessionId  = p.get('sessionId')   || p.get('s')  || '';
+  const pinParam   = p.get('pin')         || '';
+  const stagParam  = p.get('stagiaireId') || '';
 
-  // Toujours afficher le formulaire, même sans params
+  // Pas de paramètres → mode PIN direct, recherche globale côté backend
   if (!centerId || !sessionId) {
-    // Pas de contexte session : afficher le formulaire en mode générique
     show();
     document.getElementById('s-level').textContent = 'SSIAP Training';
     document.getElementById('s-titre').textContent = 'Connexion Stagiaire';
     document.getElementById('s-debut').textContent = '—';
     document.getElementById('s-fin').textContent   = '—';
     document.getElementById('s-status').innerHTML  =
-      `<div class="status-badge active"><div class="s-dot"></div><div>Scannez votre QR code<small>ou saisissez votre code PIN si vous avez le lien complet</small></div></div>`;
-    // Basculer automatiquement sur l'onglet QR si pas de params
+      `<div class="status-badge active"><div class="s-dot"></div><div>Saisissez votre code PIN<small>ou scannez votre QR code</small></div></div>`;
+    // Pas de centerId → le backend fera une recherche globale par PIN
     sessionData = { centerId: '', sessionId: '' };
-    // Suggérer le QR en premier quand pas de contexte
-    setTimeout(() => switchTab('qr'), 100);
     return;
   }
 
+  // Charger les infos session
   try {
     const r = await fetch(`${API}/session/public/${sessionId}?centerId=${centerId}`);
     const d = await r.json();
@@ -376,82 +233,81 @@ async function init() {
   }
 
   renderSession(sessionData);
+
+  // QR individuel : pin dans l'URL → auto-login
+  if (pinParam && /^[0-9]{4}$/.test(pinParam)) {
+    setTimeout(() => autoLoginFromURL(pinParam, stagParam), 400);
+  }
+}
+
+// ── AUTO LOGIN depuis URL (QR individuel) ──
+async function autoLoginFromURL(pinValue, stagiaireId) {
+  showMsg('⏳ Connexion automatique…', 'success');
+  try {
+    const body = { pin: pinValue, loginType: 'pin' };
+    if (sessionData?.centerId) body.centerId  = sessionData.centerId;
+    if (sessionData?.sessionId) body.sessionId = sessionData.sessionId;
+    if (stagiaireId)            body.stagiaireId = stagiaireId;
+
+    const r = await fetch(`${API}/stagiaire/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error(d.error || 'Connexion impossible');
+    handleSuccess(d);
+  } catch(e) {
+    showMsg('❌ ' + e.message, 'error');
+    pin = pinValue;
+    updateDots();
+  }
 }
 
 function show() {
-  document.getElementById('loading').style.display      = 'none';
-  document.getElementById('left-panel').style.display   = 'flex';
-  document.getElementById('right-panel').style.display  = 'flex';
+  document.getElementById('loading').style.display     = 'none';
+  document.getElementById('left-panel').style.display  = 'flex';
+  document.getElementById('right-panel').style.display = 'flex';
 }
 
 function renderSession(s) {
   show();
-  const niv   = s.niveau || '1';
-  const debut = fmtDate(s.dateDebut);
-  const fin   = fmtDate(s.dateFin);
-
-  document.getElementById('s-level').textContent = 'SSIAP ' + niv;
-  document.getElementById('s-titre').textContent = s.titre || ('Formation SSIAP ' + niv);
-  document.getElementById('s-debut').textContent = debut;
-  document.getElementById('s-fin').textContent   = fin;
-
+  const NIVEAUX = {'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC','1':'SSIAP 1','2':'SSIAP 2','3':'SSIAP 3'};
+  document.getElementById('s-level').textContent = NIVEAUX[s.niveau] || s.niveau || 'SSIAP';
+  document.getElementById('s-titre').textContent = s.titre || 'Votre formation';
+  document.getElementById('s-debut').textContent = s.dateDebut ? fmtDate(s.dateDebut) : '—';
+  document.getElementById('s-fin').textContent   = s.dateFin   ? fmtDate(s.dateFin)   : '—';
   if (s.dateDebut && s.dateFin) {
-    const days = Math.round((s.dateFin - s.dateDebut) / 86400000) + 1;
-    document.getElementById('s-duration').textContent =
-      '⏱ ' + days + ' jour' + (days > 1 ? 's' : '') + ' de formation';
+    const days = Math.round((s.dateFin - s.dateDebut) / 86400000);
+    document.getElementById('s-duration').textContent = `Durée : ${days} jour${days > 1 ? 's' : ''}`;
   }
-
-  const now   = Date.now();
-  const start = s.dateDebut || 0;
-  const end   = s.dateFin   || Infinity;
-  const st    = document.getElementById('s-status');
-
-  if (s.status === 'terminee' || now > end) {
-    st.innerHTML = `<div class="status-badge ended"><div class="s-dot"></div><div>Session terminée<small>Accès clôturé depuis le ${fin}</small></div></div>`;
-    block('🔒', `Votre accès à la formation SSIAP ${niv} est clôturé depuis le ${fin}. Contactez votre formateur.`);
-  } else if (now < start) {
-    const j = Math.ceil((start - now) / 86400000);
-    st.innerHTML = `<div class="status-badge future"><div class="s-dot"></div><div>Pas encore disponible<small>Commence dans ${j} jour${j>1?'s':''} (${debut})</small></div></div>`;
-    block('⏳', `Votre formation SSIAP ${niv} commence le ${debut}. Votre code PIN vous sera remis par votre formateur.`);
-  } else {
-    const reste = Math.ceil((end - now) / 86400000);
-    st.innerHTML = `<div class="status-badge active"><div class="s-dot"></div><div>Formation en cours<small>Encore ${reste} jour${reste>1?'s':''} (jusqu'au ${fin})</small></div></div>`;
+  const now = Date.now();
+  let statusHtml;
+  if (s.dateFin && now > s.dateFin)
+    statusHtml = `<div class="status-badge done"><div class="s-dot"></div><div>Session terminée<small>Accès non disponible</small></div></div>`;
+  else if (s.dateDebut && now < s.dateDebut)
+    statusHtml = `<div class="status-badge future"><div class="s-dot"></div><div>Session à venir<small>Commence le ${fmtDate(s.dateDebut)}</small></div></div>`;
+  else
+    statusHtml = `<div class="status-badge active"><div class="s-dot"></div><div>Session en cours<small>Connectez-vous ci-contre</small></div></div>`;
+  document.getElementById('s-status').innerHTML = statusHtml;
+  if (s.dateFin && now > s.dateFin) {
+    document.getElementById('blocked-wrap').style.display = 'block';
+    document.getElementById('login-area').style.display   = 'none';
+    document.getElementById('b-icon').textContent = '🔒';
+    document.getElementById('b-msg').textContent  = 'Cette session de formation est terminée. Contactez votre formateur.';
   }
-}
-
-function block(icon, msg) {
-  document.getElementById('login-area').style.display   = 'none';
-  document.getElementById('blocked-wrap').style.display = 'block';
-  document.getElementById('b-icon').textContent = icon;
-  document.getElementById('b-msg').textContent  = msg;
-}
-
-function showFatalError(titre, msg) {
-  show();
-  document.getElementById('s-level').textContent = '⚠️';
-  document.getElementById('s-titre').textContent = titre;
-  document.getElementById('s-debut').textContent = '—';
-  document.getElementById('s-fin').textContent   = '—';
-  block('⚠️', msg);
 }
 
 // ── NUMPAD ──
 function numPress(d) {
   if (pin.length >= 4) return;
-  pin += d;
-  updateDots();
-  if (pin.length === 4) {
-    document.getElementById('btn-login').disabled = false;
-    setTimeout(loginPin, 160);
-  }
+  pin += d; updateDots();
+  if (pin.length === 4) document.getElementById('btn-login').disabled = false;
 }
-
 function numDel() {
-  pin = pin.slice(0, -1);
+  if (!pin.length) return;
+  pin = pin.slice(0, -1); updateDots();
   document.getElementById('btn-login').disabled = true;
-  updateDots();
 }
-
 function updateDots() {
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('dot' + i);
@@ -461,27 +317,26 @@ function updateDots() {
       (i === pin.length && pin.length < 4 ? ' active-dot' : '');
   }
 }
-
 function shakeDots() {
-  for (let i = 0; i < 4; i++) document.getElementById('dot' + i).classList.add('error');
+  for (let i = 0; i < 4; i++) document.getElementById('dot'+i).classList.add('error');
   setTimeout(() => { pin = ''; updateDots(); document.getElementById('btn-login').disabled = true; }, 500);
 }
 
 // ── LOGIN PIN ──
 async function loginPin() {
-  if (!sessionData) return;
-  // Sans centerId (accès direct sans QR), attendre le scan QR
-  if (!sessionData.centerId || !sessionData.sessionId) {
-    showMsg('⚠️ Utilisez le QR code fourni par votre formateur pour vous connecter', 'error');
-    shakeDots();
-    return;
-  }
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = '⏳ Vérification…';
+
   try {
+    // On n'envoie centerId que si c'est un VRAI centerId (pas vide)
+    // Sans centerId → le backend fait une recherche globale par PIN
+    const body = { pin, loginType: 'pin' };
+    if (sessionData?.centerId)  body.centerId  = sessionData.centerId;
+    if (sessionData?.sessionId) body.sessionId = sessionData.sessionId;
+
     const r = await fetch(`${API}/stagiaire/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ centerId: sessionData.centerId, sessionId: sessionData.sessionId, pin, loginType: 'pin' })
+      body: JSON.stringify(body)
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error || 'Code PIN incorrect');
@@ -493,8 +348,7 @@ async function loginPin() {
   }
 }
 
-// ── QR ──
-// Le QR code encode : {"centerId":"...","sessionId":"...","stagiaireId":"...","pin":"1234"}
+// ── QR SCANNER ──
 function switchTab(t) {
   ['pin','qr'].forEach(x => {
     document.getElementById('tab-'+x).classList.toggle('active', x===t);
@@ -503,69 +357,103 @@ function switchTab(t) {
   hideMsg();
   if (t === 'pin') stopScan();
 }
-
+document.getElementById('qr-area').addEventListener('click', function() {
+  if (!scanStream) startScan();
+});
 async function startScan() {
-  if (scanStream) return;
+  if (!window.jsQR) {
+    showMsg('⏳ Chargement du scanner…', 'success');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  if (!window.jsQR) {
+    showMsg('❌ Scanner non disponible — utilisez le code PIN', 'error');
+    switchTab('pin'); return;
+  }
   try {
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    document.getElementById('qr-video').srcObject = scanStream;
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+    const video = document.getElementById('qr-video');
+    video.srcObject = scanStream;
+    video.setAttribute('playsinline', true);
+    video.setAttribute('muted', true);
     document.getElementById('qr-prompt').style.display     = 'none';
     document.getElementById('qr-video-wrap').style.display = 'block';
     document.getElementById('qr-stop-btn').style.display   = 'block';
     document.getElementById('qr-area').classList.add('scanning');
-    scanInterval = setInterval(() => tryDecodeQR(document.getElementById('qr-video')), 500);
-  } catch { showMsg('Caméra indisponible — utilisez le code PIN', 'error'); }
+    await new Promise(resolve => {
+      video.play();
+      let tries = 0;
+      const wait = setInterval(() => {
+        tries++;
+        if ((video.readyState >= 2 && video.videoWidth > 0) || tries > 30) { clearInterval(wait); resolve(); }
+      }, 100);
+    });
+    const canvas = document.createElement('canvas');
+    const ctx    = canvas.getContext('2d', { willReadFrequently: true });
+    scanInterval = setInterval(() => {
+      const w = video.videoWidth, h = video.videoHeight;
+      if (!w || !h || !scanStream) return;
+      canvas.width = w; canvas.height = h;
+      try {
+        ctx.drawImage(video, 0, 0, w, h);
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const code = jsQR(imageData.data, w, h, { inversionAttempts: 'attemptBoth' });
+        if (code && code.data && code.data.length > 5) { stopScan(); handleQRCode(code.data); }
+      } catch(e) {}
+    }, 200);
+  } catch(err) {
+    scanStream = null;
+    if (err.name === 'NotAllowedError')
+      showMsg('🚫 Accès caméra refusé — autorisez la caméra dans votre navigateur', 'error');
+    else
+      showMsg('📷 Caméra indisponible — utilisez le code PIN', 'error');
+    switchTab('pin');
+  }
 }
-
 function stopScan() {
-  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   clearInterval(scanInterval); scanInterval = null;
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   document.getElementById('qr-prompt').style.display     = 'block';
   document.getElementById('qr-video-wrap').style.display = 'none';
   document.getElementById('qr-stop-btn').style.display   = 'none';
   document.getElementById('qr-area').classList.remove('scanning');
 }
 
-function tryDecodeQR(video) {
-  // Méthode 1 : BarcodeDetector natif (Chrome 83+, Edge, Safari 17+)
-  if ('BarcodeDetector' in window) {
-    new BarcodeDetector({ formats: ['qr_code'] }).detect(video)
-      .then(codes => { if (codes.length) { stopScan(); handleQRCode(codes[0].rawValue); } })
-      .catch(() => tryDecodeQRwithJsQR(video));
-    return;
-  }
-  // Méthode 2 : jsQR (universel, fonctionne partout)
-  tryDecodeQRwithJsQR(video);
-}
-
-function tryDecodeQRwithJsQR(video) {
-  if (!window.jsQR) return;
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width  = video.videoWidth  || 320;
-    canvas.height = video.videoHeight || 320;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-    if (code && code.data) { stopScan(); handleQRCode(code.data); }
-  } catch(e) {}
-}
-
 async function handleQRCode(raw) {
   showMsg('⏳ Vérification en cours…', 'success');
   try {
-    let data;
-    try { data = JSON.parse(raw); } catch { data = Object.fromEntries(new URL(raw).searchParams); }
+    let data = {};
+    if (raw.startsWith('http')) {
+      // QR encode une URL → extraire les params
+      const params = new URL(raw).searchParams;
+      data = {
+        centerId:    params.get('centerId')    || '',
+        sessionId:   params.get('sessionId')   || '',
+        stagiaireId: params.get('stagiaireId') || '',
+        pin:         params.get('pin')         || '',
+      };
+    } else {
+      // QR encode du JSON
+      try {
+        const parsed = JSON.parse(raw);
+        data = {
+          centerId:    parsed.centerId    || '',
+          sessionId:   parsed.sessionId   || '',
+          stagiaireId: parsed.stagiaireId || '',
+          pin:         parsed.pin         || '',
+        };
+      } catch { throw new Error('QR code non reconnu'); }
+    }
+
+    // Construire le body — sans centerId si vide (recherche globale backend)
+    const body = { loginType: 'qr' };
+    if (data.centerId)    body.centerId    = data.centerId;
+    if (data.sessionId)   body.sessionId   = data.sessionId;
+    if (data.stagiaireId) body.stagiaireId = data.stagiaireId;
+    if (data.pin)         body.pin         = data.pin;
+
     const r = await fetch(`${API}/stagiaire/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        centerId:    data.centerId    || sessionData?.centerId,
-        sessionId:   data.sessionId   || sessionData?.sessionId,
-        stagiaireId: data.stagiaireId || '',
-        pin:         data.pin         || '',
-        loginType:   'qr'
-      })
+      body: JSON.stringify(body)
     });
     const d = await r.json();
     if (!r.ok || !d.success) throw new Error(d.error || 'QR invalide ou expiré');
@@ -573,24 +461,40 @@ async function handleQRCode(raw) {
   } catch(e) { showMsg('❌ ' + e.message, 'error'); }
 }
 
+// ── SUCCÈS ──
 function handleSuccess(d) {
   showMsg('✅ Bienvenue !', 'success');
+  const stag = d.stagiaire || d;
+  const sess = stag.session || {};
+  const sessionNiv = sess.niveau || sessionData?.niveau || '1';
+  const niv = sessionNiv.replace(/[^0-9]/g, '') || '1';
   localStorage.setItem('ssiap_stagiaire', JSON.stringify({
-    stagiaireId: d.stagiaireId,
-    centerId:    sessionData.centerId,
-    sessionId:   sessionData.sessionId,
-    prenom:      d.prenom || '',
-    nom:         d.nom    || '',
-    niveau:      sessionData.niveau,
+    stagiaireId:      stag.stagiaireId   || '',
+    centerId:         stag.centerId      || '',
+    sessionId:        stag.sessionId     || '',
+    prenom:           stag.prenom        || '',
+    nom:              stag.nom           || '',
+    email:            stag.email         || '',
+    pin:              stag.pin           || '',
+    niveau:           niv,
+    sessionNiveau:    niv,
+    fromSession:      true,
+    sessionDateDebut: sess.dateDebut || null,
+    sessionDateFin:   sess.dateFin   || null,
+    sessionTitre:     sess.titre     || '',
   }));
-  setTimeout(() => { // Rediriger vers l'index du frontend QCM
-  window.location.href = d.redirectUrl || '/'; }, 500);
+  localStorage.setItem('userPrenom',    stag.prenom || '');
+  localStorage.setItem('userNom',       stag.nom    || '');
+  localStorage.setItem('userEmail',     stag.email  || '');
+  localStorage.setItem('sessionNiveau', niv);
+  localStorage.setItem('sessionLocked', '1');
+  const url = d.redirectUrl || ('/?niveau=' + encodeURIComponent(niv) + '&lock=1');
+  setTimeout(() => { window.location.href = url; }, 600);
 }
 
 function fmtDate(ts) {
   if (!ts) return '—';
-  return new Date(typeof ts === 'number' ? ts : ts)
-    .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(ts).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
 }
 function showMsg(t, type) {
   const el = document.getElementById('msg');
@@ -598,14 +502,6 @@ function showMsg(t, type) {
 }
 function hideMsg() { document.getElementById('msg').className = 'msg'; }
 
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('form-pin').classList.contains('active')) return;
-  if (e.key >= '0' && e.key <= '9') numPress(e.key);
-  if (e.key === 'Backspace') numDel();
-  if (e.key === 'Enter' && pin.length === 4) loginPin();
-});
-
-updateDots();
 init();
 </script>
 </body>

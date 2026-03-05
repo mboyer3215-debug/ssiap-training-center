@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rejoindre un Quiz — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#1a4a32;--green:#2e7d52;--green-light:#edf7f2;
+  --orange:#e07b2a;--orange-light:#fff3e8;
+  --rouge:#c25a3a;--rouge-light:#fdf2ee;
+  --gold:#d4960a;--gold-light:#fef7e0;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+  --purple:#6b4fa0;--purple-light:#f3eeff;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;
+  --border:#e8e2db;--subtle:#f0ece7;--bg:#f7f4f0;--surface:#fff;
+  --shadow:0 4px 16px rgba(0,0,0,.09);--shadow-lg:0 16px 48px rgba(0,0,0,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:radial-gradient(ellipse at 20% 50%,rgba(224,123,42,.08),transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(46,92,138,.06),transparent 60%),var(--bg);
+  color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;
+}
+.logo{text-align:center;margin-bottom:24px}
+.logo-flame{font-size:44px;filter:drop-shadow(0 4px 12px rgba(224,123,42,.4))}
+.logo-title{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--text);margin-top:6px}
+.logo-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow-lg);width:100%;max-width:400px;overflow:hidden;border:1px solid rgba(224,123,42,.12)}
+
+/* SAISIE */
+.card-saisie{padding:30px 26px 26px}
+.saisie-title{font-family:'Lora',serif;font-size:19px;font-weight:700;text-align:center;margin-bottom:4px}
+.saisie-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5}
+.field-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:7px}
+.code-input{
+  width:100%;text-align:center;font-family:'Lora',serif;font-size:34px;font-weight:700;letter-spacing:10px;
+  border:2.5px solid var(--border);border-radius:14px;padding:16px 12px;
+  background:var(--subtle);color:var(--text);outline:none;transition:.18s;
+}
+.code-input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 4px rgba(224,123,42,.1)}
+.code-input::placeholder{color:var(--border);letter-spacing:4px}
+.code-input.error{border-color:var(--rouge);background:var(--rouge-light)}
+.code-input.ok{border-color:var(--green);background:var(--green-light)}
+
+/* MODE */
+.mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:7px;margin-bottom:18px}
+.mode-btn{padding:12px 10px;border-radius:12px;border:2.5px solid var(--border);background:var(--subtle);cursor:pointer;text-align:center;transition:.15s}
+.mode-btn.on.solo{border-color:var(--blue);background:var(--blue-light)}
+.mode-btn.on.equipe{border-color:var(--purple);background:var(--purple-light)}
+.mode-icon{font-size:24px;display:block;margin-bottom:5px}
+.mode-label{font-size:12px;font-weight:800;color:var(--text)}
+.mode-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* PSEUDO */
+.pseudo-input{
+  width:100%;border:2px solid var(--border);border-radius:11px;
+  padding:12px 14px;font-size:14px;font-weight:700;
+  font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);
+  color:var(--text);outline:none;transition:.18s;letter-spacing:.2px;
+}
+.pseudo-input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 4px rgba(224,123,42,.1)}
+.pseudo-input.blue:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(46,92,138,.1)}
+.pseudo-input.purple:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(107,79,160,.1)}
+.pseudo-hint{font-size:11px;color:var(--muted);margin-top:6px;margin-bottom:16px;line-height:1.5}
+
+.err-msg{font-size:12px;color:var(--rouge);font-weight:700;text-align:center;min-height:18px;margin-bottom:10px}
+.btn-rejoindre{
+  width:100%;padding:15px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;
+  cursor:pointer;transition:.15s;box-shadow:0 4px 14px rgba(224,123,42,.35);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-rejoindre:hover{transform:translateY(-1px)}
+.btn-rejoindre:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ATTENTE */
+#phase-attente{display:none;padding:24px}
+.attente-banner{background:linear-gradient(135deg,var(--forest),#0c2118);border-radius:14px;padding:22px;text-align:center;margin-bottom:18px}
+.attente-pseudo{font-family:'Lora',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
+.attente-mode-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:12px}
+.attente-mode-badge.solo{background:rgba(46,92,138,.4);color:#a8c8ff}
+.attente-mode-badge.equipe{background:rgba(107,79,160,.4);color:#cbb8ff}
+.attente-code{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px}
+.attente-pulse{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:20px;padding:8px 16px;font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
+.dot-pulse{width:8px;height:8px;background:#4ade80;border-radius:50%;animation:dpulse 1.4s infinite}
+@keyframes dpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.65)}}
+.quiz-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--subtle);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text2)}
+.nb-parts-live{font-size:13px;color:var(--muted);text-align:center}
+.nb-parts-val{font-size:28px;font-weight:800;color:var(--orange);display:block;text-align:center;margin:4px 0 6px}
+.attente-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+
+/* QUIZ */
+#phase-quiz{display:none}
+.q-header{background:linear-gradient(135deg,var(--orange),#c4681e);padding:20px 22px 16px}
+.q-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.q-num{font-size:11px;font-weight:700;color:rgba(255,255,255,.7)}
+.q-pts{font-size:12px;font-weight:800;color:#fff;background:rgba(255,255,255,.2);padding:3px 10px;border-radius:20px}
+.q-bar{height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.q-bar-fill{height:100%;background:#fff;border-radius:2px;transition:.4s}
+.q-text{font-family:'Lora',serif;font-size:15px;font-weight:600;color:#fff;line-height:1.55}
+.options{padding:16px 20px 4px;display:flex;flex-direction:column;gap:8px}
+.opt{padding:12px 15px;border-radius:11px;border:2px solid var(--border);background:var(--subtle);cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:.14s;display:flex;align-items:center;gap:10px}
+.opt:hover{border-color:var(--orange);background:var(--orange-light)}
+.opt.selected{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
+.opt.correct{border-color:var(--green)!important;background:var(--green-light)!important;color:var(--green)!important}
+.opt.wrong{border-color:var(--rouge)!important;background:var(--rouge-light)!important;color:var(--rouge)!important}
+.opt-letter{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;transition:.14s;color:var(--text2)}
+.opt.selected .opt-letter{background:var(--orange);color:#fff}
+.opt.correct .opt-letter{background:var(--green);color:#fff}
+.opt.wrong .opt-letter{background:var(--rouge);color:#fff}
+.q-footer{padding:10px 20px 20px;display:flex;flex-direction:column;gap:9px}
+.expl-box{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:9px;padding:10px 13px;font-size:12px;color:var(--text2);line-height:1.6;display:none}
+.expl-box strong{color:var(--gold)}
+.btn-valider{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
+.btn-valider:disabled{opacity:.4;cursor:not-allowed}
+.btn-suivant{width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:none}
+
+/* RÉSULTATS */
+#phase-resultats{display:none;padding:24px}
+.res-circle{width:100px;height:100px;border-radius:50%;margin:0 auto 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid var(--orange)}
+.res-pct{font-family:'Lora',serif;font-size:28px;font-weight:700}
+.res-pct-lbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.res-title{font-family:'Lora',serif;font-size:18px;font-weight:700;text-align:center;margin-bottom:6px}
+.res-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.5}
+.res-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.res-chip{border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800}
+.res-chip.ok{background:var(--green-light);color:var(--green)}
+.res-chip.ko{background:var(--rouge-light);color:var(--rouge)}
+.res-chip.neu{background:var(--subtle);color:var(--muted)}
+.class-hdr{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.class-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:5px;background:var(--subtle);border:1.5px solid var(--border)}
+.class-row.me{border-color:var(--orange);background:var(--orange-light)}
+.class-row.top1{border-color:#ffd700;background:#fffbea}
+.class-rank{font-size:16px;min-width:28px;text-align:center;font-weight:800}
+.class-info{flex:1}
+.class-pseudo{font-size:12px;font-weight:800}
+.class-mode{font-size:10px;color:var(--muted)}
+.class-pct{font-size:14px;font-weight:800}
+.badge-me{font-size:10px;background:var(--orange);color:#fff;padding:1px 6px;border-radius:4px;margin-left:4px;font-weight:700}
+.btn-retour{width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--subtle);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
+.spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="logo-flame">🔥</div>
+  <div class="logo-title">SSIAP Training</div>
+  <div class="logo-sub">Quiz en Salle</div>
+</div>
+
+<div class="card">
+
+  <!-- ══ SAISIE ══ -->
+  <div id="phase-saisie" class="card-saisie">
+    <div class="saisie-title">🎮 Rejoindre le quiz</div>
+    <div class="saisie-sub">Entrez le code affiché par votre formateur</div>
+
+    <span class="field-lbl" style="margin-bottom:7px">Code de salle</span>
+    <input type="text" class="code-input" id="code-input"
+      placeholder="000 000" maxlength="7" inputmode="numeric" autocomplete="off"
+      oninput="formatCode(this)" onkeydown="if(event.key==='Enter') focusPseudo()"
+      style="margin-bottom:20px">
+
+    <span class="field-lbl">Vous jouez</span>
+    <div class="mode-btns">
+      <div class="mode-btn solo on" id="mode-solo" onclick="setMode('solo')">
+        <span class="mode-icon">🧑</span>
+        <div class="mode-label">Solo</div>
+        <div class="mode-sub">Score individuel</div>
+      </div>
+      <div class="mode-btn equipe" id="mode-equipe" onclick="setMode('equipe')">
+        <span class="mode-icon">👥</span>
+        <div class="mode-label">Équipe</div>
+        <div class="mode-sub">Score partagé</div>
+      </div>
+    </div>
+
+    <span class="field-lbl" id="pseudo-lbl">Votre pseudo</span>
+    <input type="text" class="pseudo-input blue" id="pseudo-input"
+      placeholder="Ex : Agent47, Manu_B…" maxlength="30" autocomplete="off"
+      oninput="checkForm()" onkeydown="if(event.key==='Enter') rejoindre()">
+    <div class="pseudo-hint" id="pseudo-hint">
+      Choisissez un pseudo — il apparaîtra dans le classement 🏆
+    </div>
+
+    <div class="err-msg" id="err-msg"></div>
+
+    <button class="btn-rejoindre" id="btn-rejoindre" onclick="rejoindre()" disabled>
+      🚀 Rejoindre le quiz
+    </button>
+  </div>
+
+  <!-- ══ ATTENTE ══ -->
+  <div id="phase-attente">
+    <div style="padding:24px">
+      <div class="attente-banner">
+        <div class="attente-pseudo" id="attente-pseudo">Prêt !</div>
+        <div class="attente-mode-badge solo" id="attente-badge">🧑 Solo</div>
+        <div class="attente-code" id="attente-code">Code : —</div>
+        <div class="attente-pulse"><div class="dot-pulse"></div>En attente du formateur…</div>
+      </div>
+      <div class="quiz-chips" id="quiz-chips"></div>
+      <div class="nb-parts-live">Participants connectés</div>
+      <span class="nb-parts-val" id="nb-parts-val">1</span>
+      <div class="attente-note">Restez sur cette page.<br>Le quiz démarrera automatiquement.</div>
+    </div>
+  </div>
+
+  <!-- ══ QUIZ ══ -->
+  <div id="phase-quiz">
+    <div class="q-header">
+      <div class="q-top">
+        <span class="q-num">Question <span id="q-num">1</span> / <span id="q-total">?</span></span>
+        <span class="q-pts" id="q-pts">0 pts</span>
+      </div>
+      <div class="q-bar"><div class="q-bar-fill" id="q-bar-fill" style="width:0%"></div></div>
+      <div class="q-text" id="q-text">Chargement…</div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="q-footer">
+      <div class="expl-box" id="expl-box"></div>
+      <button class="btn-valider" id="btn-valider" onclick="valider()" disabled>Valider ma réponse</button>
+      <button class="btn-suivant" id="btn-suivant" onclick="suivante()">Question suivante →</button>
+    </div>
+  </div>
+
+  <!-- ══ RÉSULTATS ══ -->
+  <div id="phase-resultats" style="text-align:center">
+    <div style="padding:24px 24px 0">
+      <div class="res-circle" id="res-circle">
+        <div class="res-pct" id="res-pct">0%</div>
+        <div class="res-pct-lbl">Score</div>
+      </div>
+      <div class="res-title" id="res-title">Terminé !</div>
+      <div class="res-sub"   id="res-sub"></div>
+      <div class="res-chips" id="res-chips"></div>
+    </div>
+    <div style="padding:0 24px 24px;text-align:left">
+      <div class="class-hdr">🏆 Classement en salle</div>
+      <div id="classement-list"></div>
+      <button class="btn-retour" onclick="retourAccueil()">← Retour à l'accueil</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var API      = 'https://ssiap-training-center.onrender.com/api';
+var BASE_URL = 'https://ssiap-training-center.onrender.com';
+var stagConnecte = window.STAGIAIRE_CONNECTE || JSON.parse(localStorage.getItem('ssiap_stagiaire') || 'null');
+
+var modeJeu     = 'solo';
+var codeActuel  = null;
+var centerId    = null;
+var monId       = null;
+var pollTimer   = null;
+var questions   = [];
+var qIndex      = 0;
+var score       = 0;
+var repActuelle = [];
+var detailsEchecs = [];
+var monPseudo   = '';
+
+var params      = new URLSearchParams(window.location.search);
+var urlCode     = params.get('code')     || '';
+var urlCenterId = params.get('centerId') || '';
+if (urlCenterId) centerId = urlCenterId;
+
+if (urlCode) {
+  var raw0 = urlCode.replace(/\D/g,'').slice(0,6);
+  document.getElementById('code-input').value = raw0.slice(0,3)+(raw0.length>3?' '+raw0.slice(3):'');
+  if (raw0.length===6) document.getElementById('code-input').classList.add('ok');
+  checkForm();
+  setTimeout(function(){ document.getElementById('pseudo-input').focus(); }, 200);
+}
+
+function setMode(mode) {
+  modeJeu = mode;
+  ['solo','equipe'].forEach(function(m) {
+    var el = document.getElementById('mode-'+m);
+    el.classList.toggle('on', m===mode);
+  });
+  var inp  = document.getElementById('pseudo-input');
+  var lbl  = document.getElementById('pseudo-lbl');
+  var hint = document.getElementById('pseudo-hint');
+  if (mode==='solo') {
+    lbl.textContent  = 'Votre pseudo';
+    inp.placeholder  = 'Ex : Agent47, Manu_B…';
+    hint.textContent = 'Choisissez un pseudo — il apparaîtra dans le classement 🏆';
+    inp.className    = 'pseudo-input blue';
+  } else {
+    lbl.textContent  = 'Nom de votre équipe';
+    inp.placeholder  = 'Ex : Équipe A, Les Pompiers…';
+    hint.textContent = 'Tous les membres jouent ensemble sous ce nom d\'équipe.';
+    inp.className    = 'pseudo-input purple';
+  }
+  checkForm();
+}
+
+function formatCode(inp) {
+  var raw = inp.value.replace(/\D/g,'').slice(0,6);
+  inp.value = raw.slice(0,3)+(raw.length>3?' '+raw.slice(3):'');
+  inp.classList.remove('error','ok');
+  setErr('');
+  if (raw.length===6) inp.classList.add('ok');
+  checkForm();
+}
+function focusPseudo() { document.getElementById('pseudo-input').focus(); }
+function checkForm() {
+  var raw    = document.getElementById('code-input').value.replace(/\D/g,'');
+  var pseudo = document.getElementById('pseudo-input').value.trim();
+  document.getElementById('btn-rejoindre').disabled = !(raw.length===6 && pseudo.length>=2);
+}
+function setErr(msg) { document.getElementById('err-msg').textContent = msg; }
+
+async function rejoindre() {
+  var raw    = document.getElementById('code-input').value.replace(/\D/g,'');
+  var pseudo = document.getElementById('pseudo-input').value.trim();
+  if (raw.length!==6)    { setErr('Le code doit contenir 6 chiffres.'); return; }
+  if (pseudo.length < 2) { setErr('Entrez un pseudo d\'au moins 2 caractères.'); return; }
+
+  var btn = document.getElementById('btn-rejoindre');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connexion…';
+  setErr('');
+  monPseudo = pseudo;
+
+  try {
+    var payload = {
+      code:        raw,
+      centerId:    centerId || urlCenterId || '',
+      pseudo:      pseudo,
+      mode:        modeJeu,
+      stagiaireId: stagConnecte ? stagConnecte.stagiaireId : null,
+      sessionId:   stagConnecte ? stagConnecte.sessionId   : null,
+    };
+    var r = await fetch(API+'/quiz/rejoindre', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    // Vérifier que la réponse est bien du JSON (le serveur peut renvoyer du HTML si endpoint absent)
+    var contentType = r.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('Le serveur ne reconnaît pas encore cet endpoint. Vérifiez que quiz-salle-routes.js est bien déployé (HTTP ' + r.status + ')');
+    }
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Code invalide ou expiré');
+
+    codeActuel = raw;
+    centerId   = d.centerId || centerId || urlCenterId;
+    monId      = d.participantId || (stagConnecte ? stagConnecte.stagiaireId : null) || 'anon_'+Date.now();
+    afficherAttente(pseudo, d.quiz || {});
+  } catch(e) {
+    setErr(e.message || 'Code invalide. Vérifiez et réessayez.');
+    document.getElementById('code-input').classList.add('error');
+    btn.disabled = false;
+    btn.innerHTML = '🚀 Rejoindre le quiz';
+  }
+}
+
+function afficherAttente(pseudo, quiz) {
+  document.getElementById('phase-saisie').style.display  = 'none';
+  document.getElementById('phase-attente').style.display = 'block';
+
+  document.getElementById('attente-pseudo').textContent = pseudo;
+  var badge = document.getElementById('attente-badge');
+  if (modeJeu==='equipe') { badge.textContent='👥 Équipe'; badge.className='attente-mode-badge equipe'; }
+  else                    { badge.textContent='🧑 Solo';   badge.className='attente-mode-badge solo'; }
+  document.getElementById('attente-code').textContent = 'Code : '+codeActuel.slice(0,3)+' '+codeActuel.slice(3);
+
+  var typeLabel = {debut_session:'Début de session',fin_session:'Fin de session',evaluation:'Évaluation',recyclage:'Recyclage'};
+  var chips = document.getElementById('quiz-chips'); chips.innerHTML='';
+  if (quiz.type)        chips.innerHTML += '<span class="chip">'+(typeLabel[quiz.type]||quiz.type)+'</span>';
+  if (quiz.nbQuestions) chips.innerHTML += '<span class="chip">'+quiz.nbQuestions+' questions</span>';
+  if (quiz.niveau)      chips.innerHTML += '<span class="chip">SSIAP '+quiz.niveau+'</span>';
+
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollStatut, 2200);
+  pollStatut();
+}
+
+async function pollStatut() {
+  if (!codeActuel) return;
+  try {
+    var r = await fetch(API+'/quiz/statut/'+codeActuel+'?centerId='+encodeURIComponent(centerId||'')+'&participantId='+encodeURIComponent(monId||''));
+    var d = await r.json();
+    if (!d.success) return;
+    var nb = Object.keys(d.participants||{}).length;
+    var el = document.getElementById('nb-parts-val'); if(el) el.textContent = nb;
+    if (d.phase==='actif' && d.questions && d.questions.length) {
+      clearInterval(pollTimer);
+      questions = d.questions;
+      lancerQuiz();
+    }
+  } catch(e) {}
+}
+
+function lancerQuiz() {
+  document.getElementById('phase-attente').style.display = 'none';
+  document.getElementById('phase-quiz').style.display    = 'block';
+  qIndex=0; score=0; repActuelle=[]; detailsEchecs=[];
+  document.getElementById('q-total').textContent = questions.length;
+  afficherQuestion();
+}
+
+function afficherQuestion() {
+  var q   = questions[qIndex];
+  var num = qIndex+1;
+  document.getElementById('q-num').textContent      = num;
+  document.getElementById('q-pts').textContent      = score+' pts';
+  document.getElementById('q-bar-fill').style.width = Math.round((num/questions.length)*100)+'%';
+  document.getElementById('q-text').textContent     = q.question || q.texte || '';
+  var letters=['A','B','C','D','E'];
+  var list=document.getElementById('options'); list.innerHTML=''; repActuelle=[];
+  (q.options||[]).forEach(function(opt,i) {
+    var div=document.createElement('div'); div.className='opt'; div.dataset.idx=i;
+    div.innerHTML='<div class="opt-letter">'+letters[i]+'</div><div style="flex:1;line-height:1.4">'+opt+'</div>';
+    div.onclick=function(){toggleOpt(i);}; list.appendChild(div);
+  });
+  document.getElementById('expl-box').style.display='none';
+  var bv=document.getElementById('btn-valider'); bv.style.display='block'; bv.disabled=true;
+  document.getElementById('btn-suivant').style.display='none';
+}
+
+function toggleOpt(i) {
+  if(document.getElementById('btn-valider').style.display==='none') return;
+  var opt=document.querySelectorAll('.opt')[i];
+  var idx=repActuelle.indexOf(i);
+  if(idx>-1){repActuelle.splice(idx,1);opt.classList.remove('selected');}
+  else{repActuelle.push(i);opt.classList.add('selected');}
+  document.getElementById('btn-valider').disabled=repActuelle.length===0;
+}
+
+function valider() {
+  var q=questions[qIndex];
+  var correctIdxs=Array.isArray(q.correctAnswers)?q.correctAnswers:[q.correctAnswer??q.bonneReponse??0];
+  var isOk=correctIdxs.length===repActuelle.length&&correctIdxs.every(function(ci){return repActuelle.includes(ci);});
+  if(isOk) score++;
+  document.querySelectorAll('.opt').forEach(function(opt,i){
+    if(correctIdxs.includes(i)){opt.classList.remove('selected');opt.classList.add('correct');}
+    else if(repActuelle.includes(i)){opt.classList.remove('selected');opt.classList.add('wrong');}
+  });
+  if(q.explanation){var ex=document.getElementById('expl-box');ex.innerHTML='<strong>💡 Explication :</strong> '+q.explanation;ex.style.display='block';}
+  if(!isOk){detailsEchecs.push({question:q.question||q.texte||'',userAnswerLabels:repActuelle.map(function(i){return(q.options||[])[i]||'';}),correctAnswerLabels:correctIdxs.map(function(i){return(q.options||[])[i]||'';}),explanation:q.explanation||''});}
+  document.getElementById('btn-valider').style.display='none';
+  document.getElementById('btn-suivant').style.display='block';
+  document.getElementById('q-pts').textContent=score+' pts';
+  try{fetch(API+'/quiz/repondre',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:codeActuel,centerId,participantId:monId,questionIndex:qIndex,answers:repActuelle,isCorrect:isOk})});}catch(e){}
+}
+
+function suivante(){qIndex++;if(qIndex<questions.length)afficherQuestion();else terminerQuiz();}
+
+async function terminerQuiz() {
+  var total=questions.length, pct=Math.round((score/total)*100), passed=pct>=50;
+  if(stagConnecte&&stagConnecte.stagiaireId&&centerId){
+    try{await fetch(API+'/stagiaire/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({centerId,sessionId:stagConnecte.sessionId||'',stagiaireId:stagConnecte.stagiaireId,score,total,pct,mode:'salle',pseudo:monPseudo,modeJeu,detailsEchecs:detailsEchecs.length?detailsEchecs:null})});}catch(e){}
+  }
+  var classement=[];
+  try{
+    var r=await fetch(API+'/quiz/fin-participant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:codeActuel,centerId,participantId:monId,pseudo:monPseudo,mode:modeJeu,score,total,pct,detailsEchecs:detailsEchecs.length?detailsEchecs:null})});
+    var d=await r.json(); if(d.classement) classement=d.classement;
+  }catch(e){}
+  afficherResultats(pct,score,total,passed,classement);
+}
+
+function afficherResultats(pct,ok,total,passed,classement) {
+  document.getElementById('phase-quiz').style.display      ='none';
+  document.getElementById('phase-resultats').style.display ='block';
+  var col=pct>=70?'var(--green)':pct>=50?'var(--gold)':'var(--rouge)';
+  var circ=document.getElementById('res-circle');
+  circ.style.borderColor=col; circ.style.background=pct>=70?'var(--green-light)':pct>=50?'var(--gold-light)':'var(--rouge-light)';
+  document.getElementById('res-pct').textContent=pct+'%'; document.getElementById('res-pct').style.color=col;
+  document.getElementById('res-title').textContent=pct>=70?'🏆 Excellent !':pct>=50?'👍 Bien joué !':'📚 À retravailler';
+  document.getElementById('res-sub').textContent=pct>=50?'Score de '+pct+'% — continuez comme ça !':'Score de '+pct+'% — revoyez les questions manquées.';
+  document.getElementById('res-chips').innerHTML=
+    '<span class="res-chip ok">✓ '+ok+' correcte'+(ok>1?'s':'')+'</span>'+
+    '<span class="res-chip ko">✗ '+(total-ok)+' incorrecte'+(total-ok>1?'s':'')+'</span>'+
+    '<span class="res-chip neu">'+total+' questions</span>';
+  var c=document.getElementById('classement-list');
+  if(!classement.length){c.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">Classement en attente…</div>';return;}
+  var sorted=[].concat(classement).sort(function(a,b){return(parseFloat(b.pct)||0)-(parseFloat(a.pct)||0);});
+  var medals=['🥇','🥈','🥉'];
+  c.innerHTML=sorted.slice(0,10).map(function(p,i){
+    var isMe=p.participantId===monId;
+    var pctP=parseFloat(p.pct||0); var col2=pctP>=70?'var(--green)':pctP>=50?'var(--gold)':'var(--rouge)';
+    return '<div class="class-row'+(isMe?' me':'')+(i===0?' top1':'')+'">' +
+      '<div class="class-rank">'+(medals[i]||'#'+(i+1))+'</div>' +
+      '<div class="class-info"><div class="class-pseudo">'+(p.pseudo||'—')+(isMe?'<span class="badge-me">vous</span>':'')+'</div>' +
+      '<div class="class-mode">'+(p.mode==='equipe'?'👥 Équipe':'🧑 Solo')+'</div></div>' +
+      '<div class="class-pct" style="color:'+col2+'">'+p.pct+'%</div></div>';
+  }).join('');
+}
+
+function retourAccueil(){window.location.href=stagConnecte?'stagiaire-accueil.html':'../index.html';}
+</script>
+</body>
+</html>

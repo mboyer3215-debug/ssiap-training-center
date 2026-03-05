@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<!-- Firebase pour détection quiz en salle -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../shared/firebase-client-config.js"></script>
@@ -16,66 +15,38 @@
     const stagData = localStorage.getItem('ssiap_stagiaire');
     const centerData = localStorage.getItem('ssiap_stagiaire_center');
     if (!stagData || !centerData) return;
-
     const stagiaire = JSON.parse(stagData);
     const center = JSON.parse(centerData);
     if (!stagiaire.sessionId || !center.centerId) return;
-
     try {
         if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CLIENT_CONFIG);
         const db = firebase.database();
         const quizRef = db.ref(`centers/${center.centerId}/sessions/${stagiaire.sessionId}/quizSalle`);
-
         quizRef.on('value', snap => {
             const quiz = snap.val();
             if (!quiz || (quiz.status !== 'attente' && quiz.status !== 'question')) return;
-
             quizRef.off();
-
             const banner = document.createElement('div');
-            banner.style.cssText = `
-                position:fixed;top:0;left:0;right:0;bottom:0;
-                background:rgba(0,0,0,0.9);z-index:99999;
-                display:flex;align-items:center;justify-content:center;
-            `;
+            banner.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;`;
             banner.innerHTML = `
-                <div style="background:#0f172a;border:2px solid #16a34a;border-radius:20px;
-                    padding:40px;text-align:center;max-width:380px;margin:20px;
-                    animation:popIn 0.4s ease;">
+                <div style="background:#0f172a;border:2px solid #16a34a;border-radius:20px;padding:40px;text-align:center;max-width:380px;margin:20px;animation:popIn 0.4s ease;">
                     <div style="font-size:60px;margin-bottom:16px;">🎮</div>
                     <h2 style="color:#f8fafc;font-size:22px;margin-bottom:10px;">Quiz en salle !</h2>
-                    <p style="color:#94a3b8;font-size:15px;margin-bottom:24px;line-height:1.5;">
-                        Votre formateur lance un quiz.<br>Rejoignez-le maintenant !
-                    </p>
-                    <button onclick="rejoindrequiz()" style="
-                        width:100%;padding:16px;background:#16a34a;color:white;
-                        border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;">
-                        ▶️ Rejoindre le quiz
-                    </button>
+                    <p style="color:#94a3b8;font-size:15px;margin-bottom:24px;line-height:1.5;">Votre formateur lance un quiz.<br>Rejoignez-le maintenant !</p>
+                    <button onclick="rejoindrequiz()" style="width:100%;padding:16px;background:#16a34a;color:white;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;">▶️ Rejoindre le quiz</button>
                 </div>
-                <style>@keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}</style>
-            `;
+                <style>@keyframes popIn{0%{transform:scale(0.8);opacity:0;}100%{transform:scale(1);opacity:1;}}</style>`;
             document.body.appendChild(banner);
-
             window.rejoindrequiz = function() {
-                const url = `../stagiaire/quiz-salle-stagiaire.html`
-                    + `?centerId=${center.centerId}`
-                    + `&sessionId=${stagiaire.sessionId}`
-                    + `&stagiaireId=${stagiaire.stagiaireId}`
-                    + `&nom=${encodeURIComponent(stagiaire.nom)}`
-                    + `&prenom=${encodeURIComponent(stagiaire.prenom)}`
-                    + `&pin=${stagiaire.pin}`
-                    + `&api=https://ssiap-training-center.onrender.com/api`;
+                const url = `../stagiaire/quiz-salle-stagiaire.html?centerId=${center.centerId}&sessionId=${stagiaire.sessionId}&stagiaireId=${stagiaire.stagiaireId}&nom=${encodeURIComponent(stagiaire.nom)}&prenom=${encodeURIComponent(stagiaire.prenom)}&pin=${stagiaire.pin}&api=https://ssiap-training-center.onrender.com/api`;
                 window.location.href = url;
             };
         });
-
     } catch(e) { console.error('Quiz listener error:', e); }
 })();
 </script>
 
 <body>
-    <!-- PAGE CONNEXION -->
     <div id="page-connexion" class="page active">
         <div class="container">
             <div class="logo-ssiap">
@@ -83,45 +54,58 @@
                 <h1>ENTRAÎNEMENT SSIAP</h1>
                 <p class="subtitle">Plateforme de Révision</p>
             </div>
-            
-            <!-- Bandeau stagiaire connecté (affiché si connecté via login) -->
+
+            <!-- Bandeau stagiaire connecté via session -->
             <div id="stagiaire-connecte-banner" style="display:none;
-                background:linear-gradient(135deg,#16a34a,#15803d);
+                background:linear-gradient(135deg,#1a4a32,#112e1f);
                 color:white;border-radius:12px;padding:16px 20px;
-                margin-bottom:20px;display:none;align-items:center;justify-content:space-between;gap:12px;">
+                margin-bottom:20px;align-items:center;justify-content:space-between;gap:12px;">
                 <div>
                     <div style="font-weight:700;font-size:16px;" id="banner-nom"></div>
                     <div style="font-size:13px;opacity:0.85;" id="banner-session"></div>
                 </div>
                 <button onclick="deconnecterStagiaire()"
-                    style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);
-                    color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;">
+                    style="display:none">
                     🚪 Changer
                 </button>
             </div>
 
             <div class="card">
                 <h2>Configuration de votre session</h2>
-                
                 <form id="form-connexion">
                     <div class="form-group">
                         <label for="nom">Nom</label>
                         <input type="text" id="nom" placeholder="Dupont" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="prenom">Prénom</label>
                         <input type="text" id="prenom" placeholder="Jean" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="email">Email (optionnel)</label>
-                        <input type="email" id="email" placeholder="jean.dupont@exemple.fr">
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <input type="email" id="email" placeholder="jean.dupont@exemple.fr"
+                                style="flex:1">
+                            <button type="button" id="btn-email-edit" title="Modifier l'email"
+                                onclick="toggleEmailEdit()"
+                                style="width:36px;height:36px;border:1.5px solid #e8e2db;border-radius:8px;background:#f7f5f2;cursor:pointer;font-size:14px;display:none">
+                                ✏️
+                            </button>
+                            <button type="button" id="btn-email-save" title="Enregistrer"
+                                onclick="saveEmail()"
+                                style="width:36px;height:36px;border:1.5px solid #2e7d52;border-radius:8px;background:#edf7f2;cursor:pointer;font-size:14px;display:none">
+                                ✅
+                            </button>
+                            <button type="button" id="btn-email-clear" title="Supprimer l'email"
+                                onclick="clearEmail()"
+                                style="width:36px;height:36px;border:1.5px solid #e8e2db;border-radius:8px;background:#f7f5f2;cursor:pointer;font-size:14px;display:none">
+                                🗑️
+                            </button>
+                        </div>
                     </div>
-                    
                     <div class="form-group">
                         <label>Niveau SSIAP</label>
-                        <div class="niveau-selector">
+                        <div class="niveau-selector" id="niveau-selector">
                             <button type="button" class="btn-niveau" data-niveau="1">
                                 <span class="niveau-numero">1</span>
                                 <span class="niveau-label">Agent de sécurité</span>
@@ -135,8 +119,13 @@
                                 <span class="niveau-label">Chef de service</span>
                             </button>
                         </div>
+                        <!-- Message niveau verrouillé -->
+                        <div id="niveau-locked-msg" style="display:none;margin-top:8px;
+                            font-size:12px;color:#8c8078;
+                            background:#f0ece7;border-radius:6px;padding:6px 10px;">
+                            🔒 Niveau défini par votre centre de formation
+                        </div>
                     </div>
-                    
                     <div class="form-group" id="groupe-partie" style="display: none;">
                         <label>Thématique à réviser</label>
                         <div class="partie-selector">
@@ -147,10 +136,9 @@
                             <div id="parties-list"></div>
                         </div>
                     </div>
-                    
                     <div class="form-group" id="groupe-nombre" style="display: none;">
                         <label>Nombre de questions</label>
-                        <div class="nombre-selector">
+                        <div class="nombre-selector" style="display:flex;flex-wrap:wrap;gap:8px">
                             <button type="button" class="btn-nombre" data-nombre="5">5</button>
                             <button type="button" class="btn-nombre" data-nombre="10">10</button>
                             <button type="button" class="btn-nombre" data-nombre="15">15</button>
@@ -160,10 +148,69 @@
                             <button type="button" class="btn-nombre" data-nombre="40">40</button>
                         </div>
                     </div>
-                    
                     <button type="submit" class="btn btn-primary" disabled id="btn-demarrer">
                         🚀 Démarrer l'entraînement
                     </button>
+					<!-- Bouton historique -->
+					<button 
+					  id="btn-voir-historique" 
+					  type="button"
+					  style="
+						width: 100%;
+						padding: 16px 20px;
+						border-radius: 10px;
+						border: 2px solid rgba(255,255,255,.3);
+						background: transparent;
+						color: #fff;
+						font-family: 'Plus Jakarta Sans', sans-serif;
+						font-size: 16px;
+						font-weight: 700;
+						cursor: pointer;
+						margin-top: 12px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						gap: 8px;
+						transition: .15s;
+					  "
+					  onmouseover="this.style.background='rgba(255,255,255,.12)'"
+					  onmouseout="this.style.background='transparent'">
+					  📊 Voir mon historique
+					</button>
+
+<!-- ═══════════════════════════════════════════════
+     SI le fond du formulaire est CLAIR (beige/blanc),
+     utilise cette version à la place :
+═══════════════════════════════════════════════ -->
+
+<!--
+<div style="margin-top:12px;">
+  <button
+    id="btn-voir-historique"
+    type="button"
+    style="
+      width:100%;
+      padding:13px 20px;
+      border-radius:10px;
+      border:2px solid #e8e2db;
+      background:#f0ece7;
+      color:#4a4340;
+      font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition:.15s;
+    "
+    onmouseover="this.style.background='#e8e2db'"
+    onmouseout="this.style.background='#f0ece7'">
+    📊 Voir mon historique
+  </button>
+</div>
+-->
                 </form>
             </div>
         </div>
@@ -181,12 +228,9 @@
             </div>
             <div class="entrainement-progress">
                 <span>Question <span id="question-numero">1</span> / <span id="question-total">30</span></span>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
-                </div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
             </div>
         </div>
-
         <div class="container">
             <div class="card question-card">
                 <div class="question-header">
@@ -245,90 +289,174 @@
 
     <script src="app.js"></script>
 
-    <!-- AUTO-REMPLISSAGE si stagiaire connecté via login -->
+    <!-- AUTO-REMPLISSAGE si stagiaire connecté via login centre -->
     <script>
     (function() {
+        // ── Lire les données stockées par stagiaire-login.html ──
         const stagRaw = localStorage.getItem('ssiap_stagiaire');
         if (!stagRaw) return;
+        let stag;
+        try { stag = JSON.parse(stagRaw); } catch(e) { return; }
+        if (!stag.stagiaireId) return; // session libre, pas via centre
 
-        const stag = JSON.parse(stagRaw);
-        if (!stag.stagiaireId) return; // pas un vrai stagiaire connecté
+        // Niveau : priorité localStorage sessionNiveau, puis stag.niveau, puis param URL
+        const urlParams   = new URLSearchParams(window.location.search);
+        const niveauParam = urlParams.get('niveau');
+        const locked      = urlParams.get('lock') === '1' || localStorage.getItem('sessionLocked') === '1';
 
-        // Extraire le niveau depuis la session (ex: "SSIAP1" → "1")
-        const niveauStr = stag.session?.niveau || '';
-        const niveauNum = niveauStr.replace(/[^0-9]/g, '') || '1';
+        const niveauRaw = localStorage.getItem('sessionNiveau')
+                       || niveauParam
+                       || stag.sessionNiveau
+                       || stag.niveau
+                       || '1';
+        // Normaliser : "SSIAP1" → "1", "1" → "1"
+        const niveauNum = niveauRaw.replace(/[^0-9]/g, '') || '1';
 
-        // Afficher le bandeau
+        // ── Bandeau : affiche niveau + dates (pas le nom ni le bouton) ──
         const banner = document.getElementById('stagiaire-connecte-banner');
         if (banner) {
             banner.style.display = 'flex';
             document.getElementById('banner-nom').textContent =
-                `👤 ${stag.nom} ${stag.prenom}`;
+                `🎓 Formation SSIAP ${niveauNum}`;
+            // Lire les dates stockées par stagiaire-login.html
+            const debut = stag.sessionDateDebut
+                ? new Date(stag.sessionDateDebut).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})
+                : '—';
+            const fin = stag.sessionDateFin
+                ? new Date(stag.sessionDateFin).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})
+                : '—';
             document.getElementById('banner-session').textContent =
-                stag.session?.titre
-                    ? `${stag.session.titre} • SSIAP ${niveauNum}`
-                    : `SSIAP ${niveauNum}`;
+                debut === '—' ? `Niveau SSIAP ${niveauNum}` : `Du ${debut} au ${fin}`;
         }
 
-        // Remplir les champs cachés (app.js les lira)
+        // ── Exposer pour app.js ──
         window.STAGIAIRE_CONNECTE = {
-            nom: stag.nom,
-            prenom: stag.prenom,
-            email: stag.email || '',
-            niveau: niveauNum,
-            stagiaireId: stag.stagiaireId,
-            sessionId: stag.sessionId,
-            centerId: JSON.parse(localStorage.getItem('ssiap_stagiaire_center') || '{}').centerId
+            nom:         stag.nom         || localStorage.getItem('userNom')    || '',
+            prenom:      stag.prenom      || localStorage.getItem('userPrenom') || '',
+            email:       stag.email       || localStorage.getItem('userEmail')  || '',
+            niveau:      niveauNum,
+            stagiaireId: stag.stagiaireId || '',
+            sessionId:   stag.sessionId   || '',
+            centerId:    stag.centerId    || '',
         };
 
-        // Attendre que app.js soit chargé puis auto-remplir
+        // ── Remplissage au chargement ──
         window.addEventListener('load', () => {
-            const nomEl = document.getElementById('nom');
+            const nomEl    = document.getElementById('nom');
             const prenomEl = document.getElementById('prenom');
-            const emailEl = document.getElementById('email');
+            const emailEl  = document.getElementById('email');
 
-            if (nomEl) { nomEl.value = stag.nom; nomEl.readOnly = true; }
-            if (prenomEl) { prenomEl.value = stag.prenom; prenomEl.readOnly = true; }
-            if (emailEl && stag.email) emailEl.value = stag.email;
+            if (nomEl) {
+                nomEl.value    = window.STAGIAIRE_CONNECTE.nom;
+                nomEl.readOnly = true;
+                nomEl.style.background = '#f0ece7';
+            }
+            if (prenomEl) {
+                prenomEl.value    = window.STAGIAIRE_CONNECTE.prenom;
+                prenomEl.readOnly = true;
+                prenomEl.style.background = '#f0ece7';
+            }
+            // Email : pré-remplir si disponible, mais laisse modifiable
+            if (emailEl && window.STAGIAIRE_CONNECTE.email) {
+                emailEl.value    = window.STAGIAIRE_CONNECTE.email;
+                emailEl.readOnly = true;
+                emailEl.style.background = '#f0ece7';
+                // Afficher boutons édition/suppression
+                document.getElementById('btn-email-edit')?.style && (document.getElementById('btn-email-edit').style.display = 'flex');
+                document.getElementById('btn-email-clear')?.style && (document.getElementById('btn-email-clear').style.display = 'flex');
+            } else if (emailEl) {
+                emailEl.readOnly = false;
+                emailEl.style.background = '';
+            }
 
-            // Cliquer sur le bon bouton niveau
+            // ── Niveau : sélectionner + verrouiller si session ──
+            if (locked) {
+                // Masquer les boutons des autres niveaux
+                document.querySelectorAll('.btn-niveau').forEach(btn => {
+                    if (btn.dataset.niveau !== niveauNum) {
+                        btn.style.display = 'none';
+                    }
+                });
+                // Afficher message verrou
+                const msg = document.getElementById('niveau-locked-msg');
+                if (msg) msg.style.display = 'block';
+                // Nettoyer le flag après usage (pour ne pas rester bloqué si l'user revient)
+                localStorage.removeItem('sessionLocked');
+                localStorage.removeItem('sessionNiveau');
+            }
+
+            // Cliquer sur le bon niveau
             const btnNiveau = document.querySelector(`.btn-niveau[data-niveau="${niveauNum}"]`);
             if (btnNiveau) btnNiveau.click();
 
-            // Donner le focus sur nombre de questions si disponible
+            // Sélectionner 10 questions par défaut
             setTimeout(() => {
-                // Sélectionner 10 questions par défaut
                 const btn10 = document.querySelector('.btn-nombre[data-nombre="10"]');
                 if (btn10) btn10.click();
             }, 300);
         });
     })();
 
+    window.toggleEmailEdit = function() {
+        const el = document.getElementById('email');
+        el.readOnly = false; el.style.background = ''; el.focus();
+        document.getElementById('btn-email-edit').style.display = 'none';
+        document.getElementById('btn-email-save').style.display = 'flex';
+        document.getElementById('btn-email-clear').style.display = 'none';
+    };
+    window.saveEmail = function() {
+        const el = document.getElementById('email');
+        const val = el.value.trim();
+        el.readOnly = true; el.style.background = '#f0ece7';
+        localStorage.setItem('userEmail', val);
+        // Mettre à jour ssiap_stagiaire
+        try {
+            const raw = localStorage.getItem('ssiap_stagiaire');
+            if (raw) { const s = JSON.parse(raw); s.email = val; localStorage.setItem('ssiap_stagiaire', JSON.stringify(s)); }
+        } catch(e) {}
+        document.getElementById('btn-email-edit').style.display = 'flex';
+        document.getElementById('btn-email-save').style.display = 'none';
+        document.getElementById('btn-email-clear').style.display = 'flex';
+    };
+    window.clearEmail = function() {
+        const el = document.getElementById('email');
+        el.value = ''; el.readOnly = false; el.style.background = '';
+        localStorage.setItem('userEmail', '');
+        try {
+            const raw = localStorage.getItem('ssiap_stagiaire');
+            if (raw) { const s = JSON.parse(raw); s.email = ''; localStorage.setItem('ssiap_stagiaire', JSON.stringify(s)); }
+        } catch(e) {}
+        document.getElementById('btn-email-edit').style.display = 'none';
+        document.getElementById('btn-email-save').style.display = 'none';
+        document.getElementById('btn-email-clear').style.display = 'none';
+    };
+
     window.deconnecterStagiaire = function() {
         if (confirm('Se déconnecter et revenir au formulaire libre ?')) {
             localStorage.removeItem('ssiap_stagiaire');
             localStorage.removeItem('ssiap_stagiaire_center');
-            window.location.reload();
+            localStorage.removeItem('sessionNiveau');
+            localStorage.removeItem('sessionLocked');
+            localStorage.removeItem('userPrenom');
+            localStorage.removeItem('userNom');
+            localStorage.removeItem('userEmail');
+            window.location.href = '/';
         }
     };
-	
     </script>
-	<!-- OU : flottant en bas de page à ajouter avant </body> : -->
-	<div id="avis-float" style="
-	  position:fixed;bottom:20px;right:20px;z-index:100;
-	  background:#2e7d52;color:#fff;
-	  padding:12px 18px;border-radius:12px;
-	  font-family:'Plus Jakarta Sans',sans-serif;
-	  font-size:13px;font-weight:700;
-	  cursor:pointer;
-	  box-shadow:0 4px 16px rgba(46,125,82,.35);
-	  display:flex;align-items:center;gap:8px;
-	  transition:.15s;
-	" onclick="window.location.href='../avis/formulaire-avis-stagiaire.html'"
-	   onmouseover="this.style.transform='translateY(-2px)'"
-	   onmouseout="this.style.transform='translateY(0)'">
-	  ⭐ Donner mon avis
-	</div>
 
+    <div id="avis-float" style="
+        position:fixed;bottom:20px;right:20px;z-index:100;
+        background:#2e7d52;color:#fff;
+        padding:12px 18px;border-radius:12px;
+        font-family:'Plus Jakarta Sans',sans-serif;
+        font-size:13px;font-weight:700;cursor:pointer;
+        box-shadow:0 4px 16px rgba(46,125,82,.35);
+        display:flex;align-items:center;gap:8px;transition:.15s;"
+        onclick="window.location.href='../avis/formulaire-avis-stagiaire.html'"
+        onmouseover="this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.transform='translateY(0)'">
+        ⭐ Donner mon avis
+    </div>
 </body>
 </html>

@@ -7,7 +7,7 @@ class QCMService {
   
   async getQuestionsByNiveau(centerId, niveau) {
     try {
-      const snapshot = await db.ref(`centers/${centerId}/questions/${niveau}`).once('value');
+      const snapshot = await db.ref(`questions/${niveau}`).once('value');
       return snapshot.val() || {};
     } catch (error) {
       console.error('Erreur lecture questions:', error);

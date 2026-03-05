@@ -48,7 +48,7 @@ router.post('/start', async (req, res) => {
     const niveauInt = parseInt(niveau);
     const nbQuestionsInt = parseInt(nbQuestions) || 30;
 
-    const snapshot = await db.ref(`centers/${CENTER_DEFAULT}/questions/${niveauInt}`).once('value');
+    const snapshot = await db.ref(`questions/${niveauInt}`).once('value');
     const allQuestions = snapshot.val() || {};
     console.log(`   📊 Questions Firebase niveau ${niveauInt}:`, Object.keys(allQuestions).length);
 
@@ -152,7 +152,7 @@ router.post('/finish', async (req, res) => {
     const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
     const { niveau, questions: questionIds, answers } = session;
 
-    const questionsSnapshot = await db.ref(`centers/${CENTER_DEFAULT}/questions/${niveau}`).once('value');
+    const questionsSnapshot = await db.ref(`questions/${niveau}`).once('value');
     const allQuestions = questionsSnapshot.val();
 
     let score = 0;
