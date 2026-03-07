@@ -3,17 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administration — SSIAP Training</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>SSIAP Admin — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --terra:#c25a3a;--terra-d:#a34a2e;--terra-bg:#fdf0eb;--terra-mid:#e8d5cc;
-  --bg:#f7f4f0;--surface:#fff;--border:#e8e2db;--text:#1e1a17;--muted:#8c8078;--subtle:#f0ece7;
-  --green:#2e7d52;--green-bg:#e8f5ee;--red:#c0392b;--red-bg:#fdecea;
+:root {
+  --terra:#c25a3a;--terra-d:#a34a2e;
+  --bg:#f7f4f0;--surface:#ffffff;--border:#e8e2db;
+  --text:#1e1a17;--muted:#8c8078;--subtle:#f0ece7;
+  --green:#2e7d52;--red:#c0392b;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{
-  background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   padding:20px;
 }
@@ -21,327 +23,184 @@ body{
 /* Fond décoratif */
 body::before{
   content:'';position:fixed;inset:0;
-  background:radial-gradient(ellipse at 20% 50%, rgba(194,90,58,.08) 0%, transparent 60%),
-             radial-gradient(ellipse at 80% 20%, rgba(194,90,58,.05) 0%, transparent 50%);
-  pointer-events:none;
+  background:
+    radial-gradient(ellipse 800px 600px at 10% 20%, rgba(194,90,58,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 400px at 90% 80%, rgba(46,92,138,.06) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
 }
 
 .card{
-  background:var(--surface);border:1px solid var(--border);border-radius:20px;
-  padding:44px 40px;width:100%;max-width:400px;
-  box-shadow:0 12px 40px rgba(0,0,0,.1);position:relative;
+  position:relative;z-index:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:48px 40px;
+  width:100%;max-width:400px;
+  box-shadow:0 8px 48px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.04);
 }
 
-/* Header */
-.card-top{text-align:center;margin-bottom:32px}
-.logo{width:60px;height:60px;background:var(--terra);border-radius:16px;
-  display:flex;align-items:center;justify-content:center;font-size:26px;
-  margin:0 auto 16px}
-.card-title{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:5px}
-.card-sub{font-size:12px;color:var(--muted);line-height:1.5}
-
-/* Badge admin */
-.admin-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--terra-bg);border:1px solid var(--terra-mid);border-radius:20px;
-  padding:4px 12px;font-size:10px;font-weight:700;color:var(--terra);
-  font-family:'DM Mono',monospace;letter-spacing:.5px;margin-bottom:16px
+.logo{text-align:center;margin-bottom:36px}
+.logo .flame{font-size:40px;line-height:1;display:block;margin-bottom:10px}
+.logo h1{
+  font-family:'Lora',serif;font-size:22px;font-weight:700;
+  color:var(--text);line-height:1.2;
+}
+.logo h1 span{color:var(--terra)}
+.logo small{
+  display:block;margin-top:6px;
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--muted);letter-spacing:2px;text-transform:uppercase;
 }
 
-/* Form */
-.form-group{margin-bottom:16px}
-.form-label{display:block;margin-bottom:6px;font-size:11px;font-weight:700;
-  color:var(--text);text-transform:uppercase;letter-spacing:.6px}
-.form-input{
-  width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;
-  font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;
-  color:var(--text);background:var(--surface);outline:none;transition:.15s
+.label{
+  display:block;font-size:11px;font-weight:700;
+  color:var(--muted);letter-spacing:.5px;margin-bottom:7px;
 }
-.form-input:focus{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-bg)}
-.form-input.shake{animation:shake .35s ease}
-.form-input::placeholder{color:var(--muted)}
-@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-
-.pwd-wrap{position:relative}
-.pwd-wrap .form-input{padding-right:46px}
-.pwd-eye{
-  position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;font-size:16px;
-  color:var(--muted);padding:4px;transition:.15s
+.field{margin-bottom:18px}
+.input{
+  width:100%;padding:13px 16px;
+  border:1.5px solid var(--border);border-radius:10px;
+  background:var(--subtle);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);
+  transition:.15s;outline:none;
 }
-.pwd-eye:hover{color:var(--text)}
+.input:focus{border-color:var(--terra);background:#fff;box-shadow:0 0 0 3px rgba(194,90,58,.1)}
+.input::placeholder{color:var(--muted)}
 
-/* Tentatives */
-.attempts-bar{
-  display:flex;gap:5px;justify-content:center;margin-bottom:16px
+.btn-login{
+  width:100%;padding:15px;margin-top:8px;
+  border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--terra),var(--terra-d));
+  color:#fff;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px;font-weight:800;cursor:pointer;
+  transition:.15s;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
 }
-.attempt-dot{
-  width:10px;height:10px;border-radius:50%;
-  background:var(--border);transition:.3s
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(194,90,58,.3)}
+.btn-login:active{transform:none}
+.btn-login:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+
+.error-box{
+  margin-top:16px;padding:12px 14px;
+  background:#fdecea;border:1.5px solid rgba(192,57,43,.2);border-radius:9px;
+  color:var(--red);font-size:13px;font-weight:600;
+  display:none;align-items:center;gap:8px;
 }
-.attempt-dot.used{background:var(--red)}
+.error-box.show{display:flex}
 
-/* Bouton */
-.btn{
-  width:100%;padding:14px;border-radius:10px;border:none;
-  background:var(--terra);color:#fff;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;transition:.15s;margin-top:4px
+.spinner{
+  width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
 }
-.btn:hover:not(:disabled){background:var(--terra-d)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* Alert */
-.alert{
-  padding:11px 14px;border-radius:8px;font-size:12px;
-  margin-bottom:14px;display:none;line-height:1.5
+.footer-note{
+  text-align:center;margin-top:24px;
+  font-size:11px;color:var(--muted);
+  font-family:'DM Mono',monospace;letter-spacing:.5px;
 }
-.alert.show{display:block}
-.alert.error{background:var(--red-bg);border:1px solid rgba(192,57,43,.2);color:var(--red)}
-.alert.success{background:var(--green-bg);border:1px solid rgba(46,125,82,.2);color:var(--green)}
-.alert.warn{background:var(--terra-bg);border:1px solid rgba(194,90,58,.2);color:var(--terra)}
-
-/* Blocage */
-.blocked-view{display:none;text-align:center;padding:8px 0}
-.blocked-view.show{display:block}
-.blocked-icon{font-size:48px;margin-bottom:14px}
-.blocked-title{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--red);margin-bottom:8px}
-.blocked-sub{font-size:12px;color:var(--muted);line-height:1.6}
-.countdown{font-family:'DM Mono',monospace;font-size:28px;font-weight:700;color:var(--terra);margin:12px 0}
-
-/* Footer */
-.card-footer{margin-top:20px;text-align:center;font-size:11px;color:var(--muted)}
-.card-footer a{color:var(--terra);font-weight:600;text-decoration:none}
-.card-footer a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 
 <div class="card">
-
-  <!-- VUE LOGIN -->
-  <div id="view-login">
-    <div class="card-top">
-      <div class="logo">⚙️</div>
-      <div class="admin-badge">⚡ SUPER ADMIN</div>
-      <div class="card-title">Administration</div>
-      <div class="card-sub">Accès réservé à l'administrateur de la plateforme SSIAP Training</div>
-    </div>
-
-    <div class="alert" id="alert"></div>
-
-    <!-- Indicateur tentatives -->
-    <div class="attempts-bar" id="attempts-bar">
-      <div class="attempt-dot" id="att0"></div>
-      <div class="attempt-dot" id="att1"></div>
-      <div class="attempt-dot" id="att2"></div>
-      <div class="attempt-dot" id="att3"></div>
-      <div class="attempt-dot" id="att4"></div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Identifiant admin</label>
-      <input type="text" class="form-input" id="username"
-             placeholder="admin" autocomplete="username">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Mot de passe</label>
-      <div class="pwd-wrap">
-        <input type="password" class="form-input" id="password"
-               placeholder="••••••••••" autocomplete="current-password"
-               onkeydown="if(event.key==='Enter') doLogin()">
-        <button class="pwd-eye" onclick="togglePwd()" tabindex="-1" id="eye-btn">👁️</button>
-      </div>
-    </div>
-
-    <button class="btn" id="btn-login" onclick="doLogin()">
-      Accéder au dashboard →
-    </button>
-
-    <div class="card-footer" style="margin-top:16px">
-      <a href="../index.html">← Retour accueil</a>
-    </div>
+  <div class="logo">
+    <span class="flame">🔥</span>
+    <h1>SSIAP <span>Training</span></h1>
+    <small>Administration</small>
   </div>
 
-  <!-- VUE BLOQUÉ -->
-  <div class="blocked-view" id="view-blocked">
-    <div class="blocked-icon">🔒</div>
-    <div class="blocked-title">Accès temporairement bloqué</div>
-    <div class="blocked-sub">Trop de tentatives incorrectes.<br>Réessayez dans :</div>
-    <div class="countdown" id="countdown">5:00</div>
-    <div class="blocked-sub">Si vous avez oublié vos identifiants,<br>contactez le support technique.</div>
+  <div class="field">
+    <label class="label" for="inp-email">Adresse e-mail</label>
+    <input class="input" id="inp-email" type="email" placeholder="admin@exemple.fr" autocomplete="email">
   </div>
 
+  <div class="field">
+    <label class="label" for="inp-pw">Mot de passe</label>
+    <input class="input" id="inp-pw" type="password" placeholder="••••••••••" autocomplete="current-password">
+  </div>
+
+  <button class="btn-login" id="btn-login" onclick="doLogin()">
+    <span id="btn-text">Connexion</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+  <div class="error-box" id="error-box">
+    <span>⚠️</span>
+    <span id="error-msg">Identifiants incorrects</span>
+  </div>
+
+  <p class="footer-note">Accès réservé · Administrateur plateforme</p>
 </div>
 
 <script>
-const API = window.location.hostname === 'localhost'
-  ? 'http://localhost:5000/api'
-  : 'https://ssiap-training-center.onrender.com/api';
+var API = 'https://ssiap-training-center.onrender.com/api';
 
-let failCount   = parseInt(localStorage.getItem('admin_fail_count') || '0');
-let blockUntil  = parseInt(localStorage.getItem('admin_block_until') || '0');
-const MAX_TRIES = 5;
-const BLOCK_MIN = 5;
-
-// ── Vérifier blocage au chargement ──
-window.addEventListener('load', () => {
-  if (blockUntil > Date.now()) {
-    showBlocked();
-  } else {
-    if (blockUntil > 0 && blockUntil <= Date.now()) {
-      // Blocage expiré → reset
-      localStorage.removeItem('admin_fail_count');
-      localStorage.removeItem('admin_block_until');
-      failCount = 0;
+// Rediriger si déjà connecté
+(function() {
+    var token = sessionStorage.getItem('adminToken');
+    if (token) {
+        var dest = new URLSearchParams(window.location.search).get('redirect') || '../admin/dashboard-admin.html';
+        window.location = dest;
     }
-    updateAttempts();
-    document.getElementById('username').focus();
-  }
+})();
+
+document.getElementById('inp-pw').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+});
+document.getElementById('inp-email').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('inp-pw').focus();
 });
 
-function updateAttempts() {
-  for (let i = 0; i < MAX_TRIES; i++) {
-    document.getElementById(`att${i}`).classList.toggle('used', i < failCount);
-  }
-  if (failCount > 0 && failCount < MAX_TRIES) {
-    const rest = MAX_TRIES - failCount;
-    showAlert('warn', `⚠️ ${failCount} tentative(s) incorrecte(s). Il vous reste ${rest} essai(s) avant blocage.`);
-  }
-}
-
-// ── Login ──
 async function doLogin() {
-  if (blockUntil > Date.now()) { showBlocked(); return; }
+    var email = document.getElementById('inp-email').value.trim();
+    var pw    = document.getElementById('inp-pw').value;
+    var btn   = document.getElementById('btn-login');
+    var spinner = document.getElementById('spinner');
+    var errBox  = document.getElementById('error-box');
+    var errMsg  = document.getElementById('error-msg');
 
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-
-  if (!username || !password) {
-    showAlert('error', 'Identifiant et mot de passe requis');
-    return;
-  }
-
-  const btn = document.getElementById('btn-login');
-  btn.disabled = true;
-  btn.textContent = '⏳ Vérification…';
-
-  try {
-    const r = await fetch(`${API}/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    const data = await r.json();
-
-    if (data.success) {
-      // Reset tentatives
-      localStorage.removeItem('admin_fail_count');
-      localStorage.removeItem('admin_block_until');
-
-      // Stocker token admin
-      sessionStorage.setItem('ssiap_admin_token', data.token || 'admin_ok');
-      sessionStorage.setItem('ssiap_admin_user',  username);
-      localStorage.setItem('ssiap_admin_token',   data.token || 'admin_ok');
-
-      showAlert('success', '✅ Connexion réussie — redirection…');
-      setTimeout(() => window.location.href = 'admin-dashboard.html', 600);
-    } else {
-      handleFail(data.error || 'Identifiant ou mot de passe incorrect');
+    if (!email || !pw) {
+        showError('Veuillez remplir tous les champs');
+        return;
     }
-  } catch {
-    // ── Mode hors-ligne : vérification locale ──
-    // Les credentials sont définis ici pour accès sans serveur
-    // ⚠️ CHANGEZ ces valeurs avant la mise en production !
-    const LOCAL_USER = 'admin';
-    const LOCAL_PASS = 'Ssiap@2026!';
 
-    if (username === LOCAL_USER && password === LOCAL_PASS) {
-      localStorage.removeItem('admin_fail_count');
-      localStorage.removeItem('admin_block_until');
-      sessionStorage.setItem('ssiap_admin_token', 'local_admin_token');
-      sessionStorage.setItem('ssiap_admin_user',  username);
-      localStorage.setItem('ssiap_admin_token',   'local_admin_token');
-      showAlert('success', '✅ Connexion réussie (mode local) — redirection…');
-      setTimeout(() => window.location.href = 'admin-dashboard.html', 600);
-    } else {
-      handleFail('Identifiant ou mot de passe incorrect');
+    // État chargement
+    btn.disabled = true;
+    document.getElementById('btn-text').textContent = 'Connexion…';
+    spinner.style.display = 'block';
+    errBox.classList.remove('show');
+
+    try {
+        var r = await fetch(API + '/admin/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pw })
+        });
+        var d = await r.json();
+
+        if (d.success && d.token) {
+            sessionStorage.setItem('adminToken', d.token);
+            var dest = new URLSearchParams(window.location.search).get('redirect') || 'dashboard-admin.html';
+            window.location = dest;
+        } else {
+            showError(d.error || 'Identifiants incorrects');
+        }
+    } catch(e) {
+        showError('Erreur de connexion au serveur');
+    } finally {
+        btn.disabled = false;
+        document.getElementById('btn-text').textContent = 'Connexion';
+        spinner.style.display = 'none';
     }
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Accéder au dashboard →';
-  }
 }
 
-function handleFail(msg) {
-  failCount++;
-  localStorage.setItem('admin_fail_count', failCount);
-
-  // Animer les champs
-  ['username','password'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.add('shake');
-    setTimeout(() => el.classList.remove('shake'), 400);
-  });
-  document.getElementById('password').value = '';
-
-  if (failCount >= MAX_TRIES) {
-    // Bloquer pour BLOCK_MIN minutes
-    const until = Date.now() + BLOCK_MIN * 60 * 1000;
-    localStorage.setItem('admin_block_until', until);
-    blockUntil = until;
-    showBlocked();
-  } else {
-    updateAttempts();
-    showAlert('error', `❌ ${msg}`);
-  }
-}
-
-function showBlocked() {
-  document.getElementById('view-login').style.display   = 'none';
-  document.getElementById('view-blocked').classList.add('show');
-  startCountdown();
-}
-
-function startCountdown() {
-  function tick() {
-    const remaining = Math.max(0, blockUntil - Date.now());
-    const m = Math.floor(remaining / 60000);
-    const s = Math.floor((remaining % 60000) / 1000);
-    document.getElementById('countdown').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-    if (remaining <= 0) {
-      localStorage.removeItem('admin_fail_count');
-      localStorage.removeItem('admin_block_until');
-      failCount = 0;
-      blockUntil = 0;
-      document.getElementById('view-blocked').classList.remove('show');
-      document.getElementById('view-login').style.display = 'block';
-      updateAttempts();
-    } else {
-      setTimeout(tick, 1000);
-    }
-  }
-  tick();
-}
-
-function togglePwd() {
-  const inp = document.getElementById('password');
-  const btn = document.getElementById('eye-btn');
-  if (inp.type === 'password') {
-    inp.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    inp.type = 'password';
-    btn.textContent = '👁️';
-  }
-}
-
-function showAlert(type, msg) {
-  const el = document.getElementById('alert');
-  if (!el) return;
-  el.innerHTML = msg;
-  el.className = `alert ${type} show`;
+function showError(msg) {
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('error-box').classList.add('show');
+    document.getElementById('inp-pw').value = '';
+    document.getElementById('inp-pw').focus();
 }
 </script>
 </body>
