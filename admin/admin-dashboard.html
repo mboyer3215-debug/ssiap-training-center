@@ -408,8 +408,6 @@ tr:hover td{background:var(--subtle)}
             </div>
           </div>
         </div>
-      </div>
-
         <div class="card">
           <div class="card-header"><div class="card-title"><span class="dot"></span>Renouvellements à venir (90 jours)</div></div>
           <table>
@@ -460,6 +458,40 @@ tr:hover td{background:var(--subtle)}
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 
+// ── GUARD : vérifier JWT admin au chargement ──
+(function() {
+    var token = sessionStorage.getItem('adminToken');
+    if (!token) {
+        window.location = 'admin-login.html';
+        return;
+    }
+    // Vérifier expiration côté client (décode le payload JWT)
+    try {
+        var payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && Date.now() / 1000 > payload.exp) {
+            sessionStorage.removeItem('adminToken');
+            window.location = 'admin-login.html?expired=1';
+        }
+    } catch(e) {
+        sessionStorage.removeItem('adminToken');
+        window.location = 'admin-login.html';
+    }
+})();
+
+function getAdminToken() {
+    return sessionStorage.getItem('adminToken') || '';
+}
+
+function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() };
+}
+
+function adminLogout() {
+    sessionStorage.removeItem('adminToken');
+    window.location = 'admin-login.html';
+}
+
+
 document.getElementById('current-date').textContent =
   new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
@@ -482,24 +514,37 @@ function goQuestions(niveau) {
   window.location = url;
 }
 
+// Fetch avec timeout (anti-Render sleep)
+function fetchTimeout(url, ms) {
+  ms = ms || 6000;
+  var ctrl = new AbortController();
+  var tid = setTimeout(function(){ ctrl.abort(); }, ms);
+  return fetch(url, {signal: ctrl.signal}).finally(function(){ clearTimeout(tid); });
+}
+
 async function loadAllData() {
   document.getElementById('refresh-icon').style.animation='spin .6s linear infinite';
-  try { await Promise.allSettled([loadCentres(),loadLicences(),loadStats()]); }
+  // Afficher les données fallback immédiatement
+  useFallbackCentres();
+  useFallbackLicences();
+  loadStats();
+  // Puis tenter la vraie API (max 6s) et mettre à jour si elle répond
+  try { await Promise.allSettled([loadCentres(), loadLicences()]); }
   finally { document.getElementById('refresh-icon').style.animation=''; }
 }
 
 async function loadCentres() {
   try {
-    const r=await fetch(`${API}/center/list`).catch(()=>null);
-    if(!r||!r.ok) throw new Error();
-    const data=await r.json();
-    const centres=data.centers||data||[];
+    const r = await fetchTimeout(API+'/center/list').catch(function(){ return null; });
+    if (!r || !r.ok) throw new Error();
+    const data = await r.json();
+    const centres = data.centers || data || [];
     renderCentresMini(centres); renderCentresFull(centres);
-    document.getElementById('kpi-centres').textContent=centres.length;
-    document.getElementById('kpi-centres-trend').textContent=`${centres.length} centre(s) enregistré(s)`;
-    document.getElementById('badge-centres').textContent=centres.length;
-    document.getElementById('centres-count').textContent=centres.length+' centre(s)';
-  } catch { useFallbackCentres(); }
+    document.getElementById('kpi-centres').textContent = centres.length;
+    document.getElementById('kpi-centres-trend').textContent = centres.length+' centre(s) enregistré(s)';
+    document.getElementById('badge-centres').textContent = centres.length;
+    document.getElementById('centres-count').textContent = centres.length+' centre(s)';
+  } catch(e) { /* fallback déjà affiché */ }
 }
 
 function useFallbackCentres() {
@@ -546,12 +591,12 @@ function renderCentresFull(centres) {
 
 async function loadLicences() {
   try {
-    const r=await fetch(`${API}/license/list`).catch(()=>null);
-    if(!r||!r.ok) throw new Error();
-    const data=await r.json();
-    const lics=data.licenses||[];
+    const r = await fetchTimeout(API+'/license/list').catch(function(){ return null; });
+    if (!r || !r.ok) throw new Error();
+    const data = await r.json();
+    const lics = data.licenses || [];
     renderLicences(lics); updateLicenceStats(lics);
-  } catch { useFallbackLicences(); }
+  } catch(e) { /* fallback déjà affiché */ }
 }
 
 function useFallbackLicences() {
@@ -675,4 +720,20 @@ function exportCSV() {
     if(cells.length) rows.push(cells);
   });
   const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
-  const a=document.createElement('a');
+  const a=document.createElement('a');  a.href='data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv);
+  a.download=`ssiap_admin_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+loadAllData();
+buildConnexions();
+buildCA();
+
+function goQuestions(niveau) {
+  var url = 'admin-questions.html';
+  if (niveau) url += '?niveau=' + niveau;
+  window.location = url;
+}
+</script>
+</body>
+</html>
