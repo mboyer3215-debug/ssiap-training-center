@@ -290,7 +290,25 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 // ── CONFIG ──
 var API        = 'https://ssiap-training-center.onrender.com/api';
 var p          = new URLSearchParams(window.location.search);
-var adminId    = p.get('adminId') || '';
+var adminToken = sessionStorage.getItem('adminToken') || '';
+
+// ── GUARD JWT ──
+if (!adminToken) { window.location = 'admin-login.html'; }
+else {
+    try {
+        var _p = JSON.parse(atob(adminToken.split('.')[1]));
+        if (_p.exp && Date.now()/1000 > _p.exp) {
+            sessionStorage.removeItem('adminToken');
+            window.location = 'admin-login.html?expired=1';
+        }
+    } catch(e) { window.location = 'admin-login.html'; }
+}
+
+
+function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken };
+}
+
 var centerId   = p.get('centerId') || 'center_default';
 
 // ── STATE ──
@@ -718,7 +736,7 @@ async function saveQuestion() {
   if (!od.corrects.length) { toast('Cochez au moins une bonne réponse','err'); btn.disabled=false; btn.innerHTML='💾 Sauvegarder'; return; }
 
   var payload = {
-    adminId, niveau: parseInt(niveau), questionId: editingId||null,
+    niveau: parseInt(niveau), questionId: editingId||null,
     data: {
       type, question, partie,
       options:        od.opts,
@@ -730,7 +748,7 @@ async function saveQuestion() {
 
   try {
     var r = await fetch(API+'/admin/questions/save', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: authHeaders(),
       body: JSON.stringify(payload)
     });
     var ct = r.headers.get('content-type')||'';
@@ -761,8 +779,8 @@ async function confirmDelete() {
   var niveau = document.getElementById('f-niveau').value;
   try {
     var r = await fetch(API+'/admin/questions/delete', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ adminId, niveau:parseInt(niveau), questionId:deleteId })
+      method:'POST', headers: authHeaders(),
+      body: JSON.stringify({ niveau:parseInt(niveau), questionId:deleteId })
     });
     var d = await r.json();
     if (!d.success) throw new Error(d.error||'Erreur');
