@@ -3,276 +3,246 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rejoindre un Quiz — SSIAP Training</title>
+<title>Rejoindre un Quiz · SSIAP Training</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --forest:#1a4a32;--green:#2e7d52;--green-light:#edf7f2;
-  --orange:#e07b2a;--orange-light:#fff3e8;
+  --bg:#f7f4f0;--surface:#fff;--subtle:#f0ece7;
+  --border:#e8e2db;--text:#1e1a17;--text2:#4a4340;--muted:#8c8078;
   --rouge:#c25a3a;--rouge-light:#fdf2ee;
+  --green:#2e7d52;--green-light:#edf7f2;
+  --orange:#e07b2a;--orange-light:#fff3e8;
   --gold:#d4960a;--gold-light:#fef7e0;
-  --blue:#2e5c8a;--blue-light:#eef4fb;
-  --purple:#6b4fa0;--purple-light:#f3eeff;
-  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;
-  --border:#e8e2db;--subtle:#f0ece7;--bg:#f7f4f0;--surface:#fff;
-  --shadow:0 4px 16px rgba(0,0,0,.09);--shadow-lg:0 16px 48px rgba(0,0,0,.18);
+  --forest:#1a4a32;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:radial-gradient(ellipse at 20% 50%,rgba(224,123,42,.08),transparent 60%),
-             radial-gradient(ellipse at 80% 20%,rgba(46,92,138,.06),transparent 60%),var(--bg);
-  color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;
-}
-.logo{text-align:center;margin-bottom:24px}
-.logo-flame{font-size:44px;filter:drop-shadow(0 4px 12px rgba(224,123,42,.4))}
-.logo-title{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--text);margin-top:6px}
-.logo-sub{font-size:12px;color:var(--muted);margin-top:3px}
-.card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow-lg);width:100%;max-width:400px;overflow:hidden;border:1px solid rgba(224,123,42,.12)}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 
-/* SAISIE */
-.card-saisie{padding:30px 26px 26px}
-.saisie-title{font-family:'Lora',serif;font-size:19px;font-weight:700;text-align:center;margin-bottom:4px}
-.saisie-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5}
-.field-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:block;margin-bottom:7px}
-.code-input{
-  width:100%;text-align:center;font-family:'Lora',serif;font-size:34px;font-weight:700;letter-spacing:10px;
-  border:2.5px solid var(--border);border-radius:14px;padding:16px 12px;
-  background:var(--subtle);color:var(--text);outline:none;transition:.18s;
-}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.1);width:100%;max-width:420px;overflow:hidden}
+.card-top{background:linear-gradient(135deg,var(--forest),#0c2118);padding:24px 22px;text-align:center}
+.card-top h1{font-family:'Lora',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
+.card-top p{font-size:12px;color:rgba(255,255,255,.5)}
+.card-body{padding:24px}
+
+/* CODE INPUT */
+.code-input{width:100%;padding:16px;text-align:center;font-size:28px;font-weight:800;letter-spacing:10px;border:2px solid var(--border);border-radius:12px;background:var(--subtle);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:.15s;margin-bottom:16px}
 .code-input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 4px rgba(224,123,42,.1)}
-.code-input::placeholder{color:var(--border);letter-spacing:4px}
-.code-input.error{border-color:var(--rouge);background:var(--rouge-light)}
 .code-input.ok{border-color:var(--green);background:var(--green-light)}
-
-/* MODE */
-.mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:7px;margin-bottom:18px}
-.mode-btn{padding:12px 10px;border-radius:12px;border:2.5px solid var(--border);background:var(--subtle);cursor:pointer;text-align:center;transition:.15s}
-.mode-btn.on.solo{border-color:var(--blue);background:var(--blue-light)}
-.mode-btn.on.equipe{border-color:var(--purple);background:var(--purple-light)}
-.mode-icon{font-size:24px;display:block;margin-bottom:5px}
-.mode-label{font-size:12px;font-weight:800;color:var(--text)}
-.mode-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.code-input.err{border-color:var(--rouge);background:var(--rouge-light)}
 
 /* PSEUDO */
-.pseudo-input{
-  width:100%;border:2px solid var(--border);border-radius:11px;
-  padding:12px 14px;font-size:14px;font-weight:700;
-  font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);
-  color:var(--text);outline:none;transition:.18s;letter-spacing:.2px;
-}
-.pseudo-input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 4px rgba(224,123,42,.1)}
-.pseudo-input.blue:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(46,92,138,.1)}
-.pseudo-input.purple:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(107,79,160,.1)}
-.pseudo-hint{font-size:11px;color:var(--muted);margin-top:6px;margin-bottom:16px;line-height:1.5}
+.field-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block}
+.pseudo-input{width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:10px;background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);outline:none;transition:.15s;margin-bottom:14px}
+.pseudo-input:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(224,123,42,.1)}
 
-.err-msg{font-size:12px;color:var(--rouge);font-weight:700;text-align:center;min-height:18px;margin-bottom:10px}
-.btn-rejoindre{
-  width:100%;padding:15px;border-radius:12px;border:none;
-  background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;
-  cursor:pointer;transition:.15s;box-shadow:0 4px 14px rgba(224,123,42,.35);
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.btn-rejoindre:hover{transform:translateY(-1px)}
-.btn-rejoindre:disabled{opacity:.45;cursor:not-allowed;transform:none}
+/* MODE */
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.mode-btn{padding:11px;border-radius:10px;border:2px solid var(--border);background:var(--subtle);cursor:pointer;text-align:center;transition:.14s;font-family:'Plus Jakarta Sans',sans-serif}
+.mode-btn .mode-icon{font-size:20px;display:block;margin-bottom:4px}
+.mode-btn .mode-lbl{font-size:12px;font-weight:700;color:var(--text2)}
+.mode-btn .mode-sub{font-size:10px;color:var(--muted)}
+.mode-btn.on{border-color:var(--orange);background:var(--orange-light)}
+.mode-btn.on .mode-lbl{color:var(--orange)}
+
+/* BOUTON */
+.btn-join{width:100%;padding:15px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:.13s;box-shadow:0 4px 14px rgba(224,123,42,.3)}
+.btn-join:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.err-msg{color:var(--rouge);font-size:12px;font-weight:700;text-align:center;margin-top:10px;min-height:18px}
 
 /* ATTENTE */
-#phase-attente{display:none;padding:24px}
-.attente-banner{background:linear-gradient(135deg,var(--forest),#0c2118);border-radius:14px;padding:22px;text-align:center;margin-bottom:18px}
-.attente-pseudo{font-family:'Lora',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
-.attente-mode-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:12px}
-.attente-mode-badge.solo{background:rgba(46,92,138,.4);color:#a8c8ff}
-.attente-mode-badge.equipe{background:rgba(107,79,160,.4);color:#cbb8ff}
-.attente-code{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px}
-.attente-pulse{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:20px;padding:8px 16px;font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
-.dot-pulse{width:8px;height:8px;background:#4ade80;border-radius:50%;animation:dpulse 1.4s infinite}
-@keyframes dpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.65)}}
-.quiz-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
-.chip{background:var(--subtle);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text2)}
-.nb-parts-live{font-size:13px;color:var(--muted);text-align:center}
-.nb-parts-val{font-size:28px;font-weight:800;color:var(--orange);display:block;text-align:center;margin:4px 0 6px}
-.attente-note{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+.wait-screen{text-align:center;padding:32px 24px}
+.wait-code{font-family:'Lora',serif;font-size:48px;font-weight:700;color:var(--forest);letter-spacing:10px;margin:10px 0}
+.wait-pseudo{font-size:14px;font-weight:700;color:var(--muted);margin-bottom:20px}
+.pulse{width:48px;height:48px;border-radius:50%;background:var(--orange-light);border:3px solid var(--orange);margin:0 auto 12px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.7}}
+.wait-info{font-size:13px;color:var(--muted);line-height:1.6}
 
-/* QUIZ */
-#phase-quiz{display:none}
-.q-header{background:linear-gradient(135deg,var(--orange),#c4681e);padding:20px 22px 16px}
-.q-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.q-num{font-size:11px;font-weight:700;color:rgba(255,255,255,.7)}
-.q-pts{font-size:12px;font-weight:800;color:#fff;background:rgba(255,255,255,.2);padding:3px 10px;border-radius:20px}
-.q-bar{height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden;margin-bottom:14px}
-.q-bar-fill{height:100%;background:#fff;border-radius:2px;transition:.4s}
-.q-text{font-family:'Lora',serif;font-size:15px;font-weight:600;color:#fff;line-height:1.55}
-.options{padding:16px 20px 4px;display:flex;flex-direction:column;gap:8px}
-.opt{padding:12px 15px;border-radius:11px;border:2px solid var(--border);background:var(--subtle);cursor:pointer;font-size:13px;font-weight:600;color:var(--text);transition:.14s;display:flex;align-items:center;gap:10px}
-.opt:hover{border-color:var(--orange);background:var(--orange-light)}
-.opt.selected{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
-.opt.correct{border-color:var(--green)!important;background:var(--green-light)!important;color:var(--green)!important}
-.opt.wrong{border-color:var(--rouge)!important;background:var(--rouge-light)!important;color:var(--rouge)!important}
-.opt-letter{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;transition:.14s;color:var(--text2)}
-.opt.selected .opt-letter{background:var(--orange);color:#fff}
-.opt.correct .opt-letter{background:var(--green);color:#fff}
-.opt.wrong .opt-letter{background:var(--rouge);color:#fff}
-.q-footer{padding:10px 20px 20px;display:flex;flex-direction:column;gap:9px}
-.expl-box{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:9px;padding:10px 13px;font-size:12px;color:var(--text2);line-height:1.6;display:none}
-.expl-box strong{color:var(--gold)}
-.btn-valider{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
-.btn-valider:disabled{opacity:.4;cursor:not-allowed}
-.btn-suivant{width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:none}
+/* QUESTION SCREEN */
+.quiz-screen{padding:0}
+.quiz-header{background:linear-gradient(135deg,var(--forest),#0c2118);padding:18px 20px;text-align:center}
+.quiz-q-num{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px}
+.quiz-prog{height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.quiz-prog-fill{height:100%;background:var(--orange);border-radius:2px;transition:.4s}
+.quiz-q-text{font-family:'Lora',serif;font-size:16px;font-weight:600;color:#fff;line-height:1.5}
+.quiz-opts{padding:14px;display:grid;gap:8px}
+.opt-btn{width:100%;padding:13px 16px;border-radius:10px;border:2px solid var(--border);background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:.15s}
+.opt-btn:hover:not(:disabled){border-color:var(--orange);background:var(--orange-light)}
+.opt-btn.selected{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
+.opt-btn.ok{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.opt-btn.ko{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+.opt-btn:disabled{cursor:not-allowed}
+.opt-let{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.opt-btn.selected .opt-let,.opt-btn.ok .opt-let{background:var(--green);color:#fff}
+.opt-btn.ko .opt-let{background:var(--rouge);color:#fff}
+.quiz-wait{padding:14px 20px;text-align:center;font-size:13px;color:var(--muted);display:none}
+.result-badge{margin:12px 16px;padding:12px 16px;border-radius:10px;text-align:center;font-weight:800;font-size:15px;display:none}
+.result-badge.ok{background:var(--green-light);color:var(--green);border:2px solid var(--green)}
+.result-badge.ko{background:var(--rouge-light);color:var(--rouge);border:2px solid var(--rouge)}
+.expl-zone{margin:0 16px 14px;padding:10px 14px;background:var(--gold-light);border-left:3px solid var(--gold);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;display:none}
+.next-wait{padding:12px 20px 16px;text-align:center;font-size:12px;color:var(--muted);display:none}
 
-/* RÉSULTATS */
-#phase-resultats{display:none;padding:24px}
-.res-circle{width:100px;height:100px;border-radius:50%;margin:0 auto 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px solid var(--orange)}
-.res-pct{font-family:'Lora',serif;font-size:28px;font-weight:700}
-.res-pct-lbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.res-title{font-family:'Lora',serif;font-size:18px;font-weight:700;text-align:center;margin-bottom:6px}
-.res-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.5}
-.res-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
-.res-chip{border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800}
-.res-chip.ok{background:var(--green-light);color:var(--green)}
-.res-chip.ko{background:var(--rouge-light);color:var(--rouge)}
-.res-chip.neu{background:var(--subtle);color:var(--muted)}
-.class-hdr{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.class-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:5px;background:var(--subtle);border:1.5px solid var(--border)}
-.class-row.me{border-color:var(--orange);background:var(--orange-light)}
-.class-row.top1{border-color:#ffd700;background:#fffbea}
-.class-rank{font-size:16px;min-width:28px;text-align:center;font-weight:800}
-.class-info{flex:1}
-.class-pseudo{font-size:12px;font-weight:800}
-.class-mode{font-size:10px;color:var(--muted)}
-.class-pct{font-size:14px;font-weight:800}
-.badge-me{font-size:10px;background:var(--orange);color:#fff;padding:1px 6px;border-radius:4px;margin-left:4px;font-weight:700}
-.btn-retour{width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--subtle);color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
-.spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* RÉSULTATS STAGIAIRE */
+.recap-screen{padding:24px}
+.recap-rank{text-align:center;margin-bottom:20px}
+.recap-medal{font-size:56px;display:block;margin-bottom:6px}
+.recap-pos{font-family:'Lora',serif;font-size:22px;font-weight:700}
+.recap-pct{font-size:36px;font-weight:800;color:var(--orange);display:block;margin:4px 0}
+.recap-detail{font-size:13px;color:var(--muted)}
+.recap-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:10px;background:var(--subtle);border:1.5px solid var(--border);margin-bottom:6px;transition:.13s}
+.recap-row[onclick]:hover{border-color:var(--rouge);background:#fdf2ee}
+.recap-q-num{font-size:12px;font-weight:700;color:var(--muted);min-width:30px}
+.recap-q-text{font-size:12px;flex:1;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recap-q-icon{font-size:18px}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* MODAL DÉTAIL QUESTION */
+.modal-q-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-q-overlay.open{display:flex}
+.modal-q-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.18)}
+.modal-q-head{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.modal-q-title{font-family:'Lora',serif;font-size:15px;font-weight:700}
+.modal-q-close{background:var(--subtle);border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-q-body{padding:16px 20px;overflow-y:auto;flex:1}
+.dq-block{margin-bottom:10px;border-radius:10px;padding:11px 14px;font-size:12px;line-height:1.55}
+.dq-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.dq-question{background:var(--subtle);border:1.5px solid var(--border)}
+.dq-question .dq-lbl{color:var(--muted)}
+.dq-user-ko{background:#fdf2ee;border:1.5px solid #c25a3a30}
+.dq-user-ko .dq-lbl{color:var(--rouge)}
+.dq-correct{background:#edf7f2;border:1.5px solid #2e7d5230}
+.dq-correct .dq-lbl{color:var(--green)}
+.dq-expl{background:var(--gold-light);border:1.5px solid #d4960a30}
+.dq-expl .dq-lbl{color:var(--gold)}
+.dq-nav{display:flex;gap:8px;padding:12px 20px;border-top:1px solid var(--border)}
+.dq-nav-btn{flex:1;padding:11px;border-radius:9px;border:1.5px solid var(--border);background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
+.dq-nav-btn:disabled{opacity:.3;cursor:default}
+.dq-nav-btn.active:hover{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
 </style>
 </head>
 <body>
 
-<div class="logo">
-  <div class="logo-flame">🔥</div>
-  <div class="logo-title">SSIAP Training</div>
-  <div class="logo-sub">Quiz en Salle</div>
+<div class="card" id="main-card">
+  <!-- ═══ FORMULAIRE ═══ -->
+  <div id="screen-form">
+    <div class="card-top">
+      <h1>🔥 Rejoindre un Quiz</h1>
+      <p>Saisissez le code affiché par votre formateur</p>
+    </div>
+    <div class="card-body">
+      <input type="text" class="code-input" id="code-input"
+        placeholder="000 000" maxlength="7"
+        oninput="fmtCode(this)" onkeydown="if(event.key==='Enter')document.getElementById('pseudo-input').focus()">
+
+      <span class="field-label" id="pseudo-label">Votre pseudo</span>
+      <input type="text" class="pseudo-input" id="pseudo-input"
+        placeholder="Agent47…" maxlength="20"
+        oninput="checkForm()" onkeydown="if(event.key==='Enter')rejoindre()">
+
+      <span class="field-label">Mode</span>
+      <div class="mode-row">
+        <div class="mode-btn on" id="mode-solo" onclick="setMode('solo')">
+          <span class="mode-icon">🧑</span>
+          <div class="mode-lbl">Solo</div>
+          <div class="mode-sub">Score individuel</div>
+        </div>
+        <div class="mode-btn" id="mode-equipe" onclick="setMode('equipe')">
+          <span class="mode-icon">👥</span>
+          <div class="mode-lbl">Équipe</div>
+          <div class="mode-sub">Score partagé</div>
+        </div>
+      </div>
+
+      <button class="btn-join" id="btn-join" onclick="rejoindre()" disabled>
+        Rejoindre le quiz →
+      </button>
+      <div class="err-msg" id="err-msg"></div>
+    </div>
+  </div>
+
+  <!-- ═══ ATTENTE ═══ -->
+  <div id="screen-wait" style="display:none">
+    <div class="wait-screen">
+      <div class="pulse"></div>
+      <div class="wait-code" id="wait-code">—</div>
+      <div class="wait-pseudo" id="wait-pseudo"></div>
+      <div class="wait-info">Le quiz va commencer…<br>Attendez que le formateur démarre.</div>
+    </div>
+  </div>
+
+  <!-- ═══ QUESTION ═══ -->
+  <div id="screen-quiz" style="display:none">
+    <div class="quiz-header">
+      <div class="quiz-q-num">Question <span id="qn-num">1</span> / <span id="qn-tot">?</span></div>
+      <div class="quiz-prog"><div class="quiz-prog-fill" id="qn-prog" style="width:0%"></div></div>
+      <div class="quiz-q-text" id="qn-text">Chargement…</div>
+    </div>
+    <div class="quiz-opts" id="qn-opts"></div>
+    <div style="padding:0 14px 0">
+      <button id="btn-valider" onclick="envoyerReponse()" style="display:none;width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:10px">
+        ✓ Valider ma réponse
+      </button>
+    </div>
+    <div class="result-badge" id="res-badge"></div>
+    <div class="expl-zone" id="expl-zone"></div>
+    <div class="quiz-wait" id="quiz-wait-lbl">⏳ En attente des autres participants…</div>
+    <div class="next-wait" id="next-wait-lbl">⏭ Le formateur va passer à la question suivante…</div>
+  </div>
+
+  <!-- ═══ RÉSULTATS STAGIAIRE ═══ -->
+  <div id="screen-results" style="display:none">
+    <div class="recap-screen">
+      <div class="recap-rank">
+        <span class="recap-medal" id="res-medal">🎯</span>
+        <div class="recap-pos" id="res-pos">Résultats</div>
+        <span class="recap-pct" id="res-pct">—</span>
+        <div class="recap-detail" id="res-detail"></div>
+      </div>
+      <div id="res-rows"></div>
+      <button onclick="retour()" style="width:100%;margin-top:16px;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;cursor:pointer">
+        ← Retour à l'accueil
+      </button>
+    </div>
+  </div>
+
+<!-- MODAL DÉTAIL QUESTION -->
+<div class="modal-q-overlay" id="modal-dq" onclick="if(event.target===this)closeDetailQ()">
+  <div class="modal-q-sheet">
+    <div class="modal-q-head">
+      <span class="modal-q-title" id="dq-title">Détail question</span>
+      <button class="modal-q-close" onclick="closeDetailQ()">✕</button>
+    </div>
+    <div class="modal-q-body" id="dq-body"></div>
+    <div class="dq-nav">
+      <button class="dq-nav-btn" id="dq-prev" onclick="navDetailQ(-1)">← Préc.</button>
+      <button class="dq-nav-btn active" id="dq-next" onclick="navDetailQ(1)">Suiv. →</button>
+    </div>
+  </div>
 </div>
-
-<div class="card">
-
-  <!-- ══ SAISIE ══ -->
-  <div id="phase-saisie" class="card-saisie">
-    <div class="saisie-title">🎮 Rejoindre le quiz</div>
-    <div class="saisie-sub">Entrez le code affiché par votre formateur</div>
-
-    <span class="field-lbl" style="margin-bottom:7px">Code de salle</span>
-    <input type="text" class="code-input" id="code-input"
-      placeholder="000 000" maxlength="7" inputmode="numeric" autocomplete="off"
-      oninput="formatCode(this)" onkeydown="if(event.key==='Enter') focusPseudo()"
-      style="margin-bottom:20px">
-
-    <span class="field-lbl">Vous jouez</span>
-    <div class="mode-btns">
-      <div class="mode-btn solo on" id="mode-solo" onclick="setMode('solo')">
-        <span class="mode-icon">🧑</span>
-        <div class="mode-label">Solo</div>
-        <div class="mode-sub">Score individuel</div>
-      </div>
-      <div class="mode-btn equipe" id="mode-equipe" onclick="setMode('equipe')">
-        <span class="mode-icon">👥</span>
-        <div class="mode-label">Équipe</div>
-        <div class="mode-sub">Score partagé</div>
-      </div>
-    </div>
-
-    <span class="field-lbl" id="pseudo-lbl">Votre pseudo</span>
-    <input type="text" class="pseudo-input blue" id="pseudo-input"
-      placeholder="Ex : Agent47, Manu_B…" maxlength="30" autocomplete="off"
-      oninput="checkForm()" onkeydown="if(event.key==='Enter') rejoindre()">
-    <div class="pseudo-hint" id="pseudo-hint">
-      Choisissez un pseudo — il apparaîtra dans le classement 🏆
-    </div>
-
-    <div class="err-msg" id="err-msg"></div>
-
-    <button class="btn-rejoindre" id="btn-rejoindre" onclick="rejoindre()" disabled>
-      🚀 Rejoindre le quiz
-    </button>
-  </div>
-
-  <!-- ══ ATTENTE ══ -->
-  <div id="phase-attente">
-    <div style="padding:24px">
-      <div class="attente-banner">
-        <div class="attente-pseudo" id="attente-pseudo">Prêt !</div>
-        <div class="attente-mode-badge solo" id="attente-badge">🧑 Solo</div>
-        <div class="attente-code" id="attente-code">Code : —</div>
-        <div class="attente-pulse"><div class="dot-pulse"></div>En attente du formateur…</div>
-      </div>
-      <div class="quiz-chips" id="quiz-chips"></div>
-      <div class="nb-parts-live">Participants connectés</div>
-      <span class="nb-parts-val" id="nb-parts-val">1</span>
-      <div class="attente-note">Restez sur cette page.<br>Le quiz démarrera automatiquement.</div>
-    </div>
-  </div>
-
-  <!-- ══ QUIZ ══ -->
-  <div id="phase-quiz">
-    <div class="q-header">
-      <div class="q-top">
-        <span class="q-num">Question <span id="q-num">1</span> / <span id="q-total">?</span></span>
-        <span class="q-pts" id="q-pts">0 pts</span>
-      </div>
-      <div class="q-bar"><div class="q-bar-fill" id="q-bar-fill" style="width:0%"></div></div>
-      <div class="q-text" id="q-text">Chargement…</div>
-    </div>
-    <div class="options" id="options"></div>
-    <div class="q-footer">
-      <div class="expl-box" id="expl-box"></div>
-      <button class="btn-valider" id="btn-valider" onclick="valider()" disabled>Valider ma réponse</button>
-      <button class="btn-suivant" id="btn-suivant" onclick="suivante()">Question suivante →</button>
-    </div>
-  </div>
-
-  <!-- ══ RÉSULTATS ══ -->
-  <div id="phase-resultats" style="text-align:center">
-    <div style="padding:24px 24px 0">
-      <div class="res-circle" id="res-circle">
-        <div class="res-pct" id="res-pct">0%</div>
-        <div class="res-pct-lbl">Score</div>
-      </div>
-      <div class="res-title" id="res-title">Terminé !</div>
-      <div class="res-sub"   id="res-sub"></div>
-      <div class="res-chips" id="res-chips"></div>
-    </div>
-    <div style="padding:0 24px 24px;text-align:left">
-      <div class="class-hdr">🏆 Classement en salle</div>
-      <div id="classement-list"></div>
-      <button class="btn-retour" onclick="retourAccueil()">← Retour à l'accueil</button>
-    </div>
-  </div>
-
 </div>
 
 <script>
-var API      = 'https://ssiap-training-center.onrender.com/api';
-var BASE_URL = 'https://ssiap-training-center.onrender.com';
-var stagConnecte = window.STAGIAIRE_CONNECTE || JSON.parse(localStorage.getItem('ssiap_stagiaire') || 'null');
+var API = 'https://ssiap-training-center.onrender.com/api';
+var up  = new URLSearchParams(window.location.search);
 
-var modeJeu     = 'solo';
-var codeActuel  = null;
-var centerId    = null;
-var monId       = null;
-var pollTimer   = null;
-var questions   = [];
-var qIndex      = 0;
-var score       = 0;
-var repActuelle = [];
-var detailsEchecs = [];
-var monPseudo   = '';
+var urlCode      = up.get('code')      || '';
+var urlCenterId  = up.get('centerId')  || '';
+var urlSessionId = up.get('sessionId') || '';
 
-var params      = new URLSearchParams(window.location.search);
-var urlCode     = params.get('code')     || '';
-var urlCenterId = params.get('centerId') || '';
-if (urlCenterId) centerId = urlCenterId;
+var participantId = null;
+var centerId      = urlCenterId;
+var codeUsed      = null;
+var modeJeu       = 'solo';
+var poll          = null;
+var curQIdx       = -1;
+var myReponses    = {}; // { qIdx: { answers, isCorrect } }
+var myAnswersSent = {}; // { qIdx: true } — déjà envoyé
+var myQuestions    = {}; // { qIdx: questionObj }
+var lastShowRes   = false;
+var totalQuestions = 0;
 
+// ── PRÉ-REMPLISSAGE URL ──
 if (urlCode) {
   var raw0 = urlCode.replace(/\D/g,'').slice(0,6);
   document.getElementById('code-input').value = raw0.slice(0,3)+(raw0.length>3?' '+raw0.slice(3):'');
@@ -281,223 +251,370 @@ if (urlCode) {
   setTimeout(function(){ document.getElementById('pseudo-input').focus(); }, 200);
 }
 
-function setMode(mode) {
-  modeJeu = mode;
-  ['solo','equipe'].forEach(function(m) {
-    var el = document.getElementById('mode-'+m);
-    el.classList.toggle('on', m===mode);
-  });
-  var inp  = document.getElementById('pseudo-input');
-  var lbl  = document.getElementById('pseudo-lbl');
-  var hint = document.getElementById('pseudo-hint');
-  if (mode==='solo') {
-    lbl.textContent  = 'Votre pseudo';
-    inp.placeholder  = 'Ex : Agent47, Manu_B…';
-    hint.textContent = 'Choisissez un pseudo — il apparaîtra dans le classement 🏆';
-    inp.className    = 'pseudo-input blue';
-  } else {
-    lbl.textContent  = 'Nom de votre équipe';
-    inp.placeholder  = 'Ex : Équipe A, Les Pompiers…';
-    hint.textContent = 'Tous les membres jouent ensemble sous ce nom d\'équipe.';
-    inp.className    = 'pseudo-input purple';
-  }
+// ── FORMAT CODE ──
+function fmtCode(inp) {
+  var d = inp.value.replace(/\D/g,'').slice(0,6);
+  inp.value = d.slice(0,3)+(d.length>3?' '+d.slice(3):'');
+  inp.classList.toggle('ok', d.length===6);
+  inp.classList.toggle('err', false);
   checkForm();
 }
 
-function formatCode(inp) {
-  var raw = inp.value.replace(/\D/g,'').slice(0,6);
-  inp.value = raw.slice(0,3)+(raw.length>3?' '+raw.slice(3):'');
-  inp.classList.remove('error','ok');
-  setErr('');
-  if (raw.length===6) inp.classList.add('ok');
+// ── MODE ──
+function setMode(m) {
+  modeJeu = m;
+  document.getElementById('mode-solo').classList.toggle('on', m==='solo');
+  document.getElementById('mode-equipe').classList.toggle('on', m==='equipe');
+  document.getElementById('pseudo-label').textContent = m==='equipe' ? 'Nom de votre équipe' : 'Votre pseudo';
+  document.getElementById('pseudo-input').placeholder = m==='equipe' ? 'Équipe A…' : 'Agent47…';
   checkForm();
 }
-function focusPseudo() { document.getElementById('pseudo-input').focus(); }
+
+// ── VALIDATION ──
 function checkForm() {
   var raw    = document.getElementById('code-input').value.replace(/\D/g,'');
   var pseudo = document.getElementById('pseudo-input').value.trim();
-  document.getElementById('btn-rejoindre').disabled = !(raw.length===6 && pseudo.length>=2);
+  document.getElementById('btn-join').disabled = !(raw.length===6 && pseudo.length>=2);
 }
-function setErr(msg) { document.getElementById('err-msg').textContent = msg; }
 
+// ── REJOINDRE ──
 async function rejoindre() {
   var raw    = document.getElementById('code-input').value.replace(/\D/g,'');
   var pseudo = document.getElementById('pseudo-input').value.trim();
-  if (raw.length!==6)    { setErr('Le code doit contenir 6 chiffres.'); return; }
-  if (pseudo.length < 2) { setErr('Entrez un pseudo d\'au moins 2 caractères.'); return; }
+  if (raw.length!==6 || pseudo.length<2) return;
 
-  var btn = document.getElementById('btn-rejoindre');
+  var btn = document.getElementById('btn-join');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Connexion…';
   setErr('');
-  monPseudo = pseudo;
 
   try {
-    var payload = {
-      code:        raw,
-      centerId:    centerId || urlCenterId || '',
-      pseudo:      pseudo,
-      mode:        modeJeu,
-      stagiaireId: stagConnecte ? stagConnecte.stagiaireId : null,
-      sessionId:   stagConnecte ? stagConnecte.sessionId   : null,
-    };
-    var r = await fetch(API+'/quiz/rejoindre', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    var r = await post('/quiz/rejoindre',{
+      code:raw, centerId:centerId||urlCenterId,
+      pseudo, mode:modeJeu,
+      stagiaireId: up.get('stagiaireId')||'',
+      sessionId:   urlSessionId||''
     });
-    // Vérifier que la réponse est bien du JSON (le serveur peut renvoyer du HTML si endpoint absent)
-    var contentType = r.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-      throw new Error('Le serveur ne reconnaît pas encore cet endpoint. Vérifiez que quiz-salle-routes.js est bien déployé (HTTP ' + r.status + ')');
-    }
-    var d = await r.json();
-    if (!d.success) throw new Error(d.error || 'Code invalide ou expiré');
-
-    codeActuel = raw;
-    centerId   = d.centerId || centerId || urlCenterId;
-    monId      = d.participantId || (stagConnecte ? stagConnecte.stagiaireId : null) || 'anon_'+Date.now();
-    afficherAttente(pseudo, d.quiz || {});
+    if (!r.success) throw new Error(r.error||'Erreur');
+    participantId = r.participantId;
+    centerId      = r.centerId||centerId;
+    codeUsed      = raw;
+    afficherAttente(raw, pseudo);
+    startPoll();
   } catch(e) {
-    setErr(e.message || 'Code invalide. Vérifiez et réessayez.');
-    document.getElementById('code-input').classList.add('error');
-    btn.disabled = false;
-    btn.innerHTML = '🚀 Rejoindre le quiz';
+    setErr(e.message);
+    document.getElementById('code-input').classList.add('err');
+    btn.disabled=false; btn.innerHTML='Rejoindre le quiz →';
   }
 }
 
-function afficherAttente(pseudo, quiz) {
-  document.getElementById('phase-saisie').style.display  = 'none';
-  document.getElementById('phase-attente').style.display = 'block';
-
-  document.getElementById('attente-pseudo').textContent = pseudo;
-  var badge = document.getElementById('attente-badge');
-  if (modeJeu==='equipe') { badge.textContent='👥 Équipe'; badge.className='attente-mode-badge equipe'; }
-  else                    { badge.textContent='🧑 Solo';   badge.className='attente-mode-badge solo'; }
-  document.getElementById('attente-code').textContent = 'Code : '+codeActuel.slice(0,3)+' '+codeActuel.slice(3);
-
-  var typeLabel = {debut_session:'Début de session',fin_session:'Fin de session',evaluation:'Évaluation',recyclage:'Recyclage'};
-  var chips = document.getElementById('quiz-chips'); chips.innerHTML='';
-  if (quiz.type)        chips.innerHTML += '<span class="chip">'+(typeLabel[quiz.type]||quiz.type)+'</span>';
-  if (quiz.nbQuestions) chips.innerHTML += '<span class="chip">'+quiz.nbQuestions+' questions</span>';
-  if (quiz.niveau)      chips.innerHTML += '<span class="chip">SSIAP '+quiz.niveau+'</span>';
-
-  if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(pollStatut, 2200);
-  pollStatut();
+function afficherAttente(code, pseudo) {
+  show('screen-wait');
+  document.getElementById('wait-code').textContent = code.slice(0,3)+'-'+code.slice(3);
+  document.getElementById('wait-pseudo').textContent = pseudo+' · '+(modeJeu==='equipe'?'👥 Équipe':'🧑 Solo');
 }
 
-async function pollStatut() {
-  if (!codeActuel) return;
+// ── POLLING ──
+function startPoll(){ if(poll)clearInterval(poll); poll=setInterval(doPoll,2000); doPoll(); }
+
+async function doPoll() {
+  if (!codeUsed) return;
   try {
-    var r = await fetch(API+'/quiz/statut/'+codeActuel+'?centerId='+encodeURIComponent(centerId||'')+'&participantId='+encodeURIComponent(monId||''));
+    var r = await fetch(API+'/quiz/statut/'+codeUsed+'?centerId='+encodeURIComponent(centerId));
     var d = await r.json();
     if (!d.success) return;
-    var nb = Object.keys(d.participants||{}).length;
-    var el = document.getElementById('nb-parts-val'); if(el) el.textContent = nb;
-    if (d.phase==='actif' && d.questions && d.questions.length) {
-      clearInterval(pollTimer);
-      questions = d.questions;
-      lancerQuiz();
+
+    if (d.phase==='attente') {
+      // Rien — on attend
+    } else if (d.phase==='actif') {
+      var q = d.questionCourante;
+      if (!q) return;
+      var qIdx = d.currentQuestion;
+      totalQuestions = d.totalQuestions||1;
+
+      // Nouvelle question ?
+      if (qIdx !== curQIdx) {
+        curQIdx = qIdx;
+        lastShowRes = false;
+        afficherQuestion(q, qIdx, d.totalQuestions);
+      }
+
+      // Le formateur a affiché les réponses ?
+      if (d.showResults && !lastShowRes) {
+        lastShowRes = true;
+        afficherCorrection(q, qIdx);
+      }
+    } else if (d.phase==='termine') {
+      clearInterval(poll);
+      afficherResultats(d.participants);
+    } else if (d.phase==='annule') {
+      clearInterval(poll);
+      afficherAnnulation();
     }
-  } catch(e) {}
+  } catch(e){}
 }
 
-function lancerQuiz() {
-  document.getElementById('phase-attente').style.display = 'none';
-  document.getElementById('phase-quiz').style.display    = 'block';
-  qIndex=0; score=0; repActuelle=[]; detailsEchecs=[];
-  document.getElementById('q-total').textContent = questions.length;
-  afficherQuestion();
-}
+// ── AFFICHER QUESTION ──
+function afficherQuestion(q, idx, tot) {
+  myQuestions[idx] = q;
+  show('screen-quiz');
+  document.getElementById('qn-num').textContent  = idx+1;
+  document.getElementById('qn-tot').textContent  = tot;
+  document.getElementById('qn-prog').style.width = Math.round(((idx+1)/tot)*100)+'%';
+  document.getElementById('qn-text').textContent = q.question||q.texte||'';
+  document.getElementById('res-badge').style.display  = 'none';
+  document.getElementById('expl-zone').style.display  = 'none';
+  document.getElementById('quiz-wait-lbl').style.display = 'none';
+  document.getElementById('next-wait-lbl').style.display = 'none';
 
-function afficherQuestion() {
-  var q   = questions[qIndex];
-  var num = qIndex+1;
-  document.getElementById('q-num').textContent      = num;
-  document.getElementById('q-pts').textContent      = score+' pts';
-  document.getElementById('q-bar-fill').style.width = Math.round((num/questions.length)*100)+'%';
-  document.getElementById('q-text').textContent     = q.question || q.texte || '';
-  var letters=['A','B','C','D','E'];
-  var list=document.getElementById('options'); list.innerHTML=''; repActuelle=[];
-  (q.options||[]).forEach(function(opt,i) {
-    var div=document.createElement('div'); div.className='opt'; div.dataset.idx=i;
-    div.innerHTML='<div class="opt-letter">'+letters[i]+'</div><div style="flex:1;line-height:1.4">'+opt+'</div>';
-    div.onclick=function(){toggleOpt(i);}; list.appendChild(div);
-  });
-  document.getElementById('expl-box').style.display='none';
-  var bv=document.getElementById('btn-valider'); bv.style.display='block'; bv.disabled=true;
-  document.getElementById('btn-suivant').style.display='none';
-}
-
-function toggleOpt(i) {
-  if(document.getElementById('btn-valider').style.display==='none') return;
-  var opt=document.querySelectorAll('.opt')[i];
-  var idx=repActuelle.indexOf(i);
-  if(idx>-1){repActuelle.splice(idx,1);opt.classList.remove('selected');}
-  else{repActuelle.push(i);opt.classList.add('selected');}
-  document.getElementById('btn-valider').disabled=repActuelle.length===0;
-}
-
-function valider() {
-  var q=questions[qIndex];
-  var correctIdxs=Array.isArray(q.correctAnswers)?q.correctAnswers:[q.correctAnswer??q.bonneReponse??0];
-  var isOk=correctIdxs.length===repActuelle.length&&correctIdxs.every(function(ci){return repActuelle.includes(ci);});
-  if(isOk) score++;
-  document.querySelectorAll('.opt').forEach(function(opt,i){
-    if(correctIdxs.includes(i)){opt.classList.remove('selected');opt.classList.add('correct');}
-    else if(repActuelle.includes(i)){opt.classList.remove('selected');opt.classList.add('wrong');}
-  });
-  if(q.explanation){var ex=document.getElementById('expl-box');ex.innerHTML='<strong>💡 Explication :</strong> '+q.explanation;ex.style.display='block';}
-  if(!isOk){detailsEchecs.push({question:q.question||q.texte||'',userAnswerLabels:repActuelle.map(function(i){return(q.options||[])[i]||'';}),correctAnswerLabels:correctIdxs.map(function(i){return(q.options||[])[i]||'';}),explanation:q.explanation||''});}
-  document.getElementById('btn-valider').style.display='none';
-  document.getElementById('btn-suivant').style.display='block';
-  document.getElementById('q-pts').textContent=score+' pts';
-  try{fetch(API+'/quiz/repondre',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:codeActuel,centerId,participantId:monId,questionIndex:qIndex,answers:repActuelle,isCorrect:isOk})});}catch(e){}
-}
-
-function suivante(){qIndex++;if(qIndex<questions.length)afficherQuestion();else terminerQuiz();}
-
-async function terminerQuiz() {
-  var total=questions.length, pct=Math.round((score/total)*100), passed=pct>=50;
-  if(stagConnecte&&stagConnecte.stagiaireId&&centerId){
-    try{await fetch(API+'/stagiaire/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({centerId,sessionId:stagConnecte.sessionId||'',stagiaireId:stagConnecte.stagiaireId,score,total,pct,mode:'salle',pseudo:monPseudo,modeJeu,detailsEchecs:detailsEchecs.length?detailsEchecs:null})});}catch(e){}
-  }
-  var classement=[];
-  try{
-    var r=await fetch(API+'/quiz/fin-participant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:codeActuel,centerId,participantId:monId,pseudo:monPseudo,mode:modeJeu,score,total,pct,detailsEchecs:detailsEchecs.length?detailsEchecs:null})});
-    var d=await r.json(); if(d.classement) classement=d.classement;
-  }catch(e){}
-  afficherResultats(pct,score,total,passed,classement);
-}
-
-function afficherResultats(pct,ok,total,passed,classement) {
-  document.getElementById('phase-quiz').style.display      ='none';
-  document.getElementById('phase-resultats').style.display ='block';
-  var col=pct>=70?'var(--green)':pct>=50?'var(--gold)':'var(--rouge)';
-  var circ=document.getElementById('res-circle');
-  circ.style.borderColor=col; circ.style.background=pct>=70?'var(--green-light)':pct>=50?'var(--gold-light)':'var(--rouge-light)';
-  document.getElementById('res-pct').textContent=pct+'%'; document.getElementById('res-pct').style.color=col;
-  document.getElementById('res-title').textContent=pct>=70?'🏆 Excellent !':pct>=50?'👍 Bien joué !':'📚 À retravailler';
-  document.getElementById('res-sub').textContent=pct>=50?'Score de '+pct+'% — continuez comme ça !':'Score de '+pct+'% — revoyez les questions manquées.';
-  document.getElementById('res-chips').innerHTML=
-    '<span class="res-chip ok">✓ '+ok+' correcte'+(ok>1?'s':'')+'</span>'+
-    '<span class="res-chip ko">✗ '+(total-ok)+' incorrecte'+(total-ok>1?'s':'')+'</span>'+
-    '<span class="res-chip neu">'+total+' questions</span>';
-  var c=document.getElementById('classement-list');
-  if(!classement.length){c.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">Classement en attente…</div>';return;}
-  var sorted=[].concat(classement).sort(function(a,b){return(parseFloat(b.pct)||0)-(parseFloat(a.pct)||0);});
-  var medals=['🥇','🥈','🥉'];
-  c.innerHTML=sorted.slice(0,10).map(function(p,i){
-    var isMe=p.participantId===monId;
-    var pctP=parseFloat(p.pct||0); var col2=pctP>=70?'var(--green)':pctP>=50?'var(--gold)':'var(--rouge)';
-    return '<div class="class-row'+(isMe?' me':'')+(i===0?' top1':'')+'">' +
-      '<div class="class-rank">'+(medals[i]||'#'+(i+1))+'</div>' +
-      '<div class="class-info"><div class="class-pseudo">'+(p.pseudo||'—')+(isMe?'<span class="badge-me">vous</span>':'')+'</div>' +
-      '<div class="class-mode">'+(p.mode==='equipe'?'👥 Équipe':'🧑 Solo')+'</div></div>' +
-      '<div class="class-pct" style="color:'+col2+'">'+p.pct+'%</div></div>';
+  var lets=['A','B','C','D'];
+  var html=(q.options||[]).map(function(o,i){
+    return '<button class="opt-btn" id="ob-'+i+'" onclick="selOpt('+i+',this)">' +
+      '<div class="opt-let">'+lets[i]+'</div>'+
+      '<div style="flex:1;text-align:left;line-height:1.4">'+o+'</div>'+
+    '</button>';
   }).join('');
+  document.getElementById('qn-opts').innerHTML=html;
+
+  // Si déjà répondu à cette question (retour poll)
+  if (myAnswersSent[idx]) {
+    lockOpts();
+    document.getElementById('quiz-wait-lbl').style.display='block';
+    // Colorer la sélection
+    var prev = myReponses[idx];
+    if (prev) {
+      prev.answers.forEach(function(i){
+        var el=document.getElementById('ob-'+i);
+        if(el)el.classList.add('selected');
+      });
+    }
+  }
 }
 
-function retourAccueil(){window.location.href=stagConnecte?'stagiaire-accueil.html':'../index.html';}
+var selectedOpts = [];
+
+function selOpt(i, btn) {
+  if (myAnswersSent[curQIdx]) return;
+  var idx2 = selectedOpts.indexOf(i);
+  if (idx2>=0) {
+    selectedOpts.splice(idx2,1);
+    btn.classList.remove('selected');
+  } else {
+    selectedOpts.push(i);
+    btn.classList.add('selected');
+  }
+  // Afficher/masquer le bouton Valider
+  var vbtn = document.getElementById('btn-valider');
+  if (vbtn) vbtn.style.display = selectedOpts.length>0 ? 'block' : 'none';
+}
+
+async function envoyerReponse() {
+  if (myAnswersSent[curQIdx]) return;
+  myAnswersSent[curQIdx] = true;
+  var ans = selectedOpts.slice();
+  selectedOpts = [];
+  var vbtn = document.getElementById('btn-valider');
+  if (vbtn) vbtn.style.display = 'none';
+
+  try {
+    var r = await post('/quiz/repondre',{
+      code:codeUsed, centerId, participantId,
+      questionIndex:curQIdx, answers:ans
+    });
+    if (!r.success && r.error==='Déjà répondu') return;
+    myReponses[curQIdx] = { answers:ans, isCorrect:r.isCorrect, explanation:r.explanation||'', correctAnswers:r.correctAnswers||[] };
+    lockOpts();
+    document.getElementById('quiz-wait-lbl').style.display='block';
+  } catch(e){}
+}
+
+function lockOpts() {
+  document.querySelectorAll('.opt-btn').forEach(function(b){ b.disabled=true; });
+  var vbtn = document.getElementById('btn-valider');
+  if (vbtn) vbtn.style.display='none';
+}
+
+// ── CORRECTION (showResults du formateur) ──
+function afficherCorrection(q, idx) {
+  var rep = myReponses[idx];
+  var corr = (q.correctAnswers||rep?.correctAnswers||[]).map(Number);
+
+  // Colorer toutes les options
+  (q.options||[]).forEach(function(_,i){
+    var el=document.getElementById('ob-'+i);
+    if(!el)return;
+    var isCorr=corr.includes(i);
+    var wasSelected=rep&&rep.answers.includes(i);
+    el.className='opt-btn '+(isCorr?'ok':(wasSelected?'ko':''));
+    el.disabled=true;
+  });
+
+  // Badge résultat personnel
+  var badge=document.getElementById('res-badge');
+  if (rep) {
+    badge.className='result-badge '+(rep.isCorrect?'ok':'ko');
+    badge.textContent=rep.isCorrect?'✅ Bonne réponse !':'❌ Mauvaise réponse';
+    badge.style.display='block';
+  }
+
+  // Explication
+  var expl=q.explanation||(rep&&rep.explanation)||'';
+  if (expl) {
+    var ez=document.getElementById('expl-zone');
+    ez.innerHTML='<strong>💡</strong> '+expl;
+    ez.style.display='block';
+  }
+
+  document.getElementById('quiz-wait-lbl').style.display='none';
+  document.getElementById('next-wait-lbl').style.display='block';
+}
+
+// ── RÉSULTATS FINAUX STAGIAIRE ──
+function afficherResultats(participants) {
+  show('screen-results');
+  var me = (participants||{})[participantId]||{};
+  var tot = totalQuestions||Object.keys(myReponses).length||1;
+  var pct = Math.round(((me.score||0)/tot)*100);
+
+  // Classement
+  var sorted=Object.values(participants||{}).sort(function(a,b){return (b.score||0)-(a.score||0)||(a.tempsTotal||0)-(b.tempsTotal||0);});
+  var rank = sorted.findIndex(function(p){return p.pseudo===me.pseudo;})+1;
+
+  var medals=['🥇','🥈','🥉'];
+  document.getElementById('res-medal').textContent = medals[rank-1]||'🎯';
+  document.getElementById('res-pos').textContent = rank<=3?rank+'e au classement !':rank+' / '+sorted.length;
+  document.getElementById('res-pct').textContent = pct+'%';
+  document.getElementById('res-detail').textContent = (me.score||0)+' bonne'+(me.score>1?'s':'')+' réponse'+(me.score>1?'s':'')+' sur '+tot+' · '+fmtT(me.tempsTotal);
+
+  // Détail des questions — cliquables si erreur
+  var rows='';
+  for (var i=0;i<tot;i++){
+    var r=myReponses[i];
+    var ok=r&&r.isCorrect, icon=r?(ok?'✅':'❌'):'⏭';
+    var q=myQuestions[i];
+    var qText=q?(q.question||q.texte||''):'';
+    var clickable=!ok&&r; // cliquable si erreur
+    rows+='<div class="recap-row" '+
+      (clickable?'onclick="openDetailQ('+i+')" style="cursor:pointer" ':'')+'>'+
+      '<div class="recap-q-num">Q'+(i+1)+'</div>'+
+      '<div class="recap-q-text">'+(qText?qText.slice(0,48)+(qText.length>48?'…':''):'—')+'</div>'+
+      '<div class="recap-q-icon">'+icon+'</div>'+
+    '</div>';
+  }
+  document.getElementById('res-rows').innerHTML=rows;
+}
+
+function afficherAnnulation() {
+  show('screen-wait');
+  document.getElementById('screen-wait').innerHTML =
+    '<div class="wait-screen">'+
+    '<div style="font-size:48px;margin-bottom:12px">⏹</div>'+
+    '<div style="font-family:Lora,serif;font-size:20px;font-weight:700;margin-bottom:8px">Quiz annul\u00e9</div>'+
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:24px">Le formateur a arr\u00eat\u00e9 le quiz.</div>'+
+    '<button onclick="retour()" style="padding:12px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,#e07b2a,#c4681e);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif">\u2190 Retour</button>'+
+    '</div>';
+}
+
+// ── HELPERS ──
+function show(id){
+  ['screen-form','screen-wait','screen-quiz','screen-results'].forEach(function(s){
+    document.getElementById(s).style.display='none';
+  });
+  document.getElementById(id).style.display='block';
+}
+async function post(path,body){
+  var r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  var ct=r.headers.get('content-type')||'';
+  if(!ct.includes('json')) throw new Error('Endpoint introuvable (HTTP '+r.status+')');
+  return r.json();
+}
+function setErr(msg){ document.getElementById('err-msg').textContent=msg; }
+function fmtT(ms){
+  if(!ms)return'—';
+  var s=Math.round(ms/1000);
+  return s>=60?Math.floor(s/60)+'min '+(s%60)+'s':s+'s';
+}
+
+// ── MODAL DÉTAIL QUESTION ──
+var dqCurrent = 0;
+var dqMax = 0;
+
+function openDetailQ(idx) {
+  var tot = totalQuestions || Object.keys(myReponses).length;
+  dqMax = tot - 1;
+  renderDetailQ(idx);
+  document.getElementById('modal-dq').classList.add('open');
+}
+
+function closeDetailQ() { document.getElementById('modal-dq').classList.remove('open'); }
+
+function navDetailQ(dir) {
+  var next = dqCurrent + dir;
+  if (next < 0 || next > dqMax) return;
+  renderDetailQ(next);
+}
+
+function renderDetailQ(idx) {
+  dqCurrent = idx;
+  var r = myReponses[idx];
+  var q = myQuestions[idx];
+  var tot = dqMax + 1;
+
+  document.getElementById('dq-title').textContent = 'Question ' + (idx+1) + ' / ' + tot;
+  document.getElementById('dq-prev').disabled = (idx === 0);
+  document.getElementById('dq-next').disabled = (idx === dqMax);
+
+  var html = '';
+
+  // Énoncé
+  var qText = q ? (q.question || q.texte || '') : '';
+  html += '<div class="dq-block dq-question">' +
+    '<div class="dq-lbl">Question</div>' +
+    '<div style="font-weight:600;color:var(--text)">' + qText + '</div>' +
+  '</div>';
+
+  if (!r) {
+    html += '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px">⏭ Pas de réponse enregistrée</div>';
+  } else {
+    // Réponse du stagiaire (si erreur)
+    if (!r.isCorrect && r.answers && r.answers.length && q && q.options) {
+      var userLabels = r.answers.map(function(i){ return q.options[i]||'?'; }).join(', ');
+      html += '<div class="dq-block dq-user-ko">' +
+        '<div class="dq-lbl">❌ Votre réponse</div>' +
+        '<div>' + userLabels + '</div>' +
+      '</div>';
+    }
+    // Bonne réponse
+    var corrIdx = (r.correctAnswers || []).map(Number);
+    var opts = q && q.options ? q.options : [];
+    if (corrIdx.length && opts.length) {
+      var corrLabels = corrIdx.map(function(i){ return opts[i]||'?'; }).join(', ');
+      html += '<div class="dq-block dq-correct">' +
+        '<div class="dq-lbl">✅ Bonne réponse</div>' +
+        '<div style="font-weight:600">' + corrLabels + '</div>' +
+      '</div>';
+    }
+    // Explication
+    var expl = (q && q.explanation) || r.explanation || '';
+    if (expl) {
+      html += '<div class="dq-block dq-expl">' +
+        '<div class="dq-lbl">💡 Explication</div>' +
+        '<div>' + expl + '</div>' +
+      '</div>';
+    }
+    // Badge OK
+    if (r.isCorrect) {
+      html += '<div style="text-align:center;padding:12px;font-size:13px;font-weight:700;color:var(--green)">✅ Bonne réponse !</div>';
+    }
+  }
+
+  document.getElementById('dq-body').innerHTML = html;
+}
+
+function retour(){
+  var st=sessionStorage.getItem('stagiaireConnecte');
+  window.location.href=st?'stagiaire-accueil.html':'../index.html';
+}
 </script>
 </body>
 </html>

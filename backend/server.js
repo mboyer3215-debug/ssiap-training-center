@@ -11,7 +11,8 @@ const centerRoutes = require('./routes/center.routes');
 const formateurRoutes = require('./routes/formateur.routes');
 const sessionRoutes = require('./routes/session.routes');
 const demandesAvisRoutes = require('./routes/demandes_avis.routes');
-const quizSalleRoutes = require('./routes/quiz-salle.routes'); // ← AJOUT 1
+const quizSalleRoutes = require('./routes/quizsalle.routes'); // ← AJOUT 1
+const adminQuestionsRoutes = require('./routes/admin_questions.routes');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -32,6 +33,7 @@ app.use('/api/formateur', formateurRoutes);
 app.use('/api/session', sessionRoutes);
 app.use('/api', demandesAvisRoutes);
 app.use('/api/quiz', quizSalleRoutes);                         // ← AJOUT 2
+app.use('/api/admin', admin_QuestionsRoutes);
 // Route santé
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

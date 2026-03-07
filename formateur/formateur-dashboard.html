@@ -621,7 +621,7 @@ async function openFiche(idx) {
           '</div>' +
         '</div>' +
         (hasEchecs?'<button onclick="openEchecsFormateur('+tIdx+')" style="background:#fff;border:1.5px solid '+col+';color:'+col+';border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;flex-shrink:0">⚠️ '+h.detailsEchecs.length+' erreur'+(h.detailsEchecs.length>1?'s':'')+'</button>'
-          :(pct<100?'<span style="font-size:10px;color:#8c8078;font-style:italic">Détail prochainement</span>':'')) +
+          :(pct<100?'<button disabled style="background:var(--subtle);border:1.5px solid var(--border);color:var(--muted);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:not-allowed;font-family:\'Plus Jakarta Sans\',sans-serif;flex-shrink:0;opacity:.65" title="Le détail sera disponible pour les prochains entraînements">📋 Sans détail</button>':'')) +
       '</div>';
     });
     if(trains.length>8) html+='<div style="font-size:11px;color:var(--muted);padding:6px;text-align:center">+ '+(trains.length-8)+' entraînement'+(trains.length-8>1?'s':'')+' supplémentaires</div>';
@@ -652,7 +652,7 @@ async function openFiche(idx) {
     var ctx=document.getElementById('fiche-histo-chart'); if(!ctx) return;
     if(ficheHistoChart){ficheHistoChart.destroy();ficheHistoChart=null;}
     var data=trains.slice(0,10).reverse().map(function(h){return parseFloat(h.pct||0);});
-    ficheHistoChart=new Chart(ctx,{type:'line',data:{labels:data.map(function(_,i){return '#'+(i+1);}),datasets:[{data:data,borderColor:'#2e5c8a',backgroundColor:'rgba(46,92,138,.1)',borderWidth:2.5,pointBackgroundColor:data.map(function(v){return v>=50?'#2e7d52':'#c25a3a';}),pointRadius:5,tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:function(v){return v+'%';},stepSize:25},grid:{color:'#e8e2db'}},x:{grid:{display:false}}}}});
+    ficheHistoChart=new Chart(ctx,{type:'line',data:{labels:data.map(function(_,i){return ''+(i+1);}),datasets:[{data:data,borderColor:'#2e5c8a',backgroundColor:'rgba(46,92,138,.1)',borderWidth:2.5,pointBackgroundColor:data.map(function(v){return v>=50?'#2e7d52':'#c25a3a';}),pointRadius:5,tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:function(v){return v+'%';},stepSize:25},grid:{color:'#e8e2db'}},x:{grid:{display:false}}}}});
   },80);
 
   if(themes.length>=1) setTimeout(function() {

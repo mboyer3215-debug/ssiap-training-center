@@ -294,7 +294,7 @@ router.post('/login', async (req, res) => {
  */
 router.post('/save-result', async (req, res) => {
     try {
-        const { centerId, sessionId, stagiaireId, score, total, pct, niveau, partieId, temps } = req.body;
+        const { centerId, sessionId, stagiaireId, score, total, pct, niveau, partieId, temps, detailsEchecs, themesBreakdown } = req.body;
 
         if (!centerId || !stagiaireId) {
             return res.status(400).json({ success: false, error: 'centerId et stagiaireId requis' });
@@ -305,16 +305,18 @@ router.post('/save-result', async (req, res) => {
 
         const resultData = {
             resultId,
-            sessionId:   sessionId || '',
-            score:       score  || 0,
-            total:       total  || 0,
-            pct:         pct    || 0,
-            niveau:      niveau || 1,
-            partieId:    partieId || 'toutes',
-            temps:       temps  || 0,
-            mode:        'entrainement',
-            date:        timestamp,
-            completedAt: timestamp,
+            sessionId:      sessionId || '',
+            score:          score  || 0,
+            total:          total  || 0,
+            pct:            pct    || 0,
+            niveau:         niveau || 1,
+            partieId:       partieId || 'toutes',
+            temps:          temps  || 0,
+            mode:           'entrainement',
+            date:           timestamp,
+            completedAt:    timestamp,
+            detailsEchecs:  detailsEchecs  || null,
+            themesBreakdown: themesBreakdown || null,
         };
 
         await db.ref(`centers/${centerId}/stagiaires/${stagiaireId}/historique/${resultId}`).set(resultData);

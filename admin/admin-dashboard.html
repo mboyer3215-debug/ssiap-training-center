@@ -7,40 +7,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --terra:     #c25a3a;
-  --terra-d:   #a34a2e;
-  --terra-bg:  #fdf0eb;
-  --terra-mid: #e8d5cc;
-  --bg:        #f7f4f0;
-  --surface:   #ffffff;
-  --card:      #ffffff;
-  --border:    #e8e2db;
-  --border2:   #d4ccc4;
-  --text:      #1e1a17;
-  --muted:     #8c8078;
-  --subtle:    #f0ece7;
-  --green:     #2e7d52;
-  --green-bg:  #e8f5ee;
-  --blue:      #2e5c8a;
-  --blue-bg:   #e8f0f8;
-  --gold:      #b8860b;
-  --gold-bg:   #fef9e7;
-  --red:       #c0392b;
-  --red-bg:    #fdecea;
+  --terra:#c25a3a;--terra-d:#a34a2e;--terra-bg:#fdf0eb;--terra-mid:#e8d5cc;
+  --bg:#f7f4f0;--surface:#ffffff;--card:#ffffff;--border:#e8e2db;--border2:#d4ccc4;
+  --text:#1e1a17;--muted:#8c8078;--subtle:#f0ece7;
+  --green:#2e7d52;--green-bg:#e8f5ee;--blue:#2e5c8a;--blue-bg:#e8f0f8;
+  --gold:#b8860b;--gold-bg:#fef9e7;--red:#c0392b;--red-bg:#fdecea;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;min-height:100vh}
-
 .layout{display:flex;min-height:100vh}
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 .sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
 .sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
 .sidebar-logo .flame{font-size:28px}
 .sidebar-logo h1{font-family:'Lora',serif;font-size:20px;font-weight:700;color:var(--text);margin-top:6px;line-height:1.1}
 .sidebar-logo h1 span{color:var(--terra)}
 .sidebar-logo small{color:var(--muted);font-size:10px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
-
 .nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
 .nav-section{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:12px 8px 6px}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:600;transition:.15s;border:1px solid transparent}
@@ -48,13 +31,11 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .nav-item.active{background:var(--terra-bg);color:var(--terra);border-color:rgba(194,90,58,.15)}
 .nav-item .icon{font-size:16px;width:20px;text-align:center}
 .nav-badge{margin-left:auto;background:var(--terra);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:1px 6px;border-radius:10px}
-.nav-item.active .nav-badge{background:var(--terra);color:#fff}
-
 .sidebar-footer{padding:14px 20px;border-top:1px solid var(--border);font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
 .status-dot{width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;margin-right:6px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* ── MAIN ── */
+/* MAIN */
 .main{margin-left:230px;flex:1;display:flex;flex-direction:column}
 .topbar{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
 .topbar-left{display:flex;align-items:center;gap:12px}
@@ -63,37 +44,30 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .topbar-right{display:flex;align-items:center;gap:10px}
 .btn-refresh{background:var(--subtle);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;transition:.15s;display:flex;align-items:center;gap:6px}
 .btn-refresh:hover{border-color:var(--terra);color:var(--terra)}
-.btn-export{background:var(--terra);border:none;color:#fff;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;transition:.15s}
-.btn-export:hover{background:var(--terra-d)}
-.btn-licence{background:var(--green);border:none;color:#fff;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;transition:.15s;display:flex;align-items:center;gap:6px}
-.btn-licence:hover{background:#236040}
-
+.btn-export{background:var(--terra);border:none;color:#fff;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600}
+.btn-licence{background:var(--green);border:none;color:#fff;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
 .content{padding:24px 28px;flex:1}
 
-/* ── KPI ── */
+/* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:.2s}
 .kpi:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.kpi.terra::before{background:var(--terra)}
-.kpi.green::before{background:var(--green)}
-.kpi.blue::before{background:var(--blue)}
-.kpi.gold::before{background:var(--gold)}
+.kpi.terra::before{background:var(--terra)}.kpi.green::before{background:var(--green)}
+.kpi.blue::before{background:var(--blue)}.kpi.gold::before{background:var(--gold)}
 .kpi-icon{font-size:24px;margin-bottom:12px}
 .kpi-val{font-family:'Lora',serif;font-size:34px;font-weight:700;line-height:1;margin-bottom:4px}
-.kpi.terra .kpi-val{color:var(--terra)}
-.kpi.green .kpi-val{color:var(--green)}
-.kpi.blue  .kpi-val{color:var(--blue)}
-.kpi.gold  .kpi-val{color:var(--gold)}
+.kpi.terra .kpi-val{color:var(--terra)}.kpi.green .kpi-val{color:var(--green)}
+.kpi.blue .kpi-val{color:var(--blue)}.kpi.gold .kpi-val{color:var(--gold)}
 .kpi-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .kpi-trend{font-family:'DM Mono',monospace;font-size:10px;margin-top:8px;color:var(--green)}
 .kpi-trend.neutral{color:var(--muted)}
 
-/* ── GRID LAYOUT ── */
+/* LAYOUTS */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
 
-/* ── CARD ── */
+/* CARD */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .card-title{font-family:'Lora',serif;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;color:var(--text)}
@@ -101,28 +75,25 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .card-action{font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:.12s}
 .card-action:hover{color:var(--terra)}
 
-/* ── TABLE ── */
+/* TABLE */
 table{width:100%;border-collapse:collapse}
 th{text-align:left;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 0 10px;border-bottom:1px solid var(--border)}
 td{padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--subtle)}
 
-/* ── BADGES ── */
+/* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
-.badge.green{background:var(--green-bg);color:var(--green)}
-.badge.terra{background:var(--terra-bg);color:var(--terra)}
-.badge.blue{background:var(--blue-bg);color:var(--blue)}
-.badge.gold{background:var(--gold-bg);color:var(--gold)}
-.badge.gray{background:var(--subtle);color:var(--muted)}
-.badge.red{background:var(--red-bg);color:var(--red)}
+.badge.green{background:var(--green-bg);color:var(--green)}.badge.terra{background:var(--terra-bg);color:var(--terra)}
+.badge.blue{background:var(--blue-bg);color:var(--blue)}.badge.gold{background:var(--gold-bg);color:var(--gold)}
+.badge.gray{background:var(--subtle);color:var(--muted)}.badge.red{background:var(--red-bg);color:var(--red)}
 
-/* ── PROGRESS ── */
+/* PROGRESS */
 .progress-bar{height:5px;background:var(--subtle);border-radius:3px;overflow:hidden;margin-top:6px}
 .progress-fill{height:100%;border-radius:3px;transition:width 1s ease}
 
-/* ── ALERTS ── */
+/* ALERTS */
 .alert-list{display:flex;flex-direction:column;gap:10px}
 .alert-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;border:1px solid}
 .alert-item.critical{background:var(--red-bg);border-color:rgba(192,57,43,.2)}
@@ -132,83 +103,46 @@ tr:hover td{background:var(--subtle)}
 .alert-text{flex:1;font-size:12px;line-height:1.4}
 .alert-text strong{display:block;font-size:13px;margin-bottom:2px}
 .alert-action{font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;padding:4px 10px;border-radius:5px;border:1px solid currentColor;font-weight:700;transition:.12s;white-space:nowrap}
-.alert-action:hover{opacity:.7}
 
-/* ── TIMELINE ── */
+/* TIMELINE */
 .timeline{display:flex;flex-direction:column}
 .tl-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)}
 .tl-item:last-child{border-bottom:none}
 .tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
-.tl-dot.new{background:var(--green-bg)}
-.tl-dot.renew{background:var(--blue-bg)}
-.tl-dot.alert{background:var(--red-bg)}
-.tl-dot.review{background:var(--gold-bg)}
+.tl-dot.new{background:var(--green-bg)}.tl-dot.renew{background:var(--blue-bg)}
+.tl-dot.alert{background:var(--red-bg)}.tl-dot.review{background:var(--gold-bg)}
 .tl-body{flex:1}
 .tl-title{font-size:12px;font-weight:700;margin-bottom:2px}
 .tl-sub{font-size:11px;color:var(--muted)}
 .tl-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);flex-shrink:0;margin-top:4px}
 
-/* ── CENTRE ROW ── */
+/* CENTRE ROW */
 .centre-row{display:flex;align-items:center;gap:10px}
 .centre-avatar{width:32px;height:32px;border-radius:8px;background:var(--terra-bg);color:var(--terra);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
 .centre-name{font-size:12px;font-weight:700}
 .centre-id{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)}
 
-/* ── DONUT ── */
+/* DONUT */
 .donut-wrap{display:flex;align-items:center;gap:20px}
 .donut-legend{display:flex;flex-direction:column;gap:8px}
 .legend-item{display:flex;align-items:center;gap:8px;font-size:11px}
 .legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .legend-val{margin-left:auto;font-family:'DM Mono',monospace;color:var(--muted)}
 
-/* ── CA BARS ── */
+/* CA BARS */
 .ca-bars{display:flex;align-items:flex-end;gap:8px;height:100px;padding-top:10px}
 .ca-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .ca-bar{width:100%;border-radius:4px 4px 0 0;background:var(--subtle);transition:.5s;cursor:pointer}
 .ca-bar.highlight{background:var(--terra)}
-.ca-bar:hover{opacity:.8}
 .ca-month{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center}
 
-/* ── LICENCE TABLE ── */
-.license-type{display:flex;align-items:center;gap:8px}
-
-/* ── FEEDBACK ── */
-.feedback-list{display:flex;flex-direction:column;gap:10px}
-.feedback-card{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:14px}
-.feedback-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.feedback-centre{font-size:12px;font-weight:700}
-.feedback-score.good{color:var(--green);font-family:'DM Mono',monospace;font-size:12px}
-.feedback-score.avg{color:var(--gold);font-family:'DM Mono',monospace;font-size:12px}
-.feedback-text{font-size:12px;color:var(--muted);line-height:1.5}
-.feedback-tags{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
-.ftag{font-size:9px;padding:2px 8px;border-radius:4px;font-weight:700;font-family:'DM Mono',monospace;text-transform:uppercase}
-.ftag.pos{background:var(--green-bg);color:var(--green)}
-.ftag.neg{background:var(--red-bg);color:var(--red)}
-
-/* ── SPARKLINE ── */
-.sparkline{display:flex;align-items:flex-end;gap:3px;height:40px}
-.spark-bar{width:8px;border-radius:2px 2px 0 0;background:var(--subtle);transition:.3s;flex-shrink:0}
-.spark-bar:hover{background:var(--terra)}
-.spark-bar.peak{background:var(--terra)}
-
-/* ── HEATMAP ── */
-.heatmap{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
-.hm-cell{height:18px;border-radius:3px;background:var(--subtle);cursor:pointer;transition:.2s}
-.hm-cell:hover{transform:scale(1.2)}
-.hm-cell.l1{background:#f0d5cc}
-.hm-cell.l2{background:#d99a85}
-.hm-cell.l3{background:#c87355}
-.hm-cell.l4{background:var(--terra)}
-.hm-months{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-bottom:4px}
-.hm-month{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center}
-
-/* ── CONN GRID ── */
+/* CONN GRID */
 .conn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .conn-stat{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
 .conn-val{font-family:'Lora',serif;font-size:24px;font-weight:700;color:var(--blue)}
 .conn-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
-/* ── DEMANDES ── */
+/* DEMANDES */
 .demande-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
 .demande-item:last-child{border-bottom:none}
 .demande-priority{width:3px;height:44px;border-radius:2px;flex-shrink:0;margin-top:2px}
@@ -218,23 +152,30 @@ tr:hover td{background:var(--subtle)}
 .demande-actions{display:flex;gap:6px;margin-top:8px}
 .btn-sm{padding:5px 12px;border-radius:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--subtle);color:var(--text);transition:.15s}
 .btn-sm.primary{background:var(--terra);border-color:var(--terra);color:#fff}
-.btn-sm:hover{opacity:.8}
 
-/* ── MAP ── */
-.map-placeholder{background:var(--subtle);border-radius:10px;height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;border:1px dashed var(--border)}
+/* SPARKLINE & HEATMAP */
+.sparkline{display:flex;align-items:flex-end;gap:3px;height:40px}
+.spark-bar{width:8px;border-radius:2px 2px 0 0;background:var(--subtle);transition:.3s;flex-shrink:0}
+.spark-bar.peak{background:var(--terra)}
+.heatmap{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.hm-cell{height:18px;border-radius:3px;background:var(--subtle);cursor:pointer;transition:.2s}
+.hm-cell.l1{background:#f0d5cc}.hm-cell.l2{background:#d99a85}
+.hm-cell.l3{background:#c87355}.hm-cell.l4{background:var(--terra)}
+.hm-months{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-bottom:4px}
+.hm-month{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center}
 
-/* ── TAB CONTENT ── */
-.tab-content{display:none}
-.tab-content.active{display:block}
-
-/* ── LOADING ── */
+/* TAB */
+.tab-content{display:none}.tab-content.active{display:block}
 .loading{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── RATING ── */
-.rating-item{margin-bottom:12px}
-.rating-header{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
-.rating-count{font-family:'DM Mono',monospace;color:var(--muted)}
+/* CARTE QUESTIONS */
+.questions-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:14px;padding:22px;margin-bottom:16px;background:linear-gradient(135deg,rgba(232,245,238,.4),var(--surface))}
+.questions-card-inner{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.questions-btns{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.btn-q{border:none;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;transition:.13s}
+.btn-q:hover{opacity:.85;transform:translateX(2px)}
+.btn-q.g{background:var(--green)}.btn-q.b{background:var(--blue)}.btn-q.o{background:var(--gold)}
 
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -253,40 +194,26 @@ tr:hover td{background:var(--subtle)}
     </div>
     <nav class="nav">
       <div class="nav-section">Vue d'ensemble</div>
-      <div class="nav-item active" onclick="showTab('overview')">
-        <span class="icon">⬡</span> Dashboard
-      </div>
-      <div class="nav-item" onclick="showTab('centres')">
-        <span class="icon">🏢</span> Centres
-        <span class="nav-badge" id="badge-centres">—</span>
-      </div>
+      <div class="nav-item active" onclick="showTab('overview')"><span class="icon">⬡</span> Dashboard</div>
+      <div class="nav-item" onclick="showTab('centres')"><span class="icon">🏢</span> Centres <span class="nav-badge" id="badge-centres">—</span></div>
       <div class="nav-section">Activité</div>
-      <div class="nav-item" onclick="showTab('connexions')">
-        <span class="icon">📡</span> Connexions
-      </div>
-      <div class="nav-item" onclick="showTab('demandes')">
-        <span class="icon">📨</span> Demandes
-        <span class="nav-badge" id="badge-demandes">3</span>
-      </div>
+      <div class="nav-item" onclick="showTab('connexions')"><span class="icon">📡</span> Connexions</div>
+      <div class="nav-item" onclick="showTab('demandes')"><span class="icon">📨</span> Demandes <span class="nav-badge" id="badge-demandes">3</span></div>
       <div class="nav-section">Qualité</div>
-      <div class="nav-item" onclick="window.location='admin-avis.html'">
-        <span class="icon">⭐</span> Avis & Retours
-      </div>
+      <div class="nav-item" onclick="window.location='admin-avis.html'"><span class="icon">⭐</span> Avis & Retours</div>
       <div class="nav-section">Finance</div>
-      <div class="nav-item" onclick="showTab('ca')">
-        <span class="icon">€</span> Chiffre d'Affaires
-      </div>
-      <div class="nav-item" onclick="showTab('licences')">
-        <span class="icon">🔑</span> Licences
-      </div>
+      <div class="nav-item" onclick="showTab('ca')"><span class="icon">€</span> Chiffre d'Affaires</div>
+      <div class="nav-item" onclick="showTab('licences')"><span class="icon">🔑</span> Licences</div>
       <div class="nav-section">Outils</div>
       <div class="nav-item" onclick="window.location='admin-license-generator.html'" style="border:1px solid rgba(194,90,58,.2);background:var(--terra-bg)">
         <span class="icon">🎫</span> <span style="color:var(--terra);font-weight:700">Générateur licences</span>
       </div>
+      <!-- ✅ NOUVEAU : Gestion des Questions -->
+      <div class="nav-item" onclick="goQuestions()" style="border:1px solid rgba(46,125,82,.2);background:var(--green-bg)">
+        <span class="icon">📋</span> <span style="color:var(--green);font-weight:700">Gestion Questions</span>
+      </div>
     </nav>
-    <div class="sidebar-footer">
-      <span class="status-dot"></span>Connecté · Admin
-    </div>
+    <div class="sidebar-footer"><span class="status-dot"></span>Connecté · Admin</div>
   </aside>
 
   <!-- MAIN -->
@@ -297,45 +224,21 @@ tr:hover td{background:var(--subtle)}
         <span class="topbar-date" id="current-date">—</span>
       </div>
       <div class="topbar-right">
-        <button class="btn-licence" onclick="window.location='admin-license-generator.html'">
-          🎫 Nouvelle licence
-        </button>
-        <button class="btn-refresh" onclick="loadAllData()">
-          <span id="refresh-icon">↻</span> Actualiser
-        </button>
+        <button class="btn-licence" onclick="window.location='admin-license-generator.html'">🎫 Nouvelle licence</button>
+        <button class="btn-refresh" onclick="loadAllData()"><span id="refresh-icon">↻</span> Actualiser</button>
         <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
       </div>
     </div>
 
     <div class="content">
 
-      <!-- ════ OVERVIEW ════ -->
+      <!-- ═══ OVERVIEW ═══ -->
       <div id="tab-overview" class="tab-content active">
         <div class="kpi-grid">
-          <div class="kpi terra">
-            <div class="kpi-icon">🏢</div>
-            <div class="kpi-val" id="kpi-centres">—</div>
-            <div class="kpi-label">Centres actifs</div>
-            <div class="kpi-trend neutral" id="kpi-centres-trend">Chargement…</div>
-          </div>
-          <div class="kpi green">
-            <div class="kpi-icon">🎓</div>
-            <div class="kpi-val" id="kpi-stagiaires">—</div>
-            <div class="kpi-label">Stagiaires totaux</div>
-            <div class="kpi-trend" id="kpi-stag-trend">Chargement…</div>
-          </div>
-          <div class="kpi blue">
-            <div class="kpi-icon">📡</div>
-            <div class="kpi-val" id="kpi-sessions">—</div>
-            <div class="kpi-label">Sessions ce mois</div>
-            <div class="kpi-trend" id="kpi-sess-trend">Chargement…</div>
-          </div>
-          <div class="kpi gold">
-            <div class="kpi-icon">€</div>
-            <div class="kpi-val" id="kpi-ca">—</div>
-            <div class="kpi-label">CA mensuel</div>
-            <div class="kpi-trend neutral" id="kpi-ca-trend">Chargement…</div>
-          </div>
+          <div class="kpi terra"><div class="kpi-icon">🏢</div><div class="kpi-val" id="kpi-centres">—</div><div class="kpi-label">Centres actifs</div><div class="kpi-trend neutral" id="kpi-centres-trend">Chargement…</div></div>
+          <div class="kpi green"><div class="kpi-icon">🎓</div><div class="kpi-val" id="kpi-stagiaires">—</div><div class="kpi-label">Stagiaires totaux</div><div class="kpi-trend" id="kpi-stag-trend">Chargement…</div></div>
+          <div class="kpi blue"><div class="kpi-icon">📡</div><div class="kpi-val" id="kpi-sessions">—</div><div class="kpi-label">Sessions ce mois</div><div class="kpi-trend" id="kpi-sess-trend">Chargement…</div></div>
+          <div class="kpi gold"><div class="kpi-icon">€</div><div class="kpi-val" id="kpi-ca">—</div><div class="kpi-label">CA mensuel</div><div class="kpi-trend neutral" id="kpi-ca-trend">Chargement…</div></div>
         </div>
 
         <div class="two-col">
@@ -346,9 +249,7 @@ tr:hover td{background:var(--subtle)}
             </div>
             <table>
               <thead><tr><th>Centre</th><th>Licence</th><th>Stagiaires</th><th>Statut</th></tr></thead>
-              <tbody id="centres-table-mini">
-                <tr><td colspan="4" style="color:var(--muted);font-size:11px"><span class="loading"></span> Chargement…</td></tr>
-              </tbody>
+              <tbody id="centres-table-mini"><tr><td colspan="4" style="color:var(--muted);font-size:11px"><span class="loading"></span> Chargement…</td></tr></tbody>
             </table>
           </div>
           <div class="card">
@@ -357,35 +258,17 @@ tr:hover td{background:var(--subtle)}
               <span class="card-action">Tout marquer lu</span>
             </div>
             <div class="alert-list">
-              <div class="alert-item critical">
-                <span class="alert-icon">⚠️</span>
-                <div class="alert-text"><strong>Licence expirée dans 7j</strong>Centre SSIAP Lyon — forfait STANDARD</div>
-                <span class="alert-action" style="color:var(--red)">Relancer</span>
-              </div>
-              <div class="alert-item warning">
-                <span class="alert-icon">🕐</span>
-                <div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div>
-                <span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span>
-              </div>
-              <div class="alert-item info">
-                <span class="alert-icon">📊</span>
-                <div class="alert-text"><strong>Rapport mensuel disponible</strong>Statistiques de Février 2026</div>
-                <span class="alert-action" style="color:var(--blue)">Voir</span>
-              </div>
-              <div class="alert-item info">
-                <span class="alert-icon">⭐</span>
-                <div class="alert-text"><strong>Nouvel avis reçu</strong>Centre Paris — Note 4.5/5</div>
-                <span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span>
-              </div>
+              <div class="alert-item critical"><span class="alert-icon">⚠️</span><div class="alert-text"><strong>Licence expirée dans 7j</strong>Centre SSIAP Lyon — forfait STANDARD</div><span class="alert-action" style="color:var(--red)">Relancer</span></div>
+              <div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>
+              <div class="alert-item info"><span class="alert-icon">📊</span><div class="alert-text"><strong>Rapport mensuel disponible</strong>Statistiques de Février 2026</div><span class="alert-action" style="color:var(--blue)">Voir</span></div>
+              <div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Nouvel avis reçu</strong>Centre Paris — Note 4.5/5</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>
             </div>
           </div>
         </div>
 
         <div class="three-col">
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span>Répartition licences</div>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Répartition licences</div></div>
             <div class="donut-wrap">
               <svg width="90" height="90" viewBox="0 0 90 90">
                 <circle cx="45" cy="45" r="35" fill="none" stroke="var(--subtle)" stroke-width="14"/>
@@ -401,83 +284,39 @@ tr:hover td{background:var(--subtle)}
               </div>
             </div>
           </div>
-
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span>Entraînements / Niveau</div>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Entraînements / Niveau</div></div>
             <div style="display:flex;flex-direction:column;gap:14px">
-              <div>
-                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-                  <span>SSIAP 1</span><span style="color:var(--green);font-family:'DM Mono',monospace" id="pct-n1">—</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" id="bar-n1" style="background:var(--green);width:0%"></div></div>
-              </div>
-              <div>
-                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-                  <span>SSIAP 2</span><span style="color:var(--blue);font-family:'DM Mono',monospace" id="pct-n2">—</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" id="bar-n2" style="background:var(--blue);width:0%"></div></div>
-              </div>
-              <div>
-                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-                  <span>SSIAP 3</span><span style="color:var(--gold);font-family:'DM Mono',monospace" id="pct-n3">—</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--gold);width:0%"></div></div>
-              </div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>SSIAP 1</span><span style="color:var(--green);font-family:'DM Mono',monospace" id="pct-n1">—</span></div><div class="progress-bar"><div class="progress-fill" id="bar-n1" style="background:var(--green);width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>SSIAP 2</span><span style="color:var(--blue);font-family:'DM Mono',monospace" id="pct-n2">—</span></div><div class="progress-bar"><div class="progress-fill" id="bar-n2" style="background:var(--blue);width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>SSIAP 3</span><span style="color:var(--gold);font-family:'DM Mono',monospace" id="pct-n3">—</span></div><div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--gold);width:0%"></div></div></div>
             </div>
-            <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">
-              Total : <span id="total-entr" style="color:var(--text)">—</span>
-            </div>
+            <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Total : <span id="total-entr" style="color:var(--text)">—</span></div>
           </div>
-
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span>Activité récente</div>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Activité récente</div></div>
             <div class="timeline">
-              <div class="tl-item">
-                <div class="tl-dot new">🆕</div>
-                <div class="tl-body"><div class="tl-title">Nouveau centre enregistré</div><div class="tl-sub">Centre SSIAP Marseille</div></div>
-                <div class="tl-time">09:14</div>
-              </div>
-              <div class="tl-item">
-                <div class="tl-dot renew">🔄</div>
-                <div class="tl-body"><div class="tl-title">Licence renouvelée</div><div class="tl-sub">Centre Paris — PREMIUM</div></div>
-                <div class="tl-time">Hier</div>
-              </div>
-              <div class="tl-item">
-                <div class="tl-dot alert">🚨</div>
-                <div class="tl-body"><div class="tl-title">Expiration imminente</div><div class="tl-sub">Centre Lyon — 7 jours</div></div>
-                <div class="tl-time">il y a 2j</div>
-              </div>
-              <div class="tl-item">
-                <div class="tl-dot review">⭐</div>
-                <div class="tl-body"><div class="tl-title">Avis reçu — 4.5/5</div><div class="tl-sub">Centre Bordeaux</div></div>
-                <div class="tl-time">il y a 3j</div>
-              </div>
+              <div class="tl-item"><div class="tl-dot new">🆕</div><div class="tl-body"><div class="tl-title">Nouveau centre enregistré</div><div class="tl-sub">Centre SSIAP Marseille</div></div><div class="tl-time">09:14</div></div>
+              <div class="tl-item"><div class="tl-dot renew">🔄</div><div class="tl-body"><div class="tl-title">Licence renouvelée</div><div class="tl-sub">Centre Paris — PREMIUM</div></div><div class="tl-time">Hier</div></div>
+              <div class="tl-item"><div class="tl-dot alert">🚨</div><div class="tl-body"><div class="tl-title">Expiration imminente</div><div class="tl-sub">Centre Lyon — 7 jours</div></div><div class="tl-time">il y a 2j</div></div>
+              <div class="tl-item"><div class="tl-dot review">⭐</div><div class="tl-body"><div class="tl-title">Avis reçu — 4.5/5</div><div class="tl-sub">Centre Bordeaux</div></div><div class="tl-time">il y a 3j</div></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ════ CENTRES ════ -->
+      <!-- ═══ CENTRES ═══ -->
       <div id="tab-centres" class="tab-content">
         <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="dot"></span>Centres enregistrés</div>
-            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="centres-count">Chargement…</span>
-          </div>
+          <div class="card-header"><div class="card-title"><span class="dot"></span>Centres enregistrés</div><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="centres-count">Chargement…</span></div>
           <table>
             <thead><tr><th>Centre</th><th>Licence</th><th>Formateurs</th><th>Stagiaires</th><th>Sessions</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
-            <tbody id="centres-table-full">
-              <tr><td colspan="8" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr>
-            </tbody>
+            <tbody id="centres-table-full"><tr><td colspan="8" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ════ CONNEXIONS ════ -->
+      <!-- ═══ CONNEXIONS ═══ -->
       <div id="tab-connexions" class="tab-content">
         <div class="two-col" style="margin-bottom:16px">
           <div class="card">
@@ -503,51 +342,27 @@ tr:hover td{background:var(--subtle)}
           <div class="card-header"><div class="card-title"><span class="dot"></span>Heatmap activité — 12 derniers mois</div></div>
           <div class="hm-months" id="hm-months"></div>
           <div class="heatmap" id="heatmap"></div>
-          <div style="display:flex;gap:6px;align-items:center;margin-top:8px">
-            <span style="font-size:10px;color:var(--muted)">Moins</span>
-            <div style="width:12px;height:12px;border-radius:2px;background:var(--subtle)"></div>
-            <div class="hm-cell l1" style="width:12px;height:12px"></div>
-            <div class="hm-cell l2" style="width:12px;height:12px"></div>
-            <div class="hm-cell l3" style="width:12px;height:12px"></div>
-            <div class="hm-cell l4" style="width:12px;height:12px"></div>
-            <span style="font-size:10px;color:var(--muted)">Plus</span>
-          </div>
         </div>
       </div>
 
-      <!-- ════ DEMANDES ════ -->
+      <!-- ═══ AVIS ═══ -->
+      <div id="tab-avis" class="tab-content">
+        <div style="text-align:center;padding:40px">
+          <div style="font-size:48px;margin-bottom:12px">⭐</div>
+          <p style="color:var(--muted);margin-bottom:20px">Consultez la page dédiée à la gestion des avis</p>
+          <button onclick="window.location='admin-avis.html'" style="background:var(--terra);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Aller à la gestion des avis →</button>
+        </div>
+      </div>
+
+      <!-- ═══ DEMANDES ═══ -->
       <div id="tab-demandes" class="tab-content">
         <div class="two-col">
           <div class="card">
-            <div class="card-header">
-              <div class="card-title"><span class="dot"></span>Demandes en attente</div>
-              <span class="badge terra">3 nouvelles</span>
-            </div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Demandes en attente</div><span class="badge terra">3 nouvelles</span></div>
             <div>
-              <div class="demande-item">
-                <div class="demande-priority" style="background:var(--red)"></div>
-                <div class="demande-body">
-                  <div class="demande-title">Inscription nouveau centre — Centre SSIAP Nantes</div>
-                  <div class="demande-meta">📧 contact@ssiap-nantes.fr · 27/02/2026 08:42 · PREMIUM</div>
-                  <div class="demande-actions"><button class="btn-sm primary">Valider</button><button class="btn-sm">Refuser</button></div>
-                </div>
-              </div>
-              <div class="demande-item">
-                <div class="demande-priority" style="background:var(--gold)"></div>
-                <div class="demande-body">
-                  <div class="demande-title">Renouvellement licence — Centre Bordeaux</div>
-                  <div class="demande-meta">🔑 STANDARD → ENTERPRISE · 26/02/2026 17:15</div>
-                  <div class="demande-actions"><button class="btn-sm primary">Traiter</button><button class="btn-sm">Différer</button></div>
-                </div>
-              </div>
-              <div class="demande-item">
-                <div class="demande-priority" style="background:var(--blue)"></div>
-                <div class="demande-body">
-                  <div class="demande-title">Question technique — Intégration API</div>
-                  <div class="demande-meta">💬 Centre Toulouse · 25/02/2026 11:30</div>
-                  <div class="demande-actions"><button class="btn-sm primary">Répondre</button><button class="btn-sm">Clore</button></div>
-                </div>
-              </div>
+              <div class="demande-item"><div class="demande-priority" style="background:var(--red)"></div><div class="demande-body"><div class="demande-title">Inscription nouveau centre — Centre SSIAP Nantes</div><div class="demande-meta">📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7d1e1213091c1e093d0e0e141c0d50131c1309180e531b0f">[email&#160;protected]</a> · 27/02/2026 08:42 · PREMIUM</div><div class="demande-actions"><button class="btn-sm primary">Valider</button><button class="btn-sm">Refuser</button></div></div></div>
+              <div class="demande-item"><div class="demande-priority" style="background:var(--gold)"></div><div class="demande-body"><div class="demande-title">Renouvellement licence — Centre Bordeaux</div><div class="demande-meta">🔑 STANDARD → ENTERPRISE · 26/02/2026 17:15</div><div class="demande-actions"><button class="btn-sm primary">Traiter</button><button class="btn-sm">Différer</button></div></div></div>
+              <div class="demande-item"><div class="demande-priority" style="background:var(--blue)"></div><div class="demande-body"><div class="demande-title">Question technique — Intégration API</div><div class="demande-meta">💬 Centre Toulouse · 25/02/2026 11:30</div><div class="demande-actions"><button class="btn-sm primary">Répondre</button><button class="btn-sm">Clore</button></div></div></div>
             </div>
           </div>
           <div class="card">
@@ -566,18 +381,7 @@ tr:hover td{background:var(--subtle)}
         </div>
       </div>
 
-      <!-- ════ AVIS ════ -->
-      <div id="tab-avis" class="tab-content">
-        <div style="text-align:center;padding:40px">
-          <div style="font-size:48px;margin-bottom:12px">⭐</div>
-          <p style="color:var(--muted);margin-bottom:20px">Consultez la page dédiée à la gestion des avis</p>
-          <button onclick="window.location='admin-avis.html'" style="background:var(--terra);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">
-            Aller à la gestion des avis →
-          </button>
-        </div>
-      </div>
-
-      <!-- ════ CA ════ -->
+      <!-- ═══ CA ═══ -->
       <div id="tab-ca" class="tab-content">
         <div class="kpi-grid">
           <div class="kpi gold"><div class="kpi-icon">€</div><div class="kpi-val" id="ca-annuel">—</div><div class="kpi-label">CA annuel 2026</div><div class="kpi-trend neutral" id="ca-annuel-trend">Chargement…</div></div>
@@ -586,10 +390,7 @@ tr:hover td{background:var(--subtle)}
           <div class="kpi terra"><div class="kpi-icon">📈</div><div class="kpi-val">+24%</div><div class="kpi-label">Croissance YoY</div><div class="kpi-trend neutral">vs 2025</div></div>
         </div>
         <div class="two-col">
-          <div class="card">
-            <div class="card-header"><div class="card-title"><span class="dot"></span>CA mensuel 2026</div></div>
-            <div class="ca-bars" id="ca-chart"></div>
-          </div>
+          <div class="card"><div class="card-header"><div class="card-title"><span class="dot"></span>CA mensuel 2026</div></div><div class="ca-bars" id="ca-chart"></div></div>
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="dot"></span>Répartition par forfait</div></div>
             <table>
@@ -607,6 +408,8 @@ tr:hover td{background:var(--subtle)}
             </div>
           </div>
         </div>
+      </div>
+
         <div class="card">
           <div class="card-header"><div class="card-title"><span class="dot"></span>Renouvellements à venir (90 jours)</div></div>
           <table>
@@ -633,29 +436,19 @@ tr:hover td{background:var(--subtle)}
         </div>
       </div>
 
-      <!-- ════ LICENCES ════ -->
+      <!-- ═══ LICENCES ═══ -->
       <div id="tab-licences" class="tab-content">
         <div class="card" style="margin-bottom:16px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0">
-            <div>
-              <div style="font-family:'Lora',serif;font-size:16px;font-weight:600;margin-bottom:4px">Gérer les licences</div>
-              <div style="font-size:12px;color:var(--muted)">Générez et gérez les licences pour les centres de formation</div>
-            </div>
-            <button onclick="window.location='admin-license-generator.html'" style="background:var(--terra);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px">
-              🎫 Nouveau générateur de licences
-            </button>
+            <div><div style="font-family:'Lora',serif;font-size:16px;font-weight:600;margin-bottom:4px">Gérer les licences</div><div style="font-size:12px;color:var(--muted)">Générez et gérez les licences pour les centres de formation</div></div>
+            <button onclick="window.location='admin-license-generator.html'" style="background:var(--terra);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🎫 Générateur de licences</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-header">
-            <div class="card-title"><span class="dot"></span>Toutes les licences</div>
-            <span id="lic-count" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Chargement…</span>
-          </div>
+          <div class="card-header"><div class="card-title"><span class="dot"></span>Toutes les licences</div><span id="lic-count" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Chargement…</span></div>
           <table>
             <thead><tr><th>Clé de licence</th><th>Centre</th><th>Type</th><th>Créée le</th><th>Expire le</th><th>Statut</th></tr></thead>
-            <tbody id="licences-table">
-              <tr><td colspan="6" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr>
-            </tbody>
+            <tbody id="licences-table"><tr><td colspan="6" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -664,22 +457,29 @@ tr:hover td{background:var(--subtle)}
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 
 document.getElementById('current-date').textContent =
   new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
 function showTab(id) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const el = document.getElementById('tab-'+id);
-  if (el) el.classList.add('active');
-  const titles = {overview:'Vue d\'ensemble',centres:'Centres connectés',connexions:'Statistiques connexions',demandes:'Demandes',avis:'Avis & Retours',ca:'Chiffre d\'Affaires',licences:'Gestion Licences'};
-  document.getElementById('page-title').textContent = titles[id]||id;
-  document.querySelectorAll('.nav-item').forEach(n => { if(n.getAttribute('onclick')?.includes(id)) n.classList.add('active'); });
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const el=document.getElementById('tab-'+id);
+  if(el) el.classList.add('active');
+  const titles={overview:"Vue d'ensemble",centres:'Centres connectés',connexions:'Statistiques connexions',demandes:'Demandes',ca:"Chiffre d'Affaires",licences:'Gestion Licences'};
+  document.getElementById('page-title').textContent=titles[id]||id;
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes(id))n.classList.add('active');});
   if(id==='connexions') buildConnexions();
   if(id==='ca') buildCA();
+}
+
+// ✅ Naviguer vers la gestion des questions
+function goQuestions(niveau) {
+  var url = 'admin-questions.html?centerId=center_default';
+  if (niveau) url += '&niveau=' + niveau;
+  window.location = url;
 }
 
 async function loadAllData() {
@@ -690,21 +490,20 @@ async function loadAllData() {
 
 async function loadCentres() {
   try {
-    const r = await fetch(`${API}/center/list`).catch(()=>null);
+    const r=await fetch(`${API}/center/list`).catch(()=>null);
     if(!r||!r.ok) throw new Error();
-    const data = await r.json();
-    const centres = data.centers||data||[];
+    const data=await r.json();
+    const centres=data.centers||data||[];
     renderCentresMini(centres); renderCentresFull(centres);
-    document.getElementById('kpi-centres').textContent = centres.length;
-    document.getElementById('kpi-centres-trend').textContent = `${centres.length} centre(s) enregistré(s)`;
-    document.getElementById('badge-centres').textContent = centres.length;
-    document.getElementById('centres-count').textContent = centres.length+' centre(s)';
-    return centres;
+    document.getElementById('kpi-centres').textContent=centres.length;
+    document.getElementById('kpi-centres-trend').textContent=`${centres.length} centre(s) enregistré(s)`;
+    document.getElementById('badge-centres').textContent=centres.length;
+    document.getElementById('centres-count').textContent=centres.length+' centre(s)';
   } catch { useFallbackCentres(); }
 }
 
 function useFallbackCentres() {
-  const mock=[{centerId:'center_1772...',info:{nom:'Centre SSIAP Test',email:'admin@essai.fr'},license:{type:'DEMO'},stats:{stagiaires:1,formateurs:1,sessions:0},status:'active'}];
+  const mock=[{centerId:'center_default',info:{nom:'Centre SSIAP Test',email:'admin@essai.fr'},license:{type:'DEMO'},stats:{stagiaires:1,formateurs:1,sessions:0},status:'active'}];
   renderCentresMini(mock); renderCentresFull(mock);
   document.getElementById('kpi-centres').textContent=mock.length;
   document.getElementById('badge-centres').textContent=mock.length;
@@ -732,17 +531,13 @@ function renderCentresFull(centres) {
   tbody.innerHTML=centres.map(c=>{
     const nom=c.info?.nom||c.nom||c.centerId?.slice(0,16)||'—';
     const lic=c.license?.type||'DEMO';
-    const form=c.stats?.formateurs??'—';
-    const stag=c.stats?.stagiaires??'—';
-    const sess=c.stats?.sessions??'—';
+    const form=c.stats?.formateurs??'—'; const stag=c.stats?.stagiaires??'—'; const sess=c.stats?.sessions??'—';
     const exp=c.license?.expiresAt?new Date(c.license.expiresAt).toLocaleDateString('fr-FR'):'—';
     const jours=c.license?.expiresAt?Math.ceil((c.license.expiresAt-Date.now())/86400000):null;
     const urgence=jours!==null&&jours<30;
     return`<tr><td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div><div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div></div></td>
     <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
-    <td style="text-align:center;font-family:'DM Mono',monospace">${form}</td>
-    <td style="text-align:center;font-family:'DM Mono',monospace">${stag}</td>
-    <td style="text-align:center;font-family:'DM Mono',monospace">${sess}</td>
+    <td style="text-align:center;font-family:'DM Mono',monospace">${form}</td><td style="text-align:center;font-family:'DM Mono',monospace">${stag}</td><td style="text-align:center;font-family:'DM Mono',monospace">${sess}</td>
     <td><span class="badge ${c.status!=='inactive'?'green':'gray'}">${c.status!=='inactive'?'Actif':'Inactif'}</span></td>
     <td style="font-family:'DM Mono',monospace;font-size:11px;color:${urgence?'var(--red)':'var(--muted)'}">${exp}${jours!==null?` (${jours}j)`:''}</td>
     <td><button class="btn-sm" onclick="alert('Centre: ${c.centerId}')">Détail</button></td></tr>`;
@@ -756,12 +551,11 @@ async function loadLicences() {
     const data=await r.json();
     const lics=data.licenses||[];
     renderLicences(lics); updateLicenceStats(lics);
-    return lics;
   } catch { useFallbackLicences(); }
 }
 
 function useFallbackLicences() {
-  const mock=[{key:'SSIAP-8A0C-D5F5-91DB',centerId:'center_1772...',type:'DEMO',createdAt:Date.now()-86400000*5,expiresAt:Date.now()+86400000*25,active:true}];
+  const mock=[{key:'SSIAP-DEMO-0001',centerId:'center_default',type:'DEMO',createdAt:Date.now()-86400000*5,expiresAt:Date.now()+86400000*25,active:true}];
   renderLicences(mock); updateLicenceStats(mock);
 }
 
@@ -773,8 +567,7 @@ function renderLicences(lics) {
     const created=l.createdAt?new Date(l.createdAt).toLocaleDateString('fr-FR'):'—';
     const expires=l.expiresAt?new Date(l.expiresAt).toLocaleDateString('fr-FR'):'—';
     const jours=l.expiresAt?Math.ceil((l.expiresAt-Date.now())/86400000):null;
-    const expired=jours!==null&&jours<0;
-    const urgent=jours!==null&&jours>=0&&jours<30;
+    const expired=jours!==null&&jours<0; const urgent=jours!==null&&jours>=0&&jours<30;
     return`<tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--terra)">${l.key||l.licenseKey||'—'}</td>
     <td style="font-size:11px">${l.centerId?.slice(0,24)||'—'}</td>
     <td><span class="badge ${l.type==='ENTERPRISE'?'green':l.type==='PROFESSIONAL'?'gold':l.type==='STANDARD'?'blue':'gray'}">${l.type||'DEMO'}</span></td>
@@ -787,25 +580,28 @@ function renderLicences(lics) {
 function updateLicenceStats(lics) {
   const counts={DEMO:0,STANDARD:0,PROFESSIONAL:0,ENTERPRISE:0};
   lics.forEach(l=>{if(counts[l.type]!==undefined)counts[l.type]++;});
-  document.getElementById('nb-demo').textContent=counts.DEMO;
-  document.getElementById('nb-std').textContent=counts.STANDARD;
-  document.getElementById('nb-pro').textContent=counts.PROFESSIONAL;
-  document.getElementById('nb-ent').textContent=counts.ENTERPRISE;
-  document.getElementById('total-std').textContent=(counts.STANDARD*490).toLocaleString('fr-FR')+' €';
-  document.getElementById('total-pro').textContent=(counts.PROFESSIONAL*890).toLocaleString('fr-FR')+' €';
-  document.getElementById('total-ent').textContent=(counts.ENTERPRISE*1490).toLocaleString('fr-FR')+' €';
+  ['demo','std','pro','ent'].forEach((k,i)=>{
+    const t=['DEMO','STANDARD','PROFESSIONAL','ENTERPRISE'][i];
+    const el=document.getElementById('nb-'+k); if(el)el.textContent=counts[t];
+  });
+  const prices={STANDARD:490,PROFESSIONAL:890,ENTERPRISE:1490};
+  ['std','pro','ent'].forEach((k,i)=>{
+    const t=['STANDARD','PROFESSIONAL','ENTERPRISE'][i];
+    const el=document.getElementById('total-'+k); if(el)el.textContent=(counts[t]*prices[t]).toLocaleString('fr-FR')+' €';
+  });
   const total=counts.STANDARD*490+counts.PROFESSIONAL*890+counts.ENTERPRISE*1490;
-  document.getElementById('ca-total-calc').textContent=total.toLocaleString('fr-FR')+' €';
+  const el=document.getElementById('ca-total-calc'); if(el)el.textContent=total.toLocaleString('fr-FR')+' €';
   const active=lics.filter(l=>l.active).length;
-  document.getElementById('kpi-ca-trend').textContent=`${active} licences actives`;
-  document.getElementById('ca-licences').textContent=active;
-  document.getElementById('ca-lic-trend').textContent=`${active}/${lics.length} actives`;
-  document.getElementById('ca-annuel').textContent=total.toLocaleString('fr-FR')+' €';
-  document.getElementById('ca-mensuel').textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
-  document.getElementById('kpi-ca').textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
-  document.getElementById('ca-annuel-trend').textContent='↑ +24% vs 2025';
-  const total_known=counts.DEMO+counts.STANDARD+counts.PROFESSIONAL+counts.ENTERPRISE||1;
-  const circ=2*Math.PI*35;
+  ['ca-licences','ca-lic-trend','ca-annuel','ca-mensuel','kpi-ca','ca-annuel-trend'].forEach(id=>{
+    const e=document.getElementById(id); if(!e)return;
+    if(id==='ca-licences')e.textContent=active;
+    else if(id==='ca-lic-trend')e.textContent=`${active}/${lics.length} actives`;
+    else if(id==='ca-annuel')e.textContent=total.toLocaleString('fr-FR')+' €';
+    else if(id==='ca-mensuel')e.textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
+    else if(id==='kpi-ca')e.textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
+    else if(id==='ca-annuel-trend')e.textContent='↑ +24% vs 2025';
+  });
+  const circ=2*Math.PI*35, total_known=lics.length||1;
   setTimeout(()=>{
     const pDemo=counts.DEMO/total_known;
     document.getElementById('donut-1').setAttribute('stroke-dasharray',`${pDemo*circ} ${circ}`);
@@ -819,6 +615,7 @@ function updateLicenceStats(lics) {
   document.getElementById('leg-demo').textContent=counts.DEMO;
   document.getElementById('leg-std').textContent=counts.STANDARD+counts.PROFESSIONAL;
   document.getElementById('leg-prem').textContent=counts.ENTERPRISE;
+  document.getElementById('kpi-ca-trend').textContent=`${active} licences actives`;
 }
 
 async function loadStats() {
@@ -828,12 +625,11 @@ async function loadStats() {
     document.getElementById('kpi-sessions').textContent='187';
     document.getElementById('kpi-sess-trend').textContent='↑ +23% vs mois dernier';
     document.getElementById('total-entr').textContent='187';
-    document.getElementById('pct-n1').textContent='52%';
-    document.getElementById('pct-n2').textContent='31%';
-    document.getElementById('pct-n3').textContent='17%';
-    document.getElementById('bar-n1').style.width='52%';
-    document.getElementById('bar-n2').style.width='31%';
-    document.getElementById('bar-n3').style.width='17%';
+    ['n1','n2','n3'].forEach((n,i)=>{
+      const v=['52%','31%','17%'][i];
+      document.getElementById('pct-'+n).textContent=v;
+      document.getElementById('bar-'+n).style.width=v;
+    });
     document.getElementById('conn-total').textContent='843';
     document.getElementById('conn-today').textContent='27';
     document.getElementById('conn-duration').textContent='14';
@@ -842,39 +638,32 @@ async function loadStats() {
 }
 
 function buildConnexions() {
-  const spark=document.getElementById('hourly-spark');
-  spark.innerHTML='';
+  const spark=document.getElementById('hourly-spark'); spark.innerHTML='';
   const vals=[2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
   const maxV=Math.max(...vals);
   vals.forEach((v,i)=>{
-    const h=Math.max(4,Math.round((v/maxV)*36));
-    const bar=document.createElement('div');
-    bar.className='spark-bar';
-    bar.style.height=h+'px';
+    const bar=document.createElement('div'); bar.className='spark-bar';
+    bar.style.height=Math.max(4,Math.round((v/maxV)*36))+'px';
     if(i===vals.indexOf(maxV)) bar.classList.add('peak');
-    bar.title=`${i}h : ${v} connexions`;
     spark.appendChild(bar);
   });
-  const mois=['Jan','Fév','Mar','Apr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
   document.getElementById('hm-months').innerHTML=mois.map(m=>`<div class="hm-month">${m}</div>`).join('');
   const levels=['','l1','l2','l3','l4'];
   document.getElementById('heatmap').innerHTML=Array(12).fill(0).map((_,i)=>{
     const lvl=i<2?Math.floor(Math.random()*3)+1:Math.floor(Math.random()*5);
-    return`<div class="hm-cell ${levels[lvl]}" title="${mois[i]} : ${lvl*8} sessions"></div>`;
+    return`<div class="hm-cell ${levels[lvl]}" title="${mois[i]}"></div>`;
   }).join('');
 }
 
 function buildCA() {
-  const ca=document.getElementById('ca-chart');
-  ca.innerHTML='';
-  const months=['Jan','Fév','Mar','Apr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const ca=document.getElementById('ca-chart'); ca.innerHTML='';
+  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
   const vals=[2940,3430,0,0,0,0,0,0,0,0,0,0];
-  const maxV=5000;
-  months.forEach((m,i)=>{
-    const h=vals[i]?Math.round((vals[i]/maxV)*90):8;
-    const wrap=document.createElement('div');
-    wrap.className='ca-bar-wrap';
-    wrap.innerHTML=`<div class="ca-bar${i===1?' highlight':''}" style="height:${h}px" title="${m}: ${vals[i]?vals[i].toLocaleString('fr-FR')+' €':'Prévision'}"></div><div class="ca-month">${m}</div>`;
+  mois.forEach((m,i)=>{
+    const h=vals[i]?Math.round((vals[i]/5000)*90):8;
+    const wrap=document.createElement('div'); wrap.className='ca-bar-wrap';
+    wrap.innerHTML=`<div class="ca-bar${i===1?' highlight':''}" style="height:${h}px"></div><div class="ca-month">${m}</div>`;
     ca.appendChild(wrap);
   });
 }
@@ -887,14 +676,3 @@ function exportCSV() {
   });
   const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
   const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv);
-  a.download=`ssiap_admin_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-}
-
-loadAllData();
-buildConnexions();
-buildCA();
-</script>
-</body>
-</html>

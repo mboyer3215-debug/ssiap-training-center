@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des Questions · Admin SSIAP</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f4f0;--surface:#fff;--subtle:#f0ece7;--card:#faf9f7;
+  --border:#e8e2db;--border2:#d4cdc5;
+  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;
+  --rouge:#c25a3a;--rouge-light:#fdf2ee;
+  --green:#2e7d52;--green-light:#edf7f2;
+  --orange:#e07b2a;--orange-light:#fff3e8;
+  --gold:#d4960a;--gold-light:#fef7e0;
+  --blue:#2e5c8a;--blue-light:#eef4fb;
+  --purple:#6b3fa0;--purple-light:#f3eeff;
+  --forest:#1a4a32;
+  --shadow:0 4px 16px rgba(0,0,0,.09);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--forest),#0c2118);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 3px 12px rgba(0,0,0,.2)}
+.header-brand{font-family:'Lora',serif;font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px}
+.btn-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:.13s}
+.btn-back:hover{background:rgba(255,255,255,.25)}
+
+/* LAYOUT */
+.wrap{max-width:1400px;margin:0 auto;padding:20px 28px}
+
+/* FILTRES */
+.filters-bar{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;box-shadow:var(--shadow)}
+.filter-group{display:flex;flex-direction:column;gap:6px}
+.filter-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+.filter-select{padding:9px 14px;border:2px solid var(--border);border-radius:9px;background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;outline:none;transition:.13s}
+.filter-select:focus{border-color:var(--orange)}
+.filter-search{padding:9px 14px;border:2px solid var(--border);border-radius:9px;background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;width:260px;transition:.13s}
+.filter-search:focus{border-color:var(--orange);background:#fff}
+.filter-spacer{flex:1}
+.btn-add{padding:10px 20px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.13s;box-shadow:0 3px 10px rgba(224,123,42,.3)}
+.btn-add:hover{transform:translateY(-1px)}
+.btn-search{padding:10px 18px;border-radius:9px;border:2px solid var(--forest);background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:.13s}
+.btn-search:hover{background:#0c2118}
+
+/* STATS BAR */
+.stats-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.stat-chip{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.stat-chip .num{font-size:20px;font-weight:800;color:var(--orange)}
+
+/* TYPE BADGES */
+.type-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:800;white-space:nowrap}
+.type-quiz{background:var(--blue-light);color:var(--blue)}
+.type-vrai-faux{background:var(--green-light);color:var(--green)}
+.type-mise-situation{background:var(--orange-light);color:var(--orange)}
+.type-intrus{background:var(--purple-light);color:var(--purple)}
+.type-ordre{background:var(--gold-light);color:var(--gold)}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.table-head{display:grid;grid-template-columns:32px 76px 150px 1fr 80px 84px;gap:0;background:var(--subtle);border-bottom:1.5px solid var(--border);padding:0 12px}
+.th{padding:11px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.q-row{display:grid;grid-template-columns:32px 76px 150px 1fr 80px 84px;border-bottom:1px solid var(--border);transition:.13s;cursor:pointer;padding:0 12px}
+.q-row:last-child{border-bottom:none}
+.q-row:hover{background:var(--subtle)}
+.td{padding:11px 10px;font-size:12px;display:flex;align-items:center;overflow:hidden}
+.td-num{color:var(--muted);font-weight:600;font-size:11px}
+.td-q{font-weight:600;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;padding:11px 10px}
+.td-actions{gap:6px}
+.btn-edit{padding:5px 8px;border-radius:7px;border:1.5px solid var(--border);background:var(--subtle);font-size:14px;cursor:pointer;color:var(--text2);transition:.13s}
+.btn-edit:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-light)}
+.btn-del{padding:5px 8px;border-radius:7px;border:1.5px solid transparent;background:transparent;font-size:13px;cursor:pointer;transition:.13s}
+.btn-del:hover{background:var(--rouge-light)}
+.empty-state{padding:60px;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:40px;margin-bottom:12px}
+.loading{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);background:var(--card)}
+.pag-btns{display:flex;gap:6px}
+.pag-btn{padding:6px 12px;border-radius:7px;border:1.5px solid var(--border);background:var(--subtle);font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:.13s}
+.pag-btn:hover:not(:disabled){border-color:var(--orange);color:var(--orange)}
+.pag-btn:disabled{opacity:.4;cursor:not-allowed}
+.pag-btn.on{border-color:var(--orange);background:var(--orange-light);color:var(--orange)}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.modal-head{padding:20px 24px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10}
+.modal-head h2{font-family:'Lora',serif;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--subtle);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.13s}
+.modal-close:hover{background:var(--rouge-light);color:var(--rouge)}
+.modal-body{padding:24px}
+.modal-foot{padding:16px 24px;border-top:1.5px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
+
+/* FORM ELEMENTS */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:7px}
+.form-select,.form-input,.form-textarea{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:10px;background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:.15s}
+.form-select:focus,.form-input:focus,.form-textarea:focus{border-color:var(--orange);background:#fff;box-shadow:0 0 0 3px rgba(224,123,42,.1)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
+
+/* OPTIONS EDITOR */
+.opts-editor{display:flex;flex-direction:column;gap:8px}
+.opt-row{display:flex;align-items:center;gap:8px}
+.opt-radio{width:18px;height:18px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+.opt-check{width:18px;height:18px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+.opt-input{flex:1;padding:9px 12px;border:2px solid var(--border);border-radius:8px;background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:.13s}
+.opt-input:focus{border-color:var(--orange);background:#fff}
+.opt-correct-lbl{font-size:11px;font-weight:700;color:var(--green);min-width:60px}
+.btn-add-opt{padding:7px 14px;border-radius:8px;border:2px dashed var(--border);background:transparent;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:.13s;width:100%;margin-top:4px}
+.btn-add-opt:hover{border-color:var(--orange);color:var(--orange)}
+.btn-rm-opt{padding:4px 8px;border-radius:6px;border:none;background:var(--rouge-light);color:var(--rouge);cursor:pointer;font-size:12px;font-weight:800;flex-shrink:0}
+
+.btn-cancel{padding:11px 22px;border-radius:10px;border:2px solid var(--border);background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text2);transition:.13s}
+.btn-save{padding:11px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--orange),#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(224,123,42,.3);transition:.13s}
+.btn-save:hover{transform:translateY(-1px)}
+.btn-save:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* CONFIRM DELETE */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:28px;max-width:380px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3)}
+.confirm-box h3{font-family:'Lora',serif;font-size:18px;font-weight:700;margin-bottom:10px}
+.confirm-box p{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+.btn-confirm-del{padding:11px 24px;border-radius:10px;border:none;background:var(--rouge);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.btn-confirm-cancel{padding:11px 24px;border-radius:10px;border:2px solid var(--border);background:var(--subtle);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;color:#fff;z-index:300;transform:translateY(80px);opacity:0;transition:.3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:var(--green)}
+.toast.err{background:var(--rouge)}
+
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">📋 Gestion des Questions</div>
+  <button class="btn-back" onclick="history.back()">← Dashboard Admin</button>
+</div>
+
+<div class="wrap">
+
+  <!-- FILTRES -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <span class="filter-lbl">Niveau SSIAP</span>
+      <select class="filter-select" id="f-niveau" onchange="applyFilters()">
+        <option value="1">SSIAP 1</option>
+        <option value="2">SSIAP 2</option>
+        <option value="3">SSIAP 3</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-lbl">Type de question</span>
+      <select class="filter-select" id="f-type" onchange="applyFilters()">
+        <option value="">Tous les types</option>
+        <option value="quiz">❓ Quiz</option>
+        <option value="vrai_faux">✓✗ Vrai / Faux</option>
+        <option value="mise_situation">🎭 Mise en situation</option>
+        <option value="intrus">🔍 Trouve l'intrus</option>
+        <option value="ordre">🔀 Remet dans l'ordre</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-lbl">Partie</span>
+      <select class="filter-select" id="f-partie" onchange="applyFilters()">
+        <option value="">Toutes les parties</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-lbl">Recherche</span>
+      <input type="text" class="filter-search" id="f-search" placeholder="Mot-clé dans la question…" oninput="applyFilters()">
+    </div>
+    <div class="filter-spacer"></div>
+    <button class="btn-search" onclick="rechercherQuestions()">🔍 Chercher</button>
+    <button class="btn-add" onclick="openModal(null)">+ Ajouter une question</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="stats-row"></div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-head">
+      <div class="th" style="font-size:9px">N°</div>
+      <div class="th">Type</div>
+      <div class="th">Partie</div>
+      <div class="th">Question</div>
+      <div class="th">Réponses</div>
+      <div class="th">Actions</div>
+    </div>
+    <div id="table-body">
+      <div class="loading">⏳ Chargement des questions…</div>
+    </div>
+    <div class="pagination" id="pagination" style="display:none">
+      <span id="pag-info"></span>
+      <div class="pag-btns" id="pag-btns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ÉDITION ═══ -->
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <h2 id="modal-title">✏️ Modifier la question</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Type de question</label>
+        <select class="form-select" id="m-type" onchange="onTypeChange()">
+          <option value="quiz">❓ Quiz (QCM)</option>
+          <option value="vrai_faux">✓✗ Vrai / Faux</option>
+          <option value="mise_situation">🎭 Mise en situation</option>
+          <option value="intrus">🔍 Trouve l'intrus</option>
+          <option value="ordre">🔀 Remet dans l'ordre</option>
+        </select>
+      </div>
+
+      <!-- Scénario (mise en situation) -->
+      <div class="form-group" id="scenario-group" style="display:none">
+        <label class="form-label">🎬 Scénario</label>
+        <textarea class="form-textarea" id="m-scenario" rows="3" placeholder="Décrivez la situation…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">❓ Question</label>
+        <textarea class="form-textarea" id="m-question" rows="3" placeholder="Texte de la question…"></textarea>
+      </div>
+
+      <!-- Options de réponse -->
+      <div class="form-group" id="opts-group">
+        <label class="form-label">
+          Options de réponse
+          <span id="opts-hint" style="font-size:10px;font-weight:600;color:var(--muted);margin-left:6px;text-transform:none;letter-spacing:0">(cochez les bonnes réponses)</span>
+        </label>
+        <div class="opts-editor" id="opts-editor"></div>
+        <button class="btn-add-opt" onclick="addOpt()">+ Ajouter une option</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Partie</label>
+        <select class="form-select" id="m-partie">
+          <option value="partie1">Partie 1</option>
+          <option value="partie2">Partie 2</option>
+          <option value="partie3">Partie 3</option>
+          <option value="partie4">Partie 4</option>
+          <option value="partie5">Partie 5</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">💡 Explication</label>
+        <textarea class="form-textarea" id="m-explication" rows="4" placeholder="Explication détaillée de la bonne réponse…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="btn-save" id="btn-save" onclick="saveQuestion()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3>🗑️ Supprimer la question ?</h3>
+    <p>Cette action est irréversible. La question sera définitivement supprimée de Firebase.</p>
+    <div class="confirm-btns">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">Annuler</button>
+      <button class="btn-confirm-del" onclick="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+var API        = 'https://ssiap-training-center.onrender.com/api';
+var p          = new URLSearchParams(window.location.search);
+var adminId    = p.get('adminId') || '';
+var centerId   = p.get('centerId') || 'center_default';
+
+// ── STATE ──
+var allQuestions   = [];
+var filtered       = [];
+var currentPage    = 1;
+var PAGE_SIZE      = 20;
+var editingId      = null;
+var deleteId       = null;
+var deleteNiveau   = null;
+var multiCorrect   = false;
+
+// Noms des parties par niveau
+var PARTIES = {
+  '1': ['Le feu et ses conséquences','Sécurité incendie','Installations techniques','Rôle et missions des agents de sécurité incendie','Concrétisation des acquis'],
+  '2': ["Rôles et missions du chef d'équipe",'Manipulation du système de sécurité incendie','Hygiène et sécurité en matière de sécurité incendie','Chef du poste central de sécurité en situation de crise'],
+  '3': ['Le feu et ses conséquences','La sécurité incendie et les bâtiments','La réglementation incendie','Gestion des risques',"Conseil au chef d'établissement",'Correspondant des commissions de sécurité',"Le management de l'équipe de sécurité",'Le budget du service sécurité']
+};
+
+var TYPE_META = {
+  'quiz':          { icon:'❓', label:'Quiz',             cls:'type-quiz',            multi:true },
+  'vrai_faux':     { icon:'✓✗', label:'Vrai / Faux',      cls:'type-vrai-faux',       multi:false },
+  'mise_situation':{ icon:'🎭', label:'Mise en situation', cls:'type-mise-situation',  multi:true },
+  'intrus':        { icon:'🔍', label:'Trouve l\'intrus',  cls:'type-intrus',          multi:false },
+  'ordre':         { icon:'🔀', label:'Remet dans l\'ordre',cls:'type-ordre',          multi:false }
+};
+
+// ── RECHERCHER (bouton explicite) ──
+function rechercherQuestions() {
+  // Réinitialiser type et partie pour voir toutes les questions
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-partie').value = '';
+  var niveau = parseInt(document.getElementById('f-niveau').value);
+  // Forcer le rechargement depuis Firebase
+  allQuestions = [];
+  applyFilters._prevNiveau = null;
+  loadNiveau(niveau);
+}
+
+// ── INIT ──
+window.addEventListener('load', function() {
+  loadNiveau(1);
+});
+
+// Fetch avec timeout
+function fetchTO(url, ms) {
+  ms = ms || 8000;
+  var ctrl = new AbortController();
+  var tid = setTimeout(function(){ ctrl.abort(); }, ms);
+  return fetch(url, {signal: ctrl.signal}).finally(function(){ clearTimeout(tid); });
+}
+
+// Normalise une question quelle que soit sa structure Firebase
+function normalizeQ(id, d) {
+  return {
+    id: id,
+    type:           d.type || 'quiz',
+    question:       d.question || d.texte || d.enonce || '',
+    scenario:       d.scenario || d.contexte || '',
+    options:        d.options || d.propositions || d.reponses || [],
+    correctAnswers: Array.isArray(d.correctAnswers)  ? d.correctAnswers.map(Number)
+                  : Array.isArray(d.reponse_correcte) ? d.reponse_correcte.map(Number)
+                  : typeof d.correctAnswer === 'number' ? [d.correctAnswer]
+                  : [0],
+    explanation:    typeof d.explanation === 'string' ? d.explanation
+                  : (d.explanation && (d.explanation.complete||d.explanation.simple)) || d.explication || '',
+    partie:         d.partie || d.partieId || d.thematique || 'partie1',
+  };
+}
+
+async function loadNiveau(niveau) {
+  document.getElementById('table-body').innerHTML = '<div class="loading">⏳ Chargement des questions SSIAP '+niveau+'…</div>';
+  document.getElementById('stats-row').innerHTML = '';
+  updatePartiesSelect(String(niveau));
+  allQuestions = [];
+
+  // Essai 1 : endpoint admin dédié
+  try {
+    var r = await fetchTO(API+'/admin/questions/'+niveau);
+    if (r && r.ok) {
+      var ct = r.headers.get('content-type')||'';
+      if (ct.includes('json')) {
+        var d = await r.json();
+        if (d.success && Array.isArray(d.questions) && d.questions.length) {
+          allQuestions = d.questions;
+          applyFilters(); return;
+        }
+      }
+    }
+  } catch(e) { /* timeout ou erreur */ }
+
+  // Essai 2 : endpoint entrainement existant
+  try {
+    var r2 = await fetchTO(API+'/entrainement/questions/'+niveau);
+    if (r2 && r2.ok) {
+      var ct2 = r2.headers.get('content-type')||'';
+      if (ct2.includes('json')) {
+        var d2 = await r2.json();
+        // Format tableau ou objet-clé
+        if (Array.isArray(d2.questions) && d2.questions.length) {
+          allQuestions = d2.questions.map(function(q){ return normalizeQ(q.id||q._id||Math.random().toString(36).slice(2), q); });
+        } else if (Array.isArray(d2) && d2.length) {
+          allQuestions = d2.map(function(q){ return normalizeQ(q.id||q._id||Math.random().toString(36).slice(2), q); });
+        } else if (d2 && typeof d2 === 'object' && !Array.isArray(d2)) {
+          // Objet Firebase { id1: {...}, id2: {...} }
+          allQuestions = Object.entries(d2).map(function(e){ return normalizeQ(e[0], e[1]); });
+        }
+        if (allQuestions.length) { applyFilters(); return; }
+      }
+    }
+  } catch(e2) { /* timeout ou erreur */ }
+
+  // Essai 3 : endpoint direct Firebase via quiz
+  try {
+    var r3 = await fetchTO(API+'/entrainement/config/'+niveau);
+    if (r3 && r3.ok) {
+      var d3 = await r3.json();
+      if (d3.questions && typeof d3.questions === 'object') {
+        allQuestions = Object.entries(d3.questions).map(function(e){ return normalizeQ(e[0], e[1]); });
+        if (allQuestions.length) { applyFilters(); return; }
+      }
+    }
+  } catch(e3) { /* timeout */ }
+
+  // Aucun endpoint n'a répondu
+  document.getElementById('table-body').innerHTML =
+    '<div class="empty-state"><div class="icon">⚠️</div>' +
+    '<div style="margin-bottom:8px">Impossible de charger les questions</div>' +
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:16px">Le serveur Render est peut-être en train de démarrer (free tier). Réessayez dans 30s.</div>' +
+    '<button onclick="rechercherQuestions()" style="margin-top:4px;padding:10px 22px;border-radius:9px;border:2px solid var(--forest);background:var(--forest);color:#fff;font-size:13px;font-weight:800;cursor:pointer">🔄 Réessayer</button>' +
+    '</div>';
+  document.getElementById('stats-row').innerHTML = '';
+}
+
+// ── FILTRE PARTIES ──
+function updatePartiesSelect(niveau) {
+  var parts = PARTIES[niveau] || [];
+  var sel = document.getElementById('f-partie');
+  sel.innerHTML = '<option value="">Toutes les parties</option>';
+  parts.forEach(function(nom, i) {
+    var opt = document.createElement('option');
+    opt.value = 'partie'+(i+1);
+    opt.textContent = (i+1)+'. '+nom;
+    sel.appendChild(opt);
+  });
+  // Mettre à jour aussi le select du modal
+  updateModalParties(niveau);
+}
+
+function updateModalParties(niveau) {
+  var parts = PARTIES[String(niveau)] || [];
+  var sel = document.getElementById('m-partie');
+  sel.innerHTML = '';
+  parts.forEach(function(nom, i) {
+    var opt = document.createElement('option');
+    opt.value = 'partie'+(i+1);
+    opt.textContent = (i+1)+'. '+nom;
+    sel.appendChild(opt);
+  });
+}
+
+// ── FILTRES ──
+function applyFilters() {
+  var niveau  = document.getElementById('f-niveau').value;
+  var type    = document.getElementById('f-type').value;
+  var partie  = document.getElementById('f-partie').value;
+  var search  = document.getElementById('f-search').value.toLowerCase().trim();
+
+  // Charger nouveau niveau si changé
+  var prevNiveau = applyFilters._prevNiveau;
+  if (prevNiveau !== niveau) {
+    applyFilters._prevNiveau = niveau;
+    loadNiveau(parseInt(niveau));
+    return;
+  }
+  applyFilters._prevNiveau = niveau;
+
+  filtered = allQuestions.filter(function(q) {
+    if (type && (q.type||'quiz') !== type) return false;
+    if (partie && q.partie !== partie && q.partieId !== partie) return false;
+    if (search && !(q.question||'').toLowerCase().includes(search) &&
+        !(q.scenario||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  currentPage = 1;
+  renderStats();
+  renderTable();
+}
+applyFilters._prevNiveau = '1';
+
+// ── STATS ──
+function renderStats() {
+  var counts = {};
+  Object.keys(TYPE_META).forEach(function(t){ counts[t]=0; });
+  filtered.forEach(function(q){ var t=q.type||'quiz'; if(counts[t]!==undefined)counts[t]++; });
+  var html = '<div class="stat-chip"><span class="num">'+filtered.length+'</span> question'+(filtered.length>1?'s':'')+' au total</div>';
+  Object.keys(TYPE_META).forEach(function(t){
+    if (counts[t]>0) {
+      var m=TYPE_META[t];
+      html += '<div class="stat-chip"><span class="num">'+counts[t]+'</span> '+m.icon+' '+m.label+'</div>';
+    }
+  });
+  document.getElementById('stats-row').innerHTML = html;
+}
+
+// ── TABLE ──
+function renderTable() {
+  var start  = (currentPage-1)*PAGE_SIZE;
+  var page   = filtered.slice(start, start+PAGE_SIZE);
+  var niveau = document.getElementById('f-niveau').value;
+  var parts  = PARTIES[niveau] || [];
+
+  if (!filtered.length) {
+    document.getElementById('table-body').innerHTML =
+      '<div class="empty-state"><div class="icon">📭</div><div>Aucune question trouvée</div>' +
+      '<button onclick="rechercherQuestions()" style="margin-top:16px;padding:10px 22px;border-radius:9px;border:2px solid var(--forest);background:var(--forest);color:#fff;font-family:\'Plus Jakarta Sans\',sans-serif;font-size:13px;font-weight:800;cursor:pointer">🔍 Chercher toutes les questions</button>' +
+      '</div>';
+    document.getElementById('pagination').style.display='none';
+    return;
+  }
+
+  var html = page.map(function(q, i) {
+    var idx     = start+i+1;
+    var type    = q.type || 'quiz';
+    var meta    = TYPE_META[type] || TYPE_META['quiz'];
+    var partIdx = parseInt((q.partie||q.partieId||'partie1').replace('partie',''))-1;
+    var partNom = parts[partIdx] ? (partIdx+1)+'. '+parts[partIdx] : (q.partie||'—');
+    var nbOpts  = (q.options||q.propositions||[]).length;
+    var qtxt    = (q.question||'').length>60 ? q.question.slice(0,60)+'…' : (q.question||'—');
+    return '<div class="q-row" onclick="openModal(\''+q.id+'\')">' +
+      '<div class="td td-num">'+idx+'</div>' +
+      '<div class="td"><span class="type-badge '+meta.cls+'">'+meta.icon+' '+meta.label+'</span></div>' +
+      '<div class="td" style="font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;padding:11px 10px">'+partNom+'</div>' +
+      '<div class="td-q">'+qtxt+'</div>' +
+      '<div class="td" style="font-size:12px;color:var(--muted)">'+nbOpts+' option'+(nbOpts>1?'s':'')+'</div>' +
+      '<div class="td td-actions" onclick="event.stopPropagation()">' +
+        '<button class="btn-edit" onclick="openModal(\''+q.id+'\')" title="Modifier">✏️</button>' +
+        '<button class="btn-del" onclick="askDelete(\''+q.id+'\')" title="Supprimer">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('table-body').innerHTML = html;
+  renderPagination();
+}
+
+function renderPagination() {
+  var total = filtered.length;
+  var pages = Math.ceil(total/PAGE_SIZE);
+  var pag   = document.getElementById('pagination');
+  if (pages<=1) { pag.style.display='none'; return; }
+  pag.style.display='flex';
+  var start = (currentPage-1)*PAGE_SIZE+1;
+  var end   = Math.min(currentPage*PAGE_SIZE, total);
+  document.getElementById('pag-info').textContent = start+'–'+end+' sur '+total;
+  var btns='';
+  for (var i=1;i<=pages;i++) {
+    btns+='<button class="pag-btn'+(i===currentPage?' on':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+  }
+  document.getElementById('pag-btns').innerHTML =
+    '<button class="pag-btn" onclick="goPage('+(currentPage-1)+')" '+(currentPage===1?'disabled':'')+'>‹</button>'+
+    btns+
+    '<button class="pag-btn" onclick="goPage('+(currentPage+1)+')" '+(currentPage===pages?'disabled':'')+'>›</button>';
+}
+
+function goPage(n) {
+  var pages=Math.ceil(filtered.length/PAGE_SIZE);
+  if (n<1||n>pages) return;
+  currentPage=n; renderTable();
+  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+// ── MODAL ──
+function openModal(id) {
+  editingId = id;
+  var niveau = document.getElementById('f-niveau').value;
+  updateModalParties(niveau);
+
+  if (!id) {
+    // Nouvelle question
+    document.getElementById('modal-title').innerHTML = '➕ Nouvelle question';
+    document.getElementById('m-type').value = 'quiz';
+    document.getElementById('m-scenario').value = '';
+    document.getElementById('m-question').value = '';
+    document.getElementById('m-explication').value = '';
+    document.getElementById('m-partie').value = 'partie1';
+    onTypeChange();
+    buildOptsEditor([], [0], 'quiz');
+  } else {
+    var q = allQuestions.find(function(x){ return x.id===id; });
+    if (!q) return;
+    document.getElementById('modal-title').innerHTML = '✏️ Modifier la question';
+    document.getElementById('m-type').value = q.type||'quiz';
+    document.getElementById('m-scenario').value = q.scenario||q.contexte||'';
+    document.getElementById('m-question').value = q.question||q.texte||'';
+    document.getElementById('m-explication').value =
+      typeof q.explanation==='string' ? q.explanation :
+      (q.explanation?.complete||q.explanation?.simple||q.explication||'');
+    document.getElementById('m-partie').value = q.partie||q.partieId||'partie1';
+    onTypeChange();
+    var opts = q.options||q.propositions||[];
+    var correct = Array.isArray(q.correctAnswers)?q.correctAnswers.map(Number):
+                  Array.isArray(q.reponse_correcte)?q.reponse_correcte.map(Number):[0];
+    buildOptsEditor(opts, correct, q.type||'quiz');
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  editingId = null;
+}
+
+function overlayClick(e) {
+  if (e.target===document.getElementById('overlay')) closeModal();
+}
+
+function onTypeChange() {
+  var type = document.getElementById('m-type').value;
+  var showScenario = type==='mise_situation';
+  document.getElementById('scenario-group').style.display = showScenario?'block':'none';
+
+  if (type==='vrai_faux') {
+    document.getElementById('opts-hint').textContent='(radio — une seule réponse correcte)';
+    buildOptsEditor(['Vrai','Faux'],[0],'vrai_faux');
+    document.getElementById('btn-add-opt-btn') && (document.querySelector('.btn-add-opt').style.display='none');
+  } else if (type==='quiz'||type==='mise_situation') {
+    document.getElementById('opts-hint').textContent='(cochez toutes les bonnes réponses)';
+  } else {
+    document.getElementById('opts-hint').textContent='(cochez la bonne réponse)';
+  }
+}
+
+function buildOptsEditor(opts, corrects, type) {
+  var isMulti = (type==='quiz'||type==='mise_situation');
+  multiCorrect = isMulti;
+  var html='';
+  var letters=['A','B','C','D','E','F'];
+  opts.forEach(function(opt, i) {
+    var isCorr = corrects.includes(i);
+    var inputType = isMulti ? 'checkbox' : 'radio';
+    html+='<div class="opt-row" id="opt-row-'+i+'">'+
+      '<input type="'+inputType+'" name="correct-opt" class="'+(isMulti?'opt-check':'opt-radio')+'" id="opt-chk-'+i+'" value="'+i+'" '+(isCorr?'checked':'')+' onchange="updateCorrectLabels()">'+
+      '<div class="opt-let" style="width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">'+letters[i]+'</div>'+
+      '<input type="text" class="opt-input" id="opt-txt-'+i+'" value="'+escHtml(opt)+'" placeholder="Option '+(i+1)+'…">'+
+      '<span class="opt-correct-lbl" id="opt-lbl-'+i+'">'+(isCorr?'✓ Correct':'')+'</span>'+
+      '<button class="btn-rm-opt" onclick="rmOpt('+i+')" '+(opts.length<=2?'disabled':'')+'>✕</button>'+
+    '</div>';
+  });
+  document.getElementById('opts-editor').innerHTML = html;
+  // Vrai/Faux : pas d'ajout d'options
+  var addBtn = document.querySelector('.btn-add-opt');
+  if (addBtn) addBtn.style.display = (type==='vrai_faux')?'none':'block';
+}
+
+function addOpt() {
+  var rows = document.querySelectorAll('.opt-row');
+  var i = rows.length;
+  var letters=['A','B','C','D','E','F'];
+  var type = document.getElementById('m-type').value;
+  var isMulti = (type==='quiz'||type==='mise_situation');
+  var inputType = isMulti?'checkbox':'radio';
+  var div = document.createElement('div');
+  div.className='opt-row'; div.id='opt-row-'+i;
+  div.innerHTML=
+    '<input type="'+inputType+'" name="correct-opt" class="'+(isMulti?'opt-check':'opt-radio')+'" id="opt-chk-'+i+'" value="'+i+'" onchange="updateCorrectLabels()">'+
+    '<div class="opt-let" style="width:22px;height:22px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">'+letters[i]+'</div>'+
+    '<input type="text" class="opt-input" id="opt-txt-'+i+'" value="" placeholder="Option '+(i+1)+'…">'+
+    '<span class="opt-correct-lbl" id="opt-lbl-'+i+'"></span>'+
+    '<button class="btn-rm-opt" onclick="rmOpt('+i+')">✕</button>';
+  document.getElementById('opts-editor').appendChild(div);
+}
+
+function rmOpt(i) {
+  var rows = document.querySelectorAll('.opt-row');
+  if (rows.length<=2) return;
+  // Collecter toutes les options sauf celle supprimée
+  var opts=[], corrects=[];
+  rows.forEach(function(row, idx) {
+    if (idx===i) return;
+    var txt = document.getElementById('opt-txt-'+idx);
+    var chk = document.getElementById('opt-chk-'+idx);
+    if (txt) opts.push(txt.value);
+    if (chk && chk.checked) corrects.push(opts.length-1);
+  });
+  var type = document.getElementById('m-type').value;
+  buildOptsEditor(opts, corrects, type);
+}
+
+function updateCorrectLabels() {
+  document.querySelectorAll('.opt-row').forEach(function(_, i) {
+    var chk = document.getElementById('opt-chk-'+i);
+    var lbl = document.getElementById('opt-lbl-'+i);
+    if (chk && lbl) lbl.textContent = chk.checked ? '✓ Correct' : '';
+  });
+}
+
+function getOptsData() {
+  var opts=[], corrects=[];
+  document.querySelectorAll('.opt-row').forEach(function(_, i) {
+    var txt = document.getElementById('opt-txt-'+i);
+    var chk = document.getElementById('opt-chk-'+i);
+    if (txt) opts.push(txt.value.trim());
+    if (chk && chk.checked) corrects.push(i);
+  });
+  return { opts, corrects };
+}
+
+// ── SAVE ──
+async function saveQuestion() {
+  var btn = document.getElementById('btn-save');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Sauvegarde…';
+
+  var type     = document.getElementById('m-type').value;
+  var scenario = document.getElementById('m-scenario').value.trim();
+  var question = document.getElementById('m-question').value.trim();
+  var expl     = document.getElementById('m-explication').value.trim();
+  var partie   = document.getElementById('m-partie').value;
+  var niveau   = document.getElementById('f-niveau').value;
+  var od       = getOptsData();
+
+  if (!question) { toast('La question est obligatoire','err'); btn.disabled=false; btn.innerHTML='💾 Sauvegarder'; return; }
+  if (!od.opts.length) { toast('Ajoutez au moins 2 options','err'); btn.disabled=false; btn.innerHTML='💾 Sauvegarder'; return; }
+  if (!od.corrects.length) { toast('Cochez au moins une bonne réponse','err'); btn.disabled=false; btn.innerHTML='💾 Sauvegarder'; return; }
+
+  var payload = {
+    adminId, niveau: parseInt(niveau), questionId: editingId||null,
+    data: {
+      type, question, partie,
+      options:        od.opts,
+      correctAnswers: od.corrects,
+      explanation:    expl,
+    }
+  };
+  if (scenario) payload.data.scenario = scenario;
+
+  try {
+    var r = await fetch(API+'/admin/questions/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    var ct = r.headers.get('content-type')||'';
+    if (!ct.includes('json')) throw new Error('Endpoint non disponible');
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error||'Erreur serveur');
+
+    toast(editingId?'Question modifiée ✓':'Question créée ✓','ok');
+    closeModal();
+    await loadNiveau(parseInt(niveau));
+  } catch(e) {
+    toast('Erreur : '+e.message,'err');
+  }
+  btn.disabled=false; btn.innerHTML='💾 Sauvegarder';
+}
+
+// ── DELETE ──
+function askDelete(id) {
+  deleteId = id;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  deleteId=null;
+}
+async function confirmDelete() {
+  if (!deleteId) return;
+  var niveau = document.getElementById('f-niveau').value;
+  try {
+    var r = await fetch(API+'/admin/questions/delete', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ adminId, niveau:parseInt(niveau), questionId:deleteId })
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error||'Erreur');
+    toast('Question supprimée','ok');
+    closeConfirm();
+    await loadNiveau(parseInt(niveau));
+  } catch(e) {
+    toast('Erreur : '+e.message,'err');
+    closeConfirm();
+  }
+}
+
+// ── TOAST ──
+function toast(msg, type) {
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(type||'ok');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },3000);
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
