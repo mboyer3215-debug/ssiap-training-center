@@ -3,838 +3,393 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Formateur — SSIAP Training</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<title>Connexion Formateur — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --rouge:#c25a3a;--rouge-light:#fdf2ee;
-  --bg:#f7f4f0;--surface:#fff;--card:#faf9f7;
-  --border:#e8e2db;--border2:#d4cdc5;
-  --text:#1e1a17;--text2:#4a4340;--muted:#8c8078;--subtle:#f0ece7;
-  --gold:#d4960a;--gold-light:#fef7e0;
-  --green:#2e7d52;--green-light:#edf7f2;
-  --blue:#2e5c8a;--blue-light:#eef4fb;
-  --forest:#1a4a32;
-  --shadow-sm:0 1px 3px rgba(0,0,0,.07);--shadow:0 4px 12px rgba(0,0,0,.08);
+  --blue:#2e5c8a;--blue-d:#254d78;--blue-bg:#e8f0f8;--blue-mid:#c5d8ee;
+  --bg:#f7f4f0;--surface:#fff;--border:#e8e2db;--border2:#d4ccc4;
+  --text:#1e1a17;--muted:#8c8078;--subtle:#f0ece7;
+  --terra:#c25a3a;--terra-bg:#fdf0eb;
+  --green:#2e7d52;--green-bg:#e8f5ee;
+  --red:#c0392b;--red-bg:#fdecea;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh}
-.header{background:linear-gradient(135deg,#2e5c8a 0%,#1e3f64 100%);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;box-shadow:0 3px 12px rgba(46,92,138,.3)}
-.header-brand{font-family:'Lora',serif;font-size:19px;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px}
-.header-brand span{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;opacity:.75;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;margin-left:4px}
-.header-nav{display:flex;gap:4px}
-.nav-btn{padding:7px 14px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,.7);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.12s}
-.nav-btn:hover{background:rgba(255,255,255,.15);color:#fff}
-.nav-btn.active{background:rgba(255,255,255,.22);color:#fff}
-.header-right{display:flex;align-items:center;gap:10px}
-.formateur-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);padding:5px 12px;border-radius:20px;font-size:11px;color:rgba(255,255,255,.85)}
-.btn{padding:9px 18px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;border:none;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1e3f64}
-.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#1a5235}
-.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:#b07e08}
-.btn-rouge{background:var(--rouge);color:#fff}.btn-rouge:hover{background:#aa4a2c}
-.btn-orange{background:#e07b2a;color:#fff}.btn-orange:hover{background:#c4681e}
-.btn-secondary{background:var(--subtle);color:var(--text2);border:1.5px solid var(--border)}
-.btn-sm{padding:6px 12px;font-size:11px}
-.btn-logout{background:transparent;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75);padding:6px 14px;border-radius:7px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:.12s}
-.btn-logout:hover{background:rgba(255,255,255,.15)}
-.container{max-width:1280px;margin:0 auto;padding:28px 24px}
-.page{display:none}.page.active{display:block}
-.page-title{font-family:'Lora',serif;font-size:24px;font-weight:600;margin-bottom:24px;letter-spacing:-.3px}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
-.kpi-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-sm)}
-.kpi-val{font-size:28px;font-weight:800;line-height:1;margin-bottom:2px}
-.kpi-lbl{font-size:11px;color:var(--muted);font-weight:500}
-.scard{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow-sm);margin-bottom:16px}
-.chart-wrap{height:220px;position:relative}
-.acc-session{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
-.acc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;transition:.12s;user-select:none}
-.acc-head:hover{background:var(--subtle)}
-.acc-head-left{display:flex;align-items:center;gap:12px;flex:1}
-.acc-session-name{font-size:15px;font-weight:700}
-.acc-session-meta{font-size:12px;color:var(--muted);margin-top:2px}
-.acc-head-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.acc-chevron{font-size:14px;transition:.2s;color:var(--muted)}
-.acc-body{display:none;border-top:1px solid var(--border);padding:18px 20px}
-.acc-body.open{display:block}
-.quiz-salle-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#e07b2a,#c4681e);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;box-shadow:0 2px 8px rgba(224,123,42,.3)}
-.quiz-salle-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(224,123,42,.4)}
-.quiz-salle-btn.active-quiz{background:linear-gradient(135deg,#c25a3a,#aa4a2c);animation:pulse-quiz 1.5s infinite}
-@keyframes pulse-quiz{0%,100%{box-shadow:0 2px 8px rgba(194,90,58,.4)}50%{box-shadow:0 4px 16px rgba(194,90,58,.7)}}
-.session-actions{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
-.stag-table{width:100%;border-collapse:collapse;font-size:13px}
-.stag-table th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--border);background:var(--subtle)}
-.stag-table td{padding:9px 10px;border-bottom:1px solid var(--border)}
-.stag-table tr:last-child td{border-bottom:none}
-.stag-table tr.stag-clickable{cursor:pointer;transition:.1s}
-.stag-table tr.stag-clickable:hover td{background:var(--blue-light)}
-.add-stag-form{background:var(--subtle);border:1.5px dashed var(--border2);border-radius:10px;padding:14px 16px;margin-top:14px;display:none}
-.add-stag-form.open{display:block}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.form-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);display:block;margin-bottom:4px}
-.form-field input{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;background:#fff;outline:none;color:var(--text);transition:.15s}
-.form-field input:focus{border-color:var(--blue)}
-.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
-.alert-doublon{background:#fdf2ee;border:1.5px solid var(--rouge);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--rouge);margin-bottom:10px;display:none}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
-.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
-.badge-green{background:var(--green-light);color:var(--green)}
-.badge-blue{background:var(--blue-light);color:var(--blue)}
-.badge-gold{background:var(--gold-light);color:var(--gold)}
-.badge-gray{background:var(--subtle);color:var(--muted);border:1px solid var(--border)}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,26,23,.6);backdrop-filter:blur(3px);z-index:100;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-.modal-lg{max-width:680px}
-.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border)}
-.modal-hdr h3{font-family:'Lora',serif;font-size:18px;font-weight:600}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:4px;border-radius:6px}
-.modal-close:hover{background:var(--subtle)}
-.modal-body{padding:24px}
-.fiche-header{background:linear-gradient(135deg,#2e5c8a,#1e3f64);border-radius:12px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
-.fiche-avatar{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid rgba(255,255,255,.3)}
-.fiche-nom{font-family:'Lora',serif;font-size:18px;font-weight:700;color:#fff}
-.fiche-sub{font-size:12px;color:rgba(255,255,255,.65);margin-top:4px}
-.fiche-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-.fiche-stat{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
-.fiche-stat-val{font-size:22px;font-weight:800}
-.fiche-stat-lbl{font-size:10px;color:var(--muted);margin-top:3px;font-weight:600}
-.fiche-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
-.fiche-info-item{background:var(--subtle);border-radius:8px;padding:10px 12px}
-.fiche-info-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
-.fiche-info-val{font-size:13px;font-weight:600}
-.train-card{background:var(--card);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.train-card.ok{border-color:#2e7d5220;background:#edf7f2}
-.train-card.ko{border-color:#c25a3a20;background:#fdf2ee}
-.qr-bloc{text-align:center;background:linear-gradient(135deg,var(--forest),#0c2118);border-radius:14px;padding:24px;margin-bottom:16px}
-.qr-bloc-title{font-family:'Lora',serif;font-size:16px;color:#fff;font-weight:600;margin-bottom:4px}
-.qr-bloc-sub{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:16px}
-.qr-center{display:flex;justify-content:center;margin-bottom:10px}
-.qr-center canvas,.qr-center img{border-radius:10px!important;border:6px solid #fff!important}
-.qr-stag-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.qr-stag-card{background:var(--subtle);border:1.5px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
-.loader{display:none;position:fixed;inset:0;background:rgba(247,244,240,.8);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:grid;grid-template-columns:1fr 1.2fr}
+
+.left{background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 44px;position:relative;overflow:hidden}
+.left::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.05);top:-120px;right:-120px}
+.left::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-80px;left:-80px}
+.left-logo{font-size:52px;margin-bottom:20px;position:relative;z-index:1}
+.left-title{font-family:'Lora',serif;font-size:28px;font-weight:700;color:#fff;text-align:center;margin-bottom:10px;position:relative;z-index:1}
+.left-sub{font-size:13px;color:rgba(255,255,255,.72);text-align:center;line-height:1.7;max-width:270px;position:relative;z-index:1;margin-bottom:30px}
+.info-cards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:272px;position:relative;z-index:1}
+.info-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:13px 15px;display:flex;align-items:flex-start;gap:11px}
+.ic-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.ic-text{font-size:11.5px;color:rgba(255,255,255,.85);line-height:1.55}
+.ic-text strong{color:#fff;display:block;margin-bottom:2px;font-size:12px}
+
+.right{display:flex;align-items:center;justify-content:center;padding:48px 40px;overflow-y:auto}
+.form-box{width:100%;max-width:430px}
+.form-header{margin-bottom:26px}
+.form-title{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:5px}
+.form-sub{font-size:13px;color:var(--muted);line-height:1.5}
+
+.form-label{display:block;margin-bottom:7px;font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.6px}
+
+/* ── SELECT ── */
+.centre-group{margin-bottom:22px}
+.select-wrap{position:relative}
+.select-wrap select{
+  width:100%;padding:13px 42px 13px 16px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;
+  color:var(--text);background:var(--surface);
+  appearance:none;outline:none;cursor:pointer;transition:.15s
+}
+.select-wrap select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg)}
+.select-wrap select option[value=""]{color:var(--muted)}
+.select-arrow{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--muted);pointer-events:none}
+.select-status{height:16px;margin-top:5px}
+.select-loading{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;display:none}
+.select-loading.show{display:flex}
+.spinner{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#print-area{display:none}
-@media print{
-  body>*:not(#print-area){display:none!important}
-  #print-area{display:block!important}
-  .print-page{padding:15mm;font-family:'Plus Jakarta Sans',sans-serif}
-  .print-title{font-size:18px;font-weight:700;color:#1a4a32;border-bottom:2px solid #1a4a32;padding-bottom:8px;margin-bottom:16px}
-  .print-sub{font-size:11px;color:#666;margin-bottom:20px}
-  .print-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .print-card{border:1px solid #ddd;border-radius:8px;padding:10px;text-align:center;break-inside:avoid}
-  .print-card-name{font-size:12px;font-weight:700;margin-bottom:2px}
-  .print-card-email{font-size:10px;color:#888;margin-bottom:4px}
-  .print-card-pin{font-size:11px;color:#2e5c8a;font-family:monospace;background:#eef4fb;padding:3px 8px;border-radius:4px;margin-bottom:6px;display:inline-block;font-weight:700}
-  .print-card canvas,.print-card img{display:block;margin:6px auto 0}
-  .print-sess-qr{text-align:center;padding:20px;border:2px dashed #1a4a32;border-radius:12px;background:#f4f7f5;margin-bottom:20px}
-  .print-sess-qr canvas,.print-sess-qr img{display:block;margin:8px auto}
-  .print-footer{margin-top:16px;font-size:9px;color:#bbb;text-align:center;border-top:1px solid #eee;padding-top:8px}
+.centre-confirm{display:none;margin-top:7px;padding:7px 11px;background:var(--blue-bg);border:1px solid var(--blue-mid);border-radius:7px;font-size:11px;color:var(--blue);font-weight:600;align-items:center;gap:6px}
+.centre-confirm.show{display:flex}
+
+/* ── PIN DISPLAY ── */
+.pin-section{margin-bottom:18px}
+.pin-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pin-badge{font-size:10px;font-weight:700;color:var(--muted);background:var(--subtle);padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace}
+
+.pin-dots{display:flex;gap:7px;justify-content:center;margin-bottom:16px}
+.pd{
+  width:46px;height:54px;
+  background:var(--subtle);border:2px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--border2);
+  transition:.15s;flex-shrink:0;font-family:'DM Mono',monospace
+}
+.pd.filled{background:var(--blue-bg);border-color:var(--blue);font-size:24px;color:var(--blue)}
+.pd.active{border-color:var(--blue);border-width:2.5px;box-shadow:0 0 0 3px var(--blue-bg)}
+.pd.error{background:var(--red-bg);border-color:var(--red);animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+
+/* ── CLAVIER ── */
+.pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:270px;margin:0 auto}
+.pk{
+  padding:15px 5px;border-radius:10px;
+  border:1.5px solid var(--border);background:var(--surface);
+  font-family:'DM Mono',monospace;font-size:18px;font-weight:700;
+  color:var(--text);cursor:pointer;text-align:center;
+  transition:.12s;user-select:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.05)
+}
+.pk:hover{background:var(--subtle);border-color:var(--blue-mid);transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.09)}
+.pk:active{transform:scale(.95);background:var(--blue-bg);border-color:var(--blue)}
+.pk.del{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--muted)}
+.pk.del:hover{color:var(--red);border-color:var(--red)}
+.pk.clr{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;color:var(--muted)}
+.pk.clr:hover{color:var(--red);border-color:var(--red)}
+.pk.zero{grid-column:2}
+
+/* ── BTN ── */
+.btn-conn{
+  width:100%;padding:14px;border-radius:10px;border:none;
+  background:var(--blue);color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:.15s;margin-top:6px;
+  display:flex;align-items:center;justify-content:center;gap:8px
+}
+.btn-conn:hover:not(:disabled){background:var(--blue-d)}
+.btn-conn:disabled{opacity:.38;cursor:not-allowed}
+
+/* ── ALERT ── */
+.alert{padding:11px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;display:none;line-height:1.5}
+.alert.show{display:block}
+.alert.error{background:var(--red-bg);border:1px solid rgba(192,57,43,.25);color:var(--red)}
+.alert.success{background:var(--green-bg);border:1px solid rgba(46,125,82,.25);color:var(--green)}
+.alert.info{background:var(--blue-bg);border:1px solid rgba(46,92,138,.2);color:var(--blue)}
+
+.footer{margin-top:18px;text-align:center;font-size:11px;color:var(--muted)}
+.footer a{color:var(--terra);font-weight:600;text-decoration:none;margin:0 5px}
+.footer a:hover{text-decoration:underline}
+
+@media(max-width:800px){
+  body{grid-template-columns:1fr}
+  .left{padding:28px 20px;min-height:auto}
+  .left-title{font-size:20px}
+  .info-cards{flex-direction:row;max-width:100%}
+  .info-card{flex:1}
+  .right{padding:28px 20px}
 }
 </style>
 </head>
 <body>
 
-<header class="header">
-  <div class="header-brand">🔥 SSIAP Training<span>Formateur</span></div>
-  <nav class="header-nav">
-    <button class="nav-btn active" data-page="overview">📊 Vue d'ensemble</button>
-    <button class="nav-btn" data-page="sessions">📅 Sessions</button>
-    <button class="nav-btn" data-page="questions">📚 Questions</button>
-    <button class="nav-btn" data-page="formateur">👨‍🏫 Profil</button>
-  </nav>
-  <div class="header-right">
-    <div class="formateur-pill" id="formateur-name">Formateur</div>
-    <button class="btn btn-green" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="btn btn-gold" onclick="window.location.href='../avis/formulaire-avis-formateur.html'">⭐ Mon avis</button>
-    <button class="btn-logout" id="btn-logout">🚪 Déconnexion</button>
-  </div>
-</header>
-
-<div class="container">
-
-  <!-- VUE D'ENSEMBLE -->
-  <div id="page-overview" class="page active">
-    <h2 class="page-title">Vue d'ensemble</h2>
-    <div class="kpi-grid">
-      <div class="kpi-card"><div style="font-size:28px;margin-right:4px">👥</div><div><div class="kpi-val" id="kpi-stag" style="color:var(--blue)">—</div><div class="kpi-lbl">Stagiaires</div></div></div>
-      <div class="kpi-card"><div style="font-size:28px;margin-right:4px">📅</div><div><div class="kpi-val" id="kpi-sessions" style="color:var(--green)">—</div><div class="kpi-lbl">Sessions</div></div></div>
-      <div class="kpi-card"><div style="font-size:28px;margin-right:4px">⭐</div><div><div class="kpi-val" id="kpi-score" style="color:var(--gold)">—</div><div class="kpi-lbl">Score moyen</div></div></div>
-      <div class="kpi-card"><div style="font-size:28px;margin-right:4px">✅</div><div><div class="kpi-val" id="kpi-taux" style="color:var(--rouge)">—</div><div class="kpi-lbl">Taux de réussite</div></div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div class="scard"><h3 style="font-size:15px;font-weight:700;margin-bottom:16px">📈 Sessions par niveau</h3><div class="chart-wrap"><canvas id="chart-sessions"></canvas></div></div>
-      <div class="scard"><h3 style="font-size:15px;font-weight:700;margin-bottom:16px">📊 Scores moyens</h3><div class="chart-wrap"><canvas id="chart-scores"></canvas></div></div>
-    </div>
-  </div>
-
-  <!-- SESSIONS -->
-  <div id="page-sessions" class="page">
-    <h2 class="page-title">Mes sessions</h2>
-    <div id="sessions-accordeon"></div>
-  </div>
-
-  <!-- QUESTIONS -->
-  <div id="page-questions" class="page">
-    <h2 class="page-title">Statistiques questions</h2>
-    <div class="scard">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h3 style="font-size:15px;font-weight:700;margin:0">Questions les plus échouées</h3>
-        <select id="filter-niveau" onchange="loadQuestionStats(this.value)"
-          style="border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);outline:none">
-          <option value="1">SSIAP 1</option><option value="2">SSIAP 2</option><option value="3">SSIAP 3</option>
-        </select>
+<div class="left">
+  <div class="left-logo">👨‍🏫</div>
+  <div class="left-title">Espace Formateur</div>
+  <div class="left-sub">Gérez vos sessions et accompagnez vos stagiaires vers la certification SSIAP</div>
+  <div class="info-cards">
+    <div class="info-card">
+      <div class="ic-icon">🏢</div>
+      <div class="ic-text">
+        <strong>Multi-centre</strong>
+        Intervenez dans plusieurs centres avec un PIN différent par centre
       </div>
-      <div id="questions-list"></div>
     </div>
-  </div>
-
-  <!-- PROFIL -->
-  <div id="page-formateur" class="page">
-    <h2 class="page-title">Mon profil</h2>
-    <div class="scard"><div id="formateur-info"></div></div>
-  </div>
-
-</div>
-
-<!-- FICHE STAGIAIRE -->
-<div class="modal-overlay" id="modal-fiche">
-  <div class="modal modal-lg">
-    <div class="modal-hdr">
-      <h3>👤 Fiche stagiaire</h3>
-      <button class="modal-close" onclick="closeFiche()">✕</button>
-    </div>
-    <div class="modal-body" id="fiche-body">
-      <div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>
+    <div class="info-card">
+      <div class="ic-icon">🔐</div>
+      <div class="ic-text">
+        <strong>PIN à 6 chiffres</strong>
+        Communiqué par votre responsable de centre lors de votre création
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL QUESTIONS INCORRECTES -->
-<div class="modal-overlay" id="modal-echecs-form">
-  <div class="modal modal-lg">
-    <div class="modal-hdr" id="echecs-form-hdr" style="background:linear-gradient(135deg,#fdf2ee,#f9e8e0)">
-      <h3 style="color:var(--rouge)">⚠️ Questions incorrectes</h3>
-      <button class="modal-close" onclick="closeEchecsForm()">✕</button>
+<div class="right">
+  <div class="form-box">
+    <div class="form-header">
+      <div class="form-title">Connexion Formateur</div>
+      <div class="form-sub">Choisissez votre centre puis saisissez votre code PIN à 6 chiffres</div>
     </div>
-    <div class="modal-body" id="echecs-form-body">
-      <div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>
+
+    <div class="alert" id="alert"></div>
+
+    <!-- SÉLECTION CENTRE -->
+    <div class="centre-group">
+      <label class="form-label">Centre de formation</label>
+      <div class="select-wrap">
+        <select id="sel-centre" onchange="onCentreChange()" disabled>
+          <option value="">Chargement…</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="select-status">
+        <div class="select-loading show" id="sel-load">
+          <div class="spinner"></div> Chargement des centres…
+        </div>
+        <div class="centre-confirm" id="centre-confirm">
+          <span>🏢</span><span id="centre-confirm-text"></span>
+        </div>
+      </div>
     </div>
+
+    <!-- PIN -->
+    <div class="pin-section">
+      <div class="pin-label-row">
+        <label class="form-label" style="margin-bottom:0">Code PIN</label>
+        <span class="pin-badge">6 CHIFFRES</span>
+      </div>
+
+      <div class="pin-dots" id="pin-dots">
+        <div class="pd" id="pd0">·</div>
+        <div class="pd" id="pd1">·</div>
+        <div class="pd" id="pd2">·</div>
+        <div class="pd" id="pd3">·</div>
+        <div class="pd" id="pd4">·</div>
+        <div class="pd" id="pd5">·</div>
+      </div>
+
+      <div class="pinpad">
+        <div class="pk" onclick="k('1')">1</div>
+        <div class="pk" onclick="k('2')">2</div>
+        <div class="pk" onclick="k('3')">3</div>
+        <div class="pk" onclick="k('4')">4</div>
+        <div class="pk" onclick="k('5')">5</div>
+        <div class="pk" onclick="k('6')">6</div>
+        <div class="pk" onclick="k('7')">7</div>
+        <div class="pk" onclick="k('8')">8</div>
+        <div class="pk" onclick="k('9')">9</div>
+        <div class="pk clr" onclick="raz()">RAZ</div>
+        <div class="pk zero" onclick="k('0')">0</div>
+        <div class="pk del" onclick="sup()">⌫</div>
+      </div>
+    </div>
+
+    <button class="btn-conn" id="btn-conn" onclick="login()" disabled>
+      <span id="btn-txt">Sélectionnez un centre</span>
+    </button>
+
+
   </div>
 </div>
-
-<!-- MODAL QR SESSION -->
-<div class="modal-overlay" id="modal-qr">
-  <div class="modal">
-    <div class="modal-hdr"><h3>📱 QR Code d'accès</h3><button class="modal-close" onclick="closeQR()">✕</button></div>
-    <div class="modal-body" id="qr-body"></div>
-  </div>
-</div>
-
-<div id="print-area"></div>
-<div id="loader" class="loader"><div class="spinner"></div><p style="font-size:13px;color:var(--muted)">Chargement…</p></div>
 
 <script>
-var API      = 'https://ssiap-training-center.onrender.com/api';
-var BASE_URL = 'https://ssiap-training-center.onrender.com';
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://ssiap-training-center.onrender.com/api';
 
-var formateurData   = null;
-var allSessions     = [];
-var allStagiaires   = [];
-var stagParSession  = {};
-var chartSessions   = null;
-var chartScores     = null;
-var ficheHistoChart = null;
-var ficheThemeChart = null;
+let pin = '';
+let centreId = '';
 
-// ── Auth ──
-var JWT = sessionStorage.getItem('ssiap_formateur_token') || localStorage.getItem('ssiap_formateur_token');
-if (!JWT) { window.location.href = 'formateur-login.html'; }
+/* ═══ CHARGEMENT CENTRES ═══ */
+async function loadCentres() {
+  const sel = document.getElementById('sel-centre');
+  try {
+    const r    = await fetch(`${API}/center/list`);
+    const data = await r.json();
+    const list = (data.centers || []).filter(c => c.status !== 'inactive');
 
-var stored = sessionStorage.getItem('ssiap_formateur') || localStorage.getItem('ssiap_formateur');
-if (!stored) { window.location.href = 'formateur-login.html'; }
-try { formateurData = JSON.parse(stored); } catch(e) { window.location.href = 'formateur-login.html'; }
+    document.getElementById('sel-load').classList.remove('show');
 
-document.getElementById('formateur-name').textContent = '👨‍🏫 ' + (formateurData.prenom || formateurData.nom || 'Formateur');
+    if (!list.length) {
+      sel.innerHTML = '<option value="">Aucun centre disponible</option>';
+      showAlert('info', 'ℹ️ Aucun centre enregistré. Contactez votre administrateur.');
+      return;
+    }
 
-// ── Helper fetch authentifié ──
-async function authFetch(url, options) {
-  options = options || {};
-  var headers = Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + JWT }, options.headers || {});
-  var res = await fetch(url, Object.assign({}, options, { headers: headers }));
-  if (res.status === 401) {
-    var data = {};
-    try { data = await res.json(); } catch(e) {}
-    if (data.expired || (data.error && (data.error.indexOf('expiré') >= 0 || data.error.indexOf('Token') >= 0))) {
-      sessionStorage.removeItem('ssiap_formateur_token');
-      localStorage.removeItem('ssiap_formateur_token');
-      sessionStorage.removeItem('ssiap_formateur');
-      localStorage.removeItem('ssiap_formateur');
-      alert('Votre session a expiré. Veuillez vous reconnecter.');
-      window.location.href = 'formateur-login.html';
-      return null;
+    // ⚠️ On affiche le NOM du centre, jamais l'ID
+    sel.innerHTML = '<option value="">— Choisissez votre centre —</option>'
+      + list.map(c => `<option value="${c.centerId}">${c.info?.nom || 'Centre sans nom'}</option>`).join('');
+    sel.disabled = false;
+
+    // Un seul centre → pré-sélectionner directement
+    if (list.length === 1) {
+      sel.value = list[0].centerId;
+      onCentreChange();
+    }
+
+  } catch {
+    document.getElementById('sel-load').classList.remove('show');
+    sel.innerHTML = '<option value="">⚠️ Erreur — réessayez</option>';
+    setTimeout(loadCentres, 4000);
+  }
+}
+
+function onCentreChange() {
+  const sel  = document.getElementById('sel-centre');
+  centreId   = sel.value;
+  const nom  = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : '';
+  const conf = document.getElementById('centre-confirm');
+
+  if (centreId) {
+    document.getElementById('centre-confirm-text').textContent = nom;
+    conf.classList.add('show');
+  } else {
+    conf.classList.remove('show');
+  }
+  raz();
+}
+
+/* ═══ CLAVIER PIN ═══ */
+function k(d) {
+  if (pin.length >= 6) return;
+  pin += d;
+  refresh();
+  sync();
+  // Auto-submit quand 6 chiffres ET centre choisi
+  if (pin.length === 6 && centreId) setTimeout(login, 150);
+}
+
+function sup() {
+  if (!pin) return;
+  pin = pin.slice(0,-1);
+  refresh();
+  sync();
+}
+
+function raz() {
+  pin = '';
+  refresh();
+  sync();
+}
+
+function refresh() {
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById(`pd${i}`);
+    el.classList.remove('filled','active','error');
+    if (i < pin.length) {
+      el.textContent = '●';
+      el.classList.add('filled');
+    } else {
+      el.textContent = '·';
+      if (i === pin.length) el.classList.add('active');
     }
   }
-  return res;
 }
 
-// ── Navigation ──
-document.querySelectorAll('.nav-btn[data-page]').forEach(function(btn) {
-  btn.addEventListener('click', function() { showPage(btn.dataset.page); });
-});
-function showPage(id) {
-  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
-  var nb = document.querySelector('[data-page="'+id+'"]'); if (nb) nb.classList.add('active');
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-  var pg = document.getElementById('page-'+id); if (pg) pg.classList.add('active');
-  if (id==='overview')  loadOverview();
-  if (id==='sessions')  loadSessions();
-  if (id==='questions') loadQuestionStats(1);
-  if (id==='formateur') loadFormateurProfile();
-}
-
-// ══════════════════════════════════════
-//  DONNÉES
-// ══════════════════════════════════════
-async function fetchAllData() {
-  var centerId = formateurData.centerId;
-  var fId      = formateurData.formateurId || formateurData.id;
-  if (!centerId) return;
-
-  var rSess = await fetch(API+'/session/list/'+centerId);
-  var dSess = await rSess.json();
-  allSessions = (dSess.sessions||[]).filter(function(s) {
-    return !s.formateurIds || s.formateurIds.length===0 || s.formateurIds.includes(fId);
-  });
-
-  allStagiaires = []; stagParSession = {};
-  for (var i=0; i<allSessions.length; i++) {
-    var sess = allSessions[i];
-    var rStag = await fetch(API+'/stagiaire/list/'+centerId+'?sessionId='+sess.sessionId);
-    var dStag = await rStag.json();
-    var stags = (dStag.stagiaires||[]).map(function(s) {
-      return Object.assign({},s,{sessionId:sess.sessionId,sessionTitre:sess.titre||sess.nom||'Session',sessionNiveau:sess.niveau,centerId:centerId,historique:s.historique||[]});
-    });
-    stagParSession[sess.sessionId] = stags;
-    allStagiaires = allStagiaires.concat(stags);
+function shake() {
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById(`pd${i}`);
+    el.classList.remove('filled');
+    el.classList.add('error');
+    el.textContent = '✕';
   }
-
-  for (var j=0; j<allStagiaires.length; j+=5) {
-    var chunk = allStagiaires.slice(j,j+5);
-    await Promise.all(chunk.map(async function(s) {
-      try {
-        var r = await fetch(API+'/stagiaire/historique/'+s.stagiaireId+'?centerId='+s.centerId);
-        var d = await r.json();
-        s.historique = d.success ? (d.historique||[]) : [];
-        var arr = stagParSession[s.sessionId]||[];
-        for (var k=0;k<arr.length;k++) { if(arr[k].stagiaireId===s.stagiaireId){arr[k].historique=s.historique;break;} }
-      } catch(e) { s.historique=[]; }
-    }));
-  }
+  setTimeout(() => { raz(); for(let i=0;i<6;i++) document.getElementById(`pd${i}`).classList.remove('error'); }, 900);
 }
 
-// ══════════════════════════════════════
-//  OVERVIEW
-// ══════════════════════════════════════
-async function loadOverview() {
-  showLoader();
+function sync() {
+  const btn = document.getElementById('btn-conn');
+  const txt = document.getElementById('btn-txt');
+  const ok  = centreId && pin.length === 6;
+  btn.disabled = !ok;
+  if (!centreId)        txt.textContent = 'Sélectionnez un centre';
+  else if (pin.length < 6) txt.textContent = `PIN : ${pin.length}/6 chiffres`;
+  else                  txt.textContent = 'Se connecter →';
+}
+
+/* ═══ LOGIN ═══ */
+async function login() {
+  if (!centreId || pin.length !== 6) return;
+  const btn = document.getElementById('btn-conn');
+  btn.disabled = true;
+  document.getElementById('btn-txt').textContent = '⏳ Vérification…';
+
   try {
-    if (allSessions.length===0) await fetchAllData();
-    document.getElementById('kpi-sessions').textContent = allSessions.length||'—';
-    document.getElementById('kpi-stag').textContent     = allStagiaires.length||'—';
-    updateKPIs(); buildCharts();
-  } catch(e) { console.error('Overview:',e); } finally { hideLoader(); }
-}
-
-function updateKPIs() {
-  var ts=[];
-  allStagiaires.forEach(function(s) {
-    var h=Array.isArray(s.historique)?s.historique:Object.values(s.historique||{});
-    h.filter(function(x){return x.mode==='entrainement'&&x.pct!=null;}).forEach(function(x){ts.push(parseFloat(x.pct));});
-  });
-  if (ts.length) {
-    var moy=Math.round(ts.reduce(function(a,b){return a+b;},0)/ts.length);
-    var taux=Math.round((ts.filter(function(v){return v>=50;}).length/ts.length)*100);
-    document.getElementById('kpi-score').textContent=moy+'%';
-    document.getElementById('kpi-taux').textContent=taux+'%';
-  } else {
-    document.getElementById('kpi-score').textContent='—';
-    document.getElementById('kpi-taux').textContent='—';
-  }
-}
-
-function buildCharts() {
-  var ctx1=document.getElementById('chart-sessions'), ctx2=document.getElementById('chart-scores');
-  var counts=[0,0,0];
-  allSessions.forEach(function(s){if(s.niveau==='SSIAP1'||s.niveau==='1')counts[0]++;else if(s.niveau==='SSIAP2'||s.niveau==='2')counts[1]++;else if(s.niveau==='SSIAP3'||s.niveau==='3')counts[2]++;});
-  if(chartSessions)chartSessions.destroy();
-  chartSessions=new Chart(ctx1,{type:'bar',data:{labels:['SSIAP 1','SSIAP 2','SSIAP 3'],datasets:[{data:counts,backgroundColor:['#c25a3a','#2e5c8a','#2e7d52'],borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#e8e2db'}},x:{grid:{display:false}}}}});
-  var nM={'SSIAP1':'SSIAP 1','1':'SSIAP 1','SSIAP2':'SSIAP 2','2':'SSIAP 2','SSIAP3':'SSIAP 3','3':'SSIAP 3'};
-  var sbN={'SSIAP 1':[],'SSIAP 2':[],'SSIAP 3':[]};
-  allStagiaires.forEach(function(s){var niv=nM[s.sessionNiveau]||null;if(!niv)return;var h=Array.isArray(s.historique)?s.historique:Object.values(s.historique||{});h.filter(function(x){return x.mode==='entrainement'&&x.pct!=null;}).forEach(function(x){sbN[niv].push(parseFloat(x.pct));});});
-  var moys=['SSIAP 1','SSIAP 2','SSIAP 3'].map(function(n){var sc=sbN[n];return sc.length?Math.round(sc.reduce(function(a,b){return a+b;},0)/sc.length):0;});
-  if(chartScores)chartScores.destroy();
-  chartScores=new Chart(ctx2,{type:'bar',data:{labels:['SSIAP 1','SSIAP 2','SSIAP 3'],datasets:[{data:moys,backgroundColor:moys.map(function(v){return v>=70?'rgba(46,125,82,.7)':v>=50?'rgba(212,150,10,.7)':'rgba(194,90,58,.7)';}),borderColor:moys.map(function(v){return v>=70?'#2e7d52':v>=50?'#d4960a':'#c25a3a';}),borderWidth:2,borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:function(v){return v+'%';},stepSize:25},grid:{color:'#e8e2db'}},x:{grid:{display:false}}}}});
-}
-
-// ══════════════════════════════════════
-//  SESSIONS ACCORDÉON
-// ══════════════════════════════════════
-async function loadSessions() {
-  showLoader();
-  try { if(allSessions.length===0) await fetchAllData(); renderSessions(); }
-  catch(e) { console.error('Sessions:',e); } finally { hideLoader(); }
-}
-
-function renderSessions() {
-  var c = document.getElementById('sessions-accordeon');
-  if (!allSessions.length) { c.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:40px;margin-bottom:12px">📅</div><p>Aucune session disponible.</p></div>'; return; }
-  var nL={'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC'};
-  c.innerHTML='';
-  allSessions.forEach(function(sess,si) {
-    var stags=stagParSession[sess.sessionId]||[];
-    var titre=sess.titre||sess.nom||'Session';
-    var niveau=nL[sess.niveau]||('SSIAP '+(sess.niveau||'?'));
-    var debut=sess.dateDebut?new Date(sess.dateDebut).toLocaleDateString('fr-FR'):'—';
-    var fin=sess.dateFin?new Date(sess.dateFin).toLocaleDateString('fr-FR'):'—';
-    var status=sess.status||sess.statut||'à venir';
-    var bc=status==='terminée'?'badge-green':status==='en cours'?'badge-blue':'badge-gold';
-    var div=document.createElement('div');
-    div.className='acc-session'; div.id='acc-'+si;
-    div.innerHTML=
-      '<div class="acc-head" onclick="toggleAcc('+si+')">' +
-        '<div class="acc-head-left"><div>' +
-          '<div class="acc-session-name">'+titre+'</div>' +
-          '<div class="acc-session-meta">'+niveau+' · '+debut+' → '+fin+' · '+stags.length+' stagiaire'+(stags.length>1?'s':'')+'</div>' +
-        '</div></div>' +
-        '<div class="acc-head-right">' +
-          '<button class="quiz-salle-btn" onclick="event.stopPropagation();lancerQuizSalle(\''+sess.sessionId+'\')">🎮 Quiz en salle</button>' +
-          '<span class="badge '+bc+'">'+status.toUpperCase()+'</span>' +
-          '<span class="acc-chevron" id="chev-'+si+'">▼</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="acc-body" id="body-'+si+'">'+renderSessionBody(sess,si,stags)+'</div>';
-    c.appendChild(div);
-  });
-}
-
-function renderSessionBody(sess,si,stags) {
-  var html='<div class="session-actions">' +
-    '<button class="btn btn-primary btn-sm" onclick="openQRSession(\''+sess.sessionId+'\')">📱 QR Code session</button>' +
-    '<button class="btn btn-secondary btn-sm" onclick="printSessionList(\''+sess.sessionId+'\')">🖨️ Imprimer liste</button>' +
-    '<button class="btn btn-green btn-sm" onclick="toggleAddForm(\'form-'+si+'\')">➕ Ajouter stagiaire</button>' +
-  '</div>';
-  html+='<div class="alert-doublon" id="alert-doublon-'+si+'"></div>';
-  html+='<div class="add-stag-form" id="form-'+si+'">' +
-    '<div style="font-size:12px;font-weight:700;margin-bottom:10px">Nouveau stagiaire — '+sess.titre+'</div>' +
-    '<div class="form-row"><div class="form-field"><label>Prénom *</label><input type="text" id="s-prenom-'+si+'" placeholder="Prénom"></div><div class="form-field"><label>Nom *</label><input type="text" id="s-nom-'+si+'" placeholder="Nom"></div></div>' +
-    '<div class="form-row"><div class="form-field"><label>Email</label><input type="email" id="s-email-'+si+'" placeholder="email@exemple.fr"></div><div class="form-field"><label>Téléphone</label><input type="tel" id="s-tel-'+si+'" placeholder="06..."></div></div>' +
-    '<div class="form-actions"><button class="btn btn-secondary btn-sm" onclick="toggleAddForm(\'form-'+si+'\')">Annuler</button><button class="btn btn-primary btn-sm" onclick="ajouterStagiaire(\''+sess.sessionId+'\','+si+')">✓ Enregistrer</button></div>' +
-  '</div>';
-  if (!stags.length) { html+='<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">Aucun stagiaire dans cette session.</div>'; return html; }
-  html+='<div style="overflow-x:auto;margin-top:4px"><table class="stag-table"><thead><tr><th>Stagiaire</th><th>Email</th><th>PIN</th><th>Entr.</th><th>Score moy.</th><th>QR</th></tr></thead><tbody>';
-  stags.forEach(function(s) {
-    var gIdx=allStagiaires.findIndex(function(x){return x.stagiaireId===s.stagiaireId;});
-    var hist=Array.isArray(s.historique)?s.historique:Object.values(s.historique||{});
-    var trains=hist.filter(function(h){return h.mode==='entrainement';});
-    var scores=trains.map(function(h){return parseFloat(h.pct||0);});
-    var moy=scores.length?Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length):null;
-    var mc=moy==null?'var(--muted)':moy>=70?'var(--green)':moy>=50?'var(--gold)':'var(--rouge)';
-    html+='<tr class="stag-clickable" onclick="openFiche('+gIdx+')">' +
-      '<td><strong>'+(s.prenom||'')+' '+(s.nom||'')+'</strong></td>' +
-      '<td style="color:var(--muted);font-size:12px">'+(s.email||'—')+'</td>' +
-      '<td><span style="font-family:monospace;background:var(--blue-light);padding:2px 7px;border-radius:4px;color:var(--blue);font-weight:700">'+(s.pin||'—')+'</span></td>' +
-      '<td style="text-align:center;font-weight:700;color:var(--blue)">'+trains.length+'</td>' +
-      '<td style="text-align:center;font-weight:800;color:'+mc+'">'+(moy!=null?moy+'%':'—')+'</td>' +
-      '<td><div id="qr-mini-'+s.stagiaireId+'" style="width:44px;height:44px" onclick="event.stopPropagation()"></div></td>' +
-    '</tr>';
-  });
-  html+='</tbody></table></div>';
-  setTimeout(function() {
-    stags.forEach(function(s) {
-      var el=document.getElementById('qr-mini-'+s.stagiaireId);
-      if(el&&!el.dataset.done){try{new QRCode(el,{text:buildStagURL(s),width:44,height:44,colorDark:'#1a4a32',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});el.dataset.done='1';}catch(e){}}
+    const r = await fetch(`${API}/formateur/login`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ centerId: centreId, pin })
     });
-  }, 150);
-  return html;
-}
+    const d = await r.json();
 
-function toggleAcc(si) {
-  var body=document.getElementById('body-'+si), chev=document.getElementById('chev-'+si);
-  var open=body.classList.contains('open');
-  body.classList.toggle('open',!open);
-  chev.style.transform=open?'':'rotate(180deg)';
-}
-function toggleAddForm(id) { var f=document.getElementById(id); if(f) f.classList.toggle('open'); }
+    if (d.success) {
+      const fData = JSON.stringify({ formateurId:d.formateurId, nom:d.nom, prenom:d.prenom, email:d.email||'', centerId:d.centerId, niveaux:d.niveaux||[] });
+      const cData = JSON.stringify({ centerId:d.centerId, nom:d.centerNom||'' });
+      localStorage.setItem('ssiap_formateur_token', d.token);
+      localStorage.setItem('ssiap_formateur',       fData);
+      localStorage.setItem('ssiap_formateur_center',cData);
+      sessionStorage.setItem('ssiap_formateur_token', d.token);
+      sessionStorage.setItem('ssiap_formateur',       fData);
+      sessionStorage.setItem('ssiap_formateur_center',cData);
 
-// ══════════════════════════════════════
-//  QUIZ EN SALLE
-// ══════════════════════════════════════
-function lancerQuizSalle(sessionId) {
-  var sess = allSessions.find(function(s){ return s.sessionId === sessionId; });
-  if (!sess) return;
-  var nL = {'SSIAP1':'1','SSIAP2':'2','SSIAP3':'3','RECYCLAGE':'recyclage','MAC':'mac'};
-  var niveau   = nL[sess.niveau] || sess.niveau || '1';
-  var titre    = encodeURIComponent(sess.titre || sess.nom || 'Session');
-  var sessId   = encodeURIComponent(sessionId);
-  var centerId = encodeURIComponent(formateurData.centerId || '');
-  window.location.href = 'quiz-salle-formateur.html?sessionId='+sessId+'&centerId='+centerId+'&niveau='+niveau+'&sessionNom='+titre;
-}
-
-// ══════════════════════════════════════
-//  AJOUT STAGIAIRE ANTI-DOUBLON
-// ══════════════════════════════════════
-async function ajouterStagiaire(sessionId, si) {
-  var prenom=(document.getElementById('s-prenom-'+si).value||'').trim();
-  var nom=(document.getElementById('s-nom-'+si).value||'').trim();
-  var email=(document.getElementById('s-email-'+si).value||'').trim().toLowerCase();
-  var tel=(document.getElementById('s-tel-'+si).value||'').trim();
-  if(!prenom||!nom){alert('Prénom et nom sont obligatoires.');return;}
-  var alertEl=document.getElementById('alert-doublon-'+si); alertEl.style.display='none';
-  var doublons=allStagiaires.filter(function(s) {
-    var mN=s.nom&&s.prenom&&s.nom.trim().toLowerCase()===nom.toLowerCase()&&s.prenom.trim().toLowerCase()===prenom.toLowerCase();
-    var mE=email&&s.email&&s.email.trim().toLowerCase()===email;
-    return mN||mE;
-  });
-  if (doublons.length) {
-    var d0=doublons[0];
-    var msg='⚠️ Ce stagiaire existe déjà';
-    if(d0.sessionId===sessionId) msg+=' dans cette session.';
-    else msg+=' dans la session "'+( d0.sessionTitre||'autre session')+'".'+(d0.pin?' PIN : '+d0.pin:'');
-    alertEl.textContent=msg; alertEl.style.display='block'; return;
-  }
-  showLoader();
-  try {
-    var r=await authFetch(API+'/stagiaire/add',{method:'POST',body:JSON.stringify({centerId:formateurData.centerId,sessionId:sessionId,prenom:prenom,nom:nom,email:email||null,telephone:tel||null})});
-    if(!r) return;
-    var d=await r.json(); if(!d.success) throw new Error(d.error||'Erreur ajout');
-    ['s-prenom-','s-nom-','s-email-','s-tel-'].forEach(function(p){var el=document.getElementById(p+si);if(el)el.value='';});
-    toggleAddForm('form-'+si);
-    await fetchAllData(); renderSessions();
-    var idx=allSessions.findIndex(function(s){return s.sessionId===sessionId;});
-    if(idx>=0) toggleAcc(idx);
-    updateKPIs();
-  } catch(e) { alert('Erreur : '+e.message); } finally { hideLoader(); }
-}
-
-// ══════════════════════════════════════
-//  FICHE STAGIAIRE
-// ══════════════════════════════════════
-async function openFiche(idx) {
-  var s=allStagiaires[idx]; if(!s) return;
-  document.getElementById('modal-fiche').classList.add('open');
-  var body=document.getElementById('fiche-body');
-  body.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>';
-
-  var historique=[];
-  try {
-    var r=await authFetch(API+'/stagiaire/historique/'+s.stagiaireId+'?centerId='+s.centerId);
-    if(r){var d=await r.json();if(d.success){historique=d.historique||[];s.historique=historique;}}
-    else { historique=Array.isArray(s.historique)?s.historique:Object.values(s.historique||{}); }
-  } catch(e) { historique=Array.isArray(s.historique)?s.historique:Object.values(s.historique||{}); }
-  historique.sort(function(a,b){return(b.date||b.completedAt||0)-(a.date||a.completedAt||0);});
-
-  var nL={'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC'};
-  var niv=nL[s.sessionNiveau]||s.sessionNiveau||'—';
-  var trains=historique.filter(function(h){return h.mode==='entrainement';});
-  var quizzes=historique.filter(function(h){return h.mode==='salle';});
-  var scores=trains.map(function(h){return parseFloat(h.pct||0);});
-  var moy=scores.length?Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length):null;
-  var nbOk=scores.filter(function(v){return v>=50;}).length;
-  var mc=moy==null?'#8c8078':moy>=70?'#2e7d52':moy>=50?'#d4960a':'#c25a3a';
-  var tendance=scores.length>=2?(scores[0]>scores[scores.length-1]?'📉 Régression':scores[0]<scores[scores.length-1]?'📈 Progression':'➡️ Stable'):'—';
-  var debut=s.dateDebut?new Date(s.dateDebut).toLocaleDateString('fr-FR'):'—';
-  var fin=s.dateFin?new Date(s.dateFin).toLocaleDateString('fr-FR'):'—';
-
-  var parTheme={};
-  trains.forEach(function(h) {
-    var cle=h.partieId||h.partie||null;
-    if(cle&&cle!=='toutes'){if(!parTheme[cle])parTheme[cle]={label:cle,totalCorrect:0,totalQuestions:0};parTheme[cle].totalCorrect+=parseInt(h.score||0);parTheme[cle].totalQuestions+=parseInt(h.total||0);}
-    else if(h.themesBreakdown&&typeof h.themesBreakdown==='object'){Object.keys(h.themesBreakdown).forEach(function(theme){var data=h.themesBreakdown[theme];if(!parTheme[theme])parTheme[theme]={label:data.label||theme,totalCorrect:0,totalQuestions:0};parTheme[theme].totalCorrect+=parseInt(data.score||0);parTheme[theme].totalQuestions+=parseInt(data.total||0);});}
-  });
-  var themes=Object.values(parTheme).filter(function(t){return t.totalQuestions>0;});
-  var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQuestions)*100);});
-
-  window._currentFicheTrains = trains;
-
-  var html='';
-  html+='<div class="fiche-header"><div class="fiche-avatar">👤</div><div>' +
-    '<div class="fiche-nom">'+(s.prenom||'')+' '+(s.nom||'')+'</div>' +
-    '<div class="fiche-sub">'+niv+' · '+(s.sessionTitre||'—')+'</div>' +
-    '<div class="fiche-sub" style="margin-top:3px">'+debut+' → '+fin+'</div>' +
-  '</div></div>';
-
-  html+='<div class="fiche-stats-grid">' +
-    '<div class="fiche-stat"><div class="fiche-stat-val" style="color:var(--blue)">'+trains.length+'</div><div class="fiche-stat-lbl">Entraînements</div></div>' +
-    '<div class="fiche-stat"><div class="fiche-stat-val" style="color:'+mc+'">'+(moy!=null?moy+'%':'—')+'</div><div class="fiche-stat-lbl">Score moyen</div></div>' +
-    '<div class="fiche-stat"><div class="fiche-stat-val" style="color:var(--green)">'+nbOk+'</div><div class="fiche-stat-lbl">Réussis (≥50%)</div></div>' +
-  '</div>';
-
-  html+='<div class="fiche-info-grid">' +
-    '<div class="fiche-info-item"><div class="fiche-info-lbl">Email</div><div class="fiche-info-val">'+(s.email||'—')+'</div></div>' +
-    '<div class="fiche-info-item"><div class="fiche-info-lbl">Téléphone</div><div class="fiche-info-val">'+(s.telephone||'—')+'</div></div>' +
-    '<div class="fiche-info-item"><div class="fiche-info-lbl">PIN d\'accès</div><div class="fiche-info-val"><span style="font-family:monospace;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:5px">'+(s.pin||'—')+'</span></div></div>' +
-    '<div class="fiche-info-item"><div class="fiche-info-lbl">Tendance</div><div class="fiche-info-val">'+tendance+'</div></div>' +
-  '</div>';
-
-  if(trains.length>=2) {
-    html+='<div style="margin-bottom:22px"><div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Évolution des scores</div>' +
-      '<div style="height:130px;position:relative"><canvas id="fiche-histo-chart"></canvas></div></div>';
-  }
-  if(themes.length>=1) {
-    var ch=Math.max(120,themes.length*44);
-    html+='<div style="margin-bottom:22px"><div style="font-size:13px;font-weight:700;margin-bottom:12px">📊 Réussite par thématique</div>' +
-      '<div style="height:'+ch+'px;position:relative"><canvas id="fiche-theme-chart"></canvas></div></div>';
-  } else if(trains.length>0) {
-    html+='<div style="background:var(--subtle);border-radius:10px;padding:14px;margin-bottom:18px;font-size:12px;color:var(--muted);text-align:center">📊 Données thématiques disponibles après des entraînements sur des parties spécifiques.</div>';
-  }
-
-  if(trains.length>0) {
-    html+='<div style="margin-bottom:20px"><div style="font-size:13px;font-weight:700;margin-bottom:10px">🏋️ Historique entraînements ('+trains.length+')</div>';
-    var niveauLabel={'1':'SSIAP 1','2':'SSIAP 2','3':'SSIAP 3'};
-    trains.slice(0,8).forEach(function(h,tIdx) {
-      var pct=parseFloat(h.pct||0),ok=pct>=50,col=ok?'#2e7d52':'#c25a3a',bg=ok?'#edf7f2':'#fdf2ee';
-      var date=(h.date||h.completedAt)?new Date(h.date||h.completedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
-      var hasEchecs=h.detailsEchecs&&h.detailsEchecs.length>0;
-      html+='<div class="train-card '+(ok?'ok':'ko')+'" style="flex-wrap:wrap;gap:6px">' +
-        '<div style="display:flex;align-items:center;gap:10px;flex:1;">' +
-          '<div style="text-align:center;min-width:48px;flex-shrink:0;">' +
-            '<div style="font-size:18px;font-weight:800;color:'+col+'">'+pct+'%</div>' +
-            '<div style="font-size:9px;color:'+col+';font-weight:700">'+(ok?'✓ OK':'✗ KO')+'</div>' +
-          '</div>' +
-          '<div style="flex:1;min-width:0;">' +
-            '<div style="font-size:12px;font-weight:700;color:#1e1a17">'+(niveauLabel[h.niveau]||'SSIAP '+(h.niveau||'?'))+(h.partieId&&h.partieId!=='toutes'?' · '+h.partieId:'')+'</div>' +
-            '<div style="font-size:11px;color:#8c8078">'+h.score+'/'+(h.total||'?')+' questions · '+date+'</div>' +
-          '</div>' +
-        '</div>' +
-        (hasEchecs?'<button onclick="openEchecsFormateur('+tIdx+')" style="background:#fff;border:1.5px solid '+col+';color:'+col+';border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;flex-shrink:0">⚠️ '+h.detailsEchecs.length+' erreur'+(h.detailsEchecs.length>1?'s':'')+'</button>'
-          :(pct<100?'<button disabled style="background:var(--subtle);border:1.5px solid var(--border);color:var(--muted);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:not-allowed;font-family:\'Plus Jakarta Sans\',sans-serif;flex-shrink:0;opacity:.65">📋 Sans détail</button>':''))+
-      '</div>';
-    });
-    if(trains.length>8) html+='<div style="font-size:11px;color:var(--muted);padding:6px;text-align:center">+ '+(trains.length-8)+' entraînement'+(trains.length-8>1?'s':'')+' supplémentaires</div>';
-    html+='</div>';
-  }
-
-  if(!trains.length) {
-    html+='<div style="background:var(--subtle);border-radius:10px;padding:24px;text-align:center;color:var(--muted)"><div style="font-size:32px;margin-bottom:8px">📭</div><p style="font-size:13px">Aucun entraînement effectué.</p></div>';
-  }
-
-  if(quizzes.length) {
-    html+='<div><div style="font-size:13px;font-weight:700;margin-bottom:10px">🎮 Quiz en salle ('+quizzes.length+')</div>';
-    quizzes.slice(0,4).forEach(function(h){
-      var pct=parseFloat(h.pct||0),ok=pct>=50,col=ok?'#2e7d52':'#c25a3a',bg=ok?'#edf7f2':'#fdf2ee';
-      var date=(h.date||h.completedAt)?new Date(h.date||h.completedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'—';
-      html+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;margin-bottom:6px;background:'+bg+';border:1px solid '+col+'20">' +
-        '<div style="font-size:18px;font-weight:800;min-width:44px;text-align:center;color:'+col+'">'+pct+'%</div>' +
-        '<div><div style="font-size:12px;font-weight:700">Quiz salle · '+(h.score||0)+'/'+(h.total||0)+'</div><div style="font-size:11px;color:var(--muted)">'+date+'</div></div></div>';
-    });
-    html+='</div>';
-  }
-
-  body.innerHTML=html;
-
-  if(trains.length>=2) setTimeout(function() {
-    var ctx=document.getElementById('fiche-histo-chart'); if(!ctx) return;
-    if(ficheHistoChart){ficheHistoChart.destroy();ficheHistoChart=null;}
-    var data=trains.slice(0,10).reverse().map(function(h){return parseFloat(h.pct||0);});
-    ficheHistoChart=new Chart(ctx,{type:'line',data:{labels:data.map(function(_,i){return ''+(i+1);}),datasets:[{data:data,borderColor:'#2e5c8a',backgroundColor:'rgba(46,92,138,.1)',borderWidth:2.5,pointBackgroundColor:data.map(function(v){return v>=50?'#2e7d52':'#c25a3a';}),pointRadius:5,tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:function(v){return v+'%';},stepSize:25},grid:{color:'#e8e2db'}},x:{grid:{display:false}}}}});
-  },80);
-
-  if(themes.length>=1) setTimeout(function() {
-    var ctx=document.getElementById('fiche-theme-chart'); if(!ctx) return;
-    if(ficheThemeChart){ficheThemeChart.destroy();ficheThemeChart=null;}
-    ficheThemeChart=new Chart(ctx,{type:'bar',data:{labels:themes.map(function(t){return t.label;}),datasets:[{data:themeMoys,backgroundColor:themeMoys.map(function(v){return v>=70?'rgba(46,125,82,.75)':v>=50?'rgba(212,150,10,.75)':'rgba(194,90,58,.75)';}),borderColor:themeMoys.map(function(v){return v>=70?'#2e7d52':v>=50?'#d4960a':'#c25a3a';}),borderWidth:2,borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var t=themes[ctx.dataIndex];return ' '+ctx.raw+'% — '+t.totalQuestions+' questions';}}}},scales:{x:{min:0,max:100,ticks:{callback:function(v){return v+'%';},stepSize:25},grid:{color:'#e8e2db'}},y:{grid:{display:false},ticks:{font:{size:12,weight:'600'}}}},animation:{duration:600}}});
-  },120);
-}
-
-function closeFiche() {
-  document.getElementById('modal-fiche').classList.remove('open');
-  if(ficheHistoChart){ficheHistoChart.destroy();ficheHistoChart=null;}
-  if(ficheThemeChart){ficheThemeChart.destroy();ficheThemeChart=null;}
-  window._currentFicheTrains=null;
-  updateKPIs();
-}
-
-// ══════════════════════════════════════
-//  MODAL QUESTIONS INCORRECTES
-// ══════════════════════════════════════
-function openEchecsFormateur(trainIdx) {
-  var trains = window._currentFicheTrains || [];
-  var h = trains[trainIdx];
-  if (!h || !h.detailsEchecs || !h.detailsEchecs.length) return;
-  var niveauLabel={'1':'SSIAP 1','2':'SSIAP 2','3':'SSIAP 3'};
-  var pct = parseFloat(h.pct||0);
-  var date = (h.date||h.completedAt)?new Date(h.date||h.completedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}):'—';
-  var body = document.getElementById('echecs-form-body');
-  body.innerHTML =
-    '<div style="background:linear-gradient(135deg,#fdf2ee,#f9e8e0);border-radius:10px;padding:12px 16px;margin-bottom:18px;border:1px solid #c25a3a20">' +
-      '<div style="font-size:13px;font-weight:700;color:#1e1a17">'+(niveauLabel[h.niveau]||'SSIAP '+(h.niveau||'?'))+(h.partieId&&h.partieId!=='toutes'?' · '+h.partieId:'')+'</div>' +
-      '<div style="font-size:12px;color:#8c8078;margin-top:2px">'+pct+'% · '+h.score+'/'+(h.total||'?')+' · '+date+'</div>' +
-      '<div style="font-size:12px;color:#c25a3a;margin-top:4px;font-weight:600">'+h.detailsEchecs.length+' question'+(h.detailsEchecs.length>1?'s incorrectes':' incorrecte')+'</div>' +
-    '</div>' +
-    h.detailsEchecs.map(function(q, i) {
-      return '<div style="background:#fdf2ee;border:1.5px solid #c25a3a20;border-radius:10px;padding:14px 16px;margin-bottom:12px;">' +
-        '<div style="font-size:11px;font-weight:700;color:#c25a3a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Question '+(i+1)+'</div>' +
-        '<div style="font-size:13px;font-weight:600;color:#1e1a17;margin-bottom:10px;line-height:1.5">'+q.question+'</div>' +
-        (q.userAnswerLabels&&q.userAnswerLabels.length?
-          '<div style="background:#fff;border-radius:7px;padding:8px 10px;margin-bottom:6px;border-left:3px solid #c25a3a">' +
-            '<div style="font-size:10px;font-weight:700;color:#c25a3a;text-transform:uppercase;margin-bottom:3px">Réponse du stagiaire</div>' +
-            '<div style="font-size:12px;color:#4a4340">'+q.userAnswerLabels.join(', ')+'</div>' +
-          '</div>' : '') +
-        '<div style="background:#edf7f2;border-radius:7px;padding:8px 10px;margin-bottom:6px;border-left:3px solid #2e7d52">' +
-          '<div style="font-size:10px;font-weight:700;color:#2e7d52;text-transform:uppercase;margin-bottom:3px">Bonne réponse</div>' +
-          '<div style="font-size:12px;color:#1e4a30;font-weight:600">'+(q.correctAnswerLabels?q.correctAnswerLabels.join(', '):'—')+'</div>' +
-        '</div>' +
-        (q.explanation?
-          '<div style="background:#fef7e0;border-radius:7px;padding:8px 10px;border-left:3px solid #d4960a">' +
-            '<div style="font-size:10px;font-weight:700;color:#d4960a;text-transform:uppercase;margin-bottom:3px">💡 Explication</div>' +
-            '<div style="font-size:12px;color:#4a4340;line-height:1.5">'+q.explanation+'</div>' +
-          '</div>' : '') +
-      '</div>';
-    }).join('');
-  document.getElementById('modal-echecs-form').classList.add('open');
-}
-function closeEchecsForm() { document.getElementById('modal-echecs-form').classList.remove('open'); }
-
-// ── QR ──
-function buildStagURL(s) {
-  return BASE_URL+'/stagiaire/stagiaire-login.html?centerId='+encodeURIComponent(s.centerId||'')+'&sessionId='+encodeURIComponent(s.sessionId||'')+'&stagiaireId='+encodeURIComponent(s.stagiaireId||'')+'&pin='+encodeURIComponent(s.pin||'');
-}
-function buildSessionURL(centerId,sessionId) {
-  return BASE_URL+'/stagiaire/stagiaire-login.html?centerId='+encodeURIComponent(centerId)+'&sessionId='+encodeURIComponent(sessionId);
-}
-
-function openQRSession(sessionId) {
-  var sess=allSessions.find(function(s){return s.sessionId===sessionId;}); if(!sess) return;
-  var nL={'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC'};
-  var url=buildSessionURL(formateurData.centerId,sessionId);
-  var stags=stagParSession[sessionId]||[];
-  var body=document.getElementById('qr-body'); body.innerHTML='';
-  var bloc=document.createElement('div'); bloc.className='qr-bloc';
-  var qDiv=document.createElement('div'); qDiv.className='qr-center';
-  bloc.innerHTML='<div class="qr-bloc-title">'+(sess.titre||'Session')+' · '+(nL[sess.niveau]||sess.niveau||'')+'</div><div class="qr-bloc-sub">Scannez pour la page de connexion</div>';
-  bloc.appendChild(qDiv);
-  var urlDiv=document.createElement('div'); urlDiv.style.cssText='font-size:10px;color:rgba(255,255,255,.35);word-break:break-all'; urlDiv.textContent=url; bloc.appendChild(urlDiv);
-  body.appendChild(bloc);
-  new QRCode(qDiv,{text:url,width:160,height:160,colorDark:'#1a4a32',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
-  if(stags.length) {
-    var hdr=document.createElement('div'); hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:4px';
-    hdr.innerHTML='<div style="font-size:13px;font-weight:700">QR individuels</div><button class="btn btn-primary btn-sm" onclick="printSessionList(\''+sessionId+'\')">🖨️ Imprimer</button>';
-    body.appendChild(hdr);
-    var grid=document.createElement('div'); grid.className='qr-stag-list';
-    stags.forEach(function(s){
-      var card=document.createElement('div'); card.className='qr-stag-card';
-      var name=[s.prenom,s.nom].filter(Boolean).join(' ')||'Stagiaire';
-      var qd=document.createElement('div');
-      card.innerHTML='<div style="font-size:12px;font-weight:700">'+name+'</div><div style="font-family:monospace;font-size:11px;background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:4px;font-weight:700">PIN : '+(s.pin||'—')+'</div>';
-      card.appendChild(qd); grid.appendChild(card);
-      new QRCode(qd,{text:buildStagURL(s),width:80,height:80,colorDark:'#2e5c8a',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
-    });
-    body.appendChild(grid);
-  }
-  document.getElementById('modal-qr').classList.add('open');
-}
-function closeQR() { document.getElementById('modal-qr').classList.remove('open'); }
-
-// ── Impression ──
-function printSessionList(sessionId) {
-  var sess=allSessions.find(function(s){return s.sessionId===sessionId;});
-  var stags=stagParSession[sessionId]||[];
-  if(!sess||!stags.length){alert('Aucun stagiaire à imprimer.');return;}
-  var nL={'SSIAP1':'SSIAP 1','SSIAP2':'SSIAP 2','SSIAP3':'SSIAP 3','RECYCLAGE':'Recyclage','MAC':'MAC'};
-  var niveau=nL[sess.niveau]||sess.niveau||'—';
-  var debut=sess.dateDebut?new Date(sess.dateDebut).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'—';
-  var fin=sess.dateFin?new Date(sess.dateFin).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'—';
-  var sessURL=buildSessionURL(formateurData.centerId,sessionId);
-  var pa=document.getElementById('print-area'); pa.innerHTML='';
-  var p1=document.createElement('div'); p1.className='print-page';
-  p1.innerHTML='<div class="print-title">🔥 SSIAP Training — '+(sess.titre||'Formation')+' · '+niveau+'</div>' +
-    '<div class="print-sub">Du '+debut+' au '+fin+' · '+stags.length+' stagiaire'+(stags.length>1?'s':'')+' · Imprimé le '+new Date().toLocaleDateString('fr-FR')+'</div>' +
-    '<div class="print-sess-qr"><div style="font-size:13px;font-weight:700;color:#1a4a32;margin-bottom:4px">QR Code accès session</div><div style="font-size:10px;color:#888;margin-bottom:10px">Les stagiaires scannent pour se connecter</div><div id="print-sess-qr-canvas"></div><div style="font-size:9px;color:#999;margin-top:6px;word-break:break-all">'+sessURL+'</div></div>' +
-    '<div style="font-size:14px;font-weight:700;color:#1a4a32;margin-bottom:12px">Codes d\'accès individuels</div>' +
-    '<div class="print-grid" id="print-stag-grid"></div>' +
-    '<div class="print-footer">SSIAP Training · '+new Date().toLocaleString('fr-FR')+'</div>';
-  pa.appendChild(p1);
-  new QRCode(document.getElementById('print-sess-qr-canvas'),{text:sessURL,width:180,height:180,colorDark:'#1a4a32',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
-  var grid=document.getElementById('print-stag-grid');
-  stags.forEach(function(s,i){
-    var card=document.createElement('div'); card.className='print-card';
-    var name=[s.prenom,s.nom].filter(Boolean).join(' ')||'Stagiaire';
-    var qd=document.createElement('div'); qd.id='pqr-'+i;
-    card.innerHTML='<div class="print-card-name">'+name+'</div><div class="print-card-email">'+(s.email||'—')+'</div><div class="print-card-pin">PIN : '+(s.pin||'—')+'</div>';
-    card.appendChild(qd); grid.appendChild(card);
-    new QRCode(qd,{text:buildStagURL(s),width:85,height:85,colorDark:'#2e5c8a',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
-  });
-  setTimeout(function(){window.print();},500);
-}
-
-// ── Questions ──
-async function loadQuestionStats(niveau) {
-  try {
-    var fId=(formateurData&&(formateurData.formateurId||formateurData.id))||'demo';
-    var r=await Fetch(API+'/formateur/questions-stats/'+fId+'?niveau='+niveau);
-    if(!r){renderQuestions([]);return;}
-    var d=await r.json(); renderQuestions(d.questions||[]);
-  } catch(e) {
-    renderQuestions([{texte:"Quel est le rôle du SSIAP 1 en cas d'alarme ?",tauxEchec:68,nTentatives:45},{texte:"Quelle est la portée d'un extincteur CO2 ?",tauxEchec:55,nTentatives:38}]);
+      showAlert('success', `✅ Bienvenue ${d.prenom} ${d.nom} — ${d.centerNom||''}  !`);
+      setTimeout(() => window.location.href = 'formateur-dashboard.html', 750);
+    } else {
+      shake();
+      showAlert('error', '❌ ' + (d.error || d.message || 'PIN incorrect pour ce centre'));
+    }
+  } catch {
+    shake();
+    showAlert('error', '⚠️ Serveur inaccessible — vérifiez votre connexion');
+  } finally {
+    btn.disabled = false;
+    sync();
   }
 }
-function renderQuestions(list) {
-  var c=document.getElementById('questions-list');
-  if(!list.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">Aucune donnée</div>';return;}
-  c.innerHTML=list.map(function(q){return '<div style="padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px"><div style="flex:1;font-size:13px">'+(q.texte||q.question||'')+'</div><div style="text-align:center"><div style="font-size:20px;font-weight:800;color:'+(q.tauxEchec>60?'var(--rouge)':'var(--gold)')+'">'+q.tauxEchec+'%</div><div style="font-size:10px;color:var(--muted)">taux échec</div></div><div style="font-size:11px;color:var(--muted)">'+(q.nTentatives||0)+' tentatives</div></div>';}).join('');
+
+function showAlert(type, msg) {
+  const el = document.getElementById('alert');
+  el.innerHTML = msg;
+  el.className = `alert ${type} show`;
 }
 
-// ── Profil ──
-function loadFormateurProfile() {
-  var el=document.getElementById('formateur-info'); if(!formateurData) return;
-  el.innerHTML='<div style="display:grid;gap:10px">' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>Nom :</strong> '+(formateurData.prenom||'')+' '+(formateurData.nom||'')+'</div>' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>Email :</strong> '+(formateurData.email||'—')+'</div>' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>PIN :</strong> <span style="font-family:monospace;background:var(--blue-light);padding:3px 8px;border-radius:5px;color:var(--blue);font-weight:700">'+(formateurData.pin||'—')+'</span></div>' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>Centre :</strong> <code>'+(formateurData.centerId||'—')+'</code></div>' +
-  '</div>';
-}
-
-// ── Export CSV ──
-function exportCSV() {
-  var rows=[['Prénom','Nom','Session','Niveau','PIN','Email','Entraînements','Score moyen']];
-  allStagiaires.forEach(function(s){
-    var h=Array.isArray(s.historique)?s.historique:Object.values(s.historique||{});
-    var tr=h.filter(function(x){return x.mode==='entrainement';});
-    var sc=tr.map(function(x){return parseFloat(x.pct||0);});
-    var moy=sc.length?Math.round(sc.reduce(function(a,b){return a+b;},0)/sc.length):'';
-    rows.push([s.prenom||'',s.nom||'',s.sessionTitre||'',s.sessionNiveau||'',s.pin||'',s.email||'',tr.length,moy?moy+'%':'—']);
-  });
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+c+'"';}).join(';');}).join('\n');
-  var a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv); a.download='stagiaires_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
-}
-
-function showLoader(){document.getElementById('loader').style.display='flex';}
-function hideLoader(){document.getElementById('loader').style.display='none';}
-
-// ── Déconnexion ──
-document.getElementById('btn-logout').addEventListener('click',function(){
-  if(confirm('Se déconnecter ?')){
-    sessionStorage.removeItem('ssiap_formateur_token');
-    localStorage.removeItem('ssiap_formateur_token');
-    sessionStorage.removeItem('ssiap_formateur');
-    localStorage.removeItem('ssiap_formateur');
-    sessionStorage.removeItem('ssiap_formateur_center');
-    localStorage.removeItem('ssiap_formateur_center');
-    window.location.href='formateur-login.html';
-  }
+// Clavier physique
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'SELECT') return;
+  if (e.key >= '0' && e.key <= '9') k(e.key);
+  else if (e.key === 'Backspace') sup();
+  else if (e.key === 'Escape') raz();
+  else if (e.key === 'Enter' && pin.length===6 && centreId) login();
 });
 
-document.getElementById('modal-fiche').addEventListener('click',function(e){if(e.target===this)closeFiche();});
-document.getElementById('modal-qr').addEventListener('click',function(e){if(e.target===this)closeQR();});
-document.getElementById('modal-echecs-form').addEventListener('click',function(e){if(e.target===this)closeEchecsForm();});
-
-loadOverview();
+loadCentres();
+refresh();
+sync();
 </script>
 </body>
 </html>
