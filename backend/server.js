@@ -65,6 +65,7 @@ app.use('/api/formateur', formateurRoutes);
 app.use('/api/session', sessionRoutes);
 app.use('/api', demandesAvisRoutes);
 app.use('/api/quiz', quizSalleRoutes);
+app.use('/api/admin/auth/login', loginLimiter);
 app.use('/api/admin/auth', adminAuthRoutes);   // ← public : login
 app.use('/api/admin', adminQuestionsRoutes);   // ← protégé : JWT requis
 // Route santé
