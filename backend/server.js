@@ -25,6 +25,7 @@ const adminQuestionsRoutes = require('./routes/admin_questions.routes');
 const adminAuthRoutes = require('./routes/admin.auth.routes');
 
 const app = express();
+app.set('trust proxy', 1); // Render est derrière un reverse proxy
 const PORT = process.env.PORT || 10000;
 const ROOT = path.join(__dirname, '..');
 
