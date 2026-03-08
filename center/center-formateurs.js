@@ -130,7 +130,6 @@ function injectFormateurModal() {
 
 // ── Ouvrir modal ──
 function showAddFormateurModal() {
-    // Sécurité : injecter le modal s'il n'existe pas encore
     injectFormateurModal();
 
     if (formateurs.length >= (centerData?.license?.maxFormateurs || 1)) {
@@ -173,7 +172,6 @@ async function saveFormateur() {
     const tel      = document.getElementById('f-tel').value.trim();
     const password = document.getElementById('f-password').value;
 
-    // Validation
     if (!nom || !prenom) { showFormAlert('error', '⚠️ Nom et prénom requis'); return; }
     if (!email || !email.includes('@')) { showFormAlert('error', '⚠️ Email invalide'); return; }
     if (!editingFormateurId && password.length < 8) {
@@ -196,11 +194,11 @@ async function saveFormateur() {
             if (tel) updates.telephone = tel;
             if (password) updates.password = password;
 
-            response = await fetch(`${API_URL}/formateur/update/${editingFormateurId}`, {
+            response = await authFetch(`${API_URL}/formateur/update/${editingFormateurId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates)
             });
+            if (!response) return;
             result = await response.json();
 
             if (result.success) {
@@ -212,15 +210,15 @@ async function saveFormateur() {
             }
         } else {
             // Création
-            response = await fetch(`${API_URL}/formateur/create`, {
+            response = await authFetch(`${API_URL}/formateur/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     centerId: centerData.centerId,
                     nom, prenom, email, password,
                     telephone: tel
                 })
             });
+            if (!response) return;
             result = await response.json();
 
             if (result.success || result.formateur) {
@@ -246,7 +244,8 @@ async function loadFormateurs() {
     if (!centerData) return;
     showLoader();
     try {
-        const response = await fetch(`${API_URL}/formateur/list/${centerData.centerId}`);
+        const response = await authFetch(`${API_URL}/formateur/list/${centerData.centerId}`);
+        if (!response) return;
         const data = await response.json();
         if (data.success) {
             formateurs = data.formateurs || [];
@@ -330,7 +329,7 @@ function displayFormateurs(list) {
 
 // ── Modifier ──
 function editFormateur(formateurId) {
-    injectFormateurModal(); // Sécurité
+    injectFormateurModal();
     const f = formateurs.find(x => x.formateurId === formateurId);
     if (!f) return;
     editingFormateurId = formateurId;
@@ -354,9 +353,10 @@ async function deleteFormateur(formateurId) {
 
     showLoader();
     try {
-        const r = await fetch(`${API_URL}/formateur/delete/${formateurId}?centerId=${centerData.centerId}`, {
+        const r = await authFetch(`${API_URL}/formateur/delete/${formateurId}?centerId=${centerData.centerId}`, {
             method: 'DELETE'
         });
+        if (!r) return;
         const result = await r.json();
         if (result.success) {
             showPinToast('🗑️ Formateur supprimé');
