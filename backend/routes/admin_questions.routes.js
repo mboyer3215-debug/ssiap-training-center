@@ -4,7 +4,7 @@
 const express              = require('express');
 const router               = express.Router();
 const { db }               = require('../config/firebase');
-const { verifyAdminToken } = require('../middleware/admin.auth.middleware');
+const { verifyAdminToken } = require('../middleware/admin.auth.middleware'); 
 
 // Toutes les routes de ce fichier exigent un JWT admin valide
 router.use(verifyAdminToken);
