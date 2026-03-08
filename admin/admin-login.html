@@ -141,7 +141,7 @@ var API = 'https://ssiap-training-center.onrender.com/api';
 (function() {
     var token = sessionStorage.getItem('adminToken');
     if (token) {
-        var dest = new URLSearchParams(window.location.search).get('redirect') || '../admin/dashboard-admin.html';
+        var dest = new URLSearchParams(window.location.search).get('redirect') || '../admin/admin-dashboard.html';
         window.location = dest;
     }
 })();
@@ -182,7 +182,7 @@ async function doLogin() {
 
         if (d.success && d.token) {
             sessionStorage.setItem('adminToken', d.token);
-            var dest = new URLSearchParams(window.location.search).get('redirect') || 'dashboard-admin.html';
+            var dest = new URLSearchParams(window.location.search).get('redirect') || 'admin-dashboard.html';
             window.location = dest;
         } else {
             showError(d.error || 'Identifiants incorrects');
