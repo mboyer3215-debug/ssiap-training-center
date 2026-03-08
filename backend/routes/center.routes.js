@@ -12,8 +12,11 @@ const nodemailer = require('nodemailer');
 function getMailer() {
   return nodemailer.createTransport({
     host:   process.env.SMTP_HOST || 'smtp.ionos.fr',
-    port:   parseInt(process.env.SMTP_PORT) || 465,
-    secure: parseInt(process.env.SMTP_PORT) === 465, // ← true si port 465
+    port:   parseInt(process.env.SMTP_PORT) || 587,
+    secure: parseInt(process.env.SMTP_PORT) === 587, // ← true si port 587
+    connectionTimeout: 10000,  // ← 10 secondes max
+    greetingTimeout:   5000,
+    socketTimeout:     10000,    
     auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
   });
 }
