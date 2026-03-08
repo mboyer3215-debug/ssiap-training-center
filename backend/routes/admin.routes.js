@@ -8,9 +8,6 @@ const crypto  = require('crypto');
 // ══════════════════════════════════════════════════════════════
 // POST /api/admin/login
 // Body: { username, password }
-// Credentials définis dans les variables d'environnement Render :
-//   ADMIN_USERNAME  (défaut: admin)
-//   ADMIN_PASSWORD  (défaut: Ssiap@2026!)
 // ══════════════════════════════════════════════════════════════
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
