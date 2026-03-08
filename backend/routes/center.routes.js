@@ -150,6 +150,11 @@ router.post('/register', async (req, res) => {
 // POST /api/center/login
 // Body: { email, password }
 // ══════════════════════════════════════════════════════════════
+// Compteur brute-force en mémoire
+const centerAttempts = {};
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000;
+
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -157,7 +162,68 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Email et mot de passe requis' });
   }
 
+  // ── Protection brute-force par email ──
+  const key = email.toLowerCase();
+  const now = Date.now();
+  if (!centerAttempts[key] || now - centerAttempts[key].firstAttempt > WINDOW_MS) {
+    centerAttempts[key] = { count: 0, firstAttempt: now };
+  }
+  if (centerAttempts[key].count >= MAX_ATTEMPTS) {
+    const remaining = Math.ceil((centerAttempts[key].firstAttempt + WINDOW_MS - now) / 60000);
+    return res.status(429).json({ success: false, error: `Trop de tentatives. Réessayez dans ${remaining} min.` });
+  }
+
   try {
+    const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
+    if (!snapshot.exists()) {
+      centerAttempts[key].count++;
+      return res.status(401).json({ success: false, error: 'Email ou mot de passe incorrect' });
+    }
+
+    let centerData;
+    snapshot.forEach(child => { centerData = { id: child.key, ...child.val() }; });
+
+    if (!centerData?.auth?.passwordHash) {
+      return res.status(401).json({ success: false, error: "Compte non initialisé, contactez l'administrateur" });
+    }
+
+    const valid = await bcrypt.compare(password, centerData.auth.passwordHash);
+    if (!valid) {
+      centerAttempts[key].count++;
+      return res.status(401).json({ success: false, error: 'Email ou mot de passe incorrect' });
+    }
+
+    if (centerData.status === 'inactive') {
+      return res.status(403).json({ success: false, error: "Compte désactivé, contactez l'administrateur" });
+    }
+
+    // Succès → reset compteur
+    delete centerAttempts[key];
+
+    const licExp = centerData.license?.expiresAt;
+    const licOk  = !licExp || licExp > Date.now();
+
+    await db.ref(`centers/${centerData.id}/auth`).update({ lastLogin: Date.now() });
+
+    res.json({
+      success:   true,
+      centerId:  centerData.id,
+      nom:       centerData.info?.nom || '—',
+      email:     centerData.auth.email,
+      license: {
+        type:           centerData.license?.type || 'DEMO',
+        expiresAt:      licExp,
+        active:         licOk,
+        maxFormateurs:  centerData.license?.maxFormateurs || 1,
+        maxStagiaires:  centerData.license?.maxStagiaires || 10,
+      }
+    });
+
+  } catch (err) {
+    console.error('Erreur login centre:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
     // Trouver le centre par email
     const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
     if (!snapshot.exists()) {
