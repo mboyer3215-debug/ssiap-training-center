@@ -1,51 +1,49 @@
-// backend/routes/admin.auth.routes.js
-// Login admin : vérifie email + mot de passe, retourne un JWT 8h
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-const express  = require('express');
-const router   = express.Router();
-const bcrypt   = require('bcryptjs');
-const jwt      = require('jsonwebtoken'); 
+// Compteur brute-force en mémoire
+const attempts = {};
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000; // 15 min
 
-/**
- * POST /api/admin/login
- * Body : { email, password }
- */
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
 
-    if (!email || !password) {
-        return res.status(400).json({ success: false, error: 'Email et mot de passe requis' });
-    }
+  // Init ou reset si fenêtre expirée
+  if (!attempts[ip] || now - attempts[ip].firstAttempt > WINDOW_MS) {
+    attempts[ip] = { count: 0, firstAttempt: now };
+  }
 
-    const adminEmail    = process.env.ADMIN_EMAIL;
-    const adminHashedPw = process.env.ADMIN_PASSWORD_HASH;
-    const jwtSecret     = process.env.JWT_SECRET;
+  // Vérifier limite
+  if (attempts[ip].count >= MAX_ATTEMPTS) {
+    const remaining = Math.ceil((attempts[ip].firstAttempt + WINDOW_MS - now) / 60000);
+    return res.status(429).json({ error: `Trop de tentatives. Réessayez dans ${remaining} min.` });
+  }
 
-    if (!adminEmail || !adminHashedPw || !jwtSecret) {
-        console.error('❌ Variables admin manquantes dans .env (ADMIN_EMAIL, ADMIN_PASSWORD_HASH, JWT_SECRET)');
-        return res.status(500).json({ success: false, error: 'Configuration serveur incomplète' });
-    }
+  const { email, password } = req.body;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminHash  = process.env.ADMIN_PASSWORD_HASH;
 
-    // Vérifier email (insensible à la casse)
-    if (email.trim().toLowerCase() !== adminEmail.toLowerCase()) {
-        return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
-    }
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Champs manquants.' });
+  }
 
-    // Vérifier mot de passe avec bcrypt
-    const valid = await bcrypt.compare(password, adminHashedPw);
-    if (!valid) {
-        return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
-    }
+  const emailOk = email === adminEmail;
+  const passOk  = emailOk && await bcrypt.compare(password, adminHash);
 
-    // Générer JWT valable 8 heures
-    const token = jwt.sign(
-        { role: 'admin', email: adminEmail },
-        jwtSecret,
-        { expiresIn: '8h' }
-    );
+  if (!emailOk || !passOk) {
+    attempts[ip].count++;
+    return res.status(401).json({ error: 'Identifiants incorrects.' });
+  }
 
-    console.log(`✅ Connexion admin : ${adminEmail}`);
-    res.json({ success: true, token, expiresIn: 8 * 3600 });
+  // Succès → reset compteur
+  delete attempts[ip];
+
+  const token = jwt.sign({ email, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '8h' });
+  res.json({ success: true, token });
 });
 
 module.exports = router;
