@@ -305,8 +305,7 @@ async function fetchAllData() {
   var fId      = formateurData.formateurId || formateurData.id;
   if (!centerId) return;
 
-  var rSess = await authFetch(API+'/session/list/'+centerId);
-  if (!rSess) return;
+  var rSess = await fetch(API+'/session/list/'+centerId);
   var dSess = await rSess.json();
   allSessions = (dSess.sessions||[]).filter(function(s) {
     return !s.formateurIds || s.formateurIds.length===0 || s.formateurIds.includes(fId);
@@ -315,8 +314,7 @@ async function fetchAllData() {
   allStagiaires = []; stagParSession = {};
   for (var i=0; i<allSessions.length; i++) {
     var sess = allSessions[i];
-    var rStag = await authFetch(API+'/stagiaire/list/'+centerId+'?sessionId='+sess.sessionId);
-    if (!rStag) continue;
+    var rStag = await fetch(API+'/stagiaire/list/'+centerId+'?sessionId='+sess.sessionId);
     var dStag = await rStag.json();
     var stags = (dStag.stagiaires||[]).map(function(s) {
       return Object.assign({},s,{sessionId:sess.sessionId,sessionTitre:sess.titre||sess.nom||'Session',sessionNiveau:sess.niveau,centerId:centerId,historique:s.historique||[]});
@@ -329,8 +327,7 @@ async function fetchAllData() {
     var chunk = allStagiaires.slice(j,j+5);
     await Promise.all(chunk.map(async function(s) {
       try {
-        var r = await authFetch(API+'/stagiaire/historique/'+s.stagiaireId+'?centerId='+s.centerId);
-        if (!r) { s.historique=[]; return; }
+        var r = await fetch(API+'/stagiaire/historique/'+s.stagiaireId+'?centerId='+s.centerId);
         var d = await r.json();
         s.historique = d.success ? (d.historique||[]) : [];
         var arr = stagParSession[s.sessionId]||[];
@@ -779,7 +776,7 @@ function printSessionList(sessionId) {
 async function loadQuestionStats(niveau) {
   try {
     var fId=(formateurData&&(formateurData.formateurId||formateurData.id))||'demo';
-    var r=await authFetch(API+'/formateur/questions-stats/'+fId+'?niveau='+niveau);
+    var r=await Fetch(API+'/formateur/questions-stats/'+fId+'?niveau='+niveau);
     if(!r){renderQuestions([]);return;}
     var d=await r.json(); renderQuestions(d.questions||[]);
   } catch(e) {
