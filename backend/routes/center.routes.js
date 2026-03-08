@@ -1,6 +1,4 @@
 // backend/routes/center.routes.js
-// Gestion complète des centres : register, login, dashboard, reset password
-
 const express = require('express');
 const router  = express.Router();
 const bcrypt  = require('bcryptjs');
@@ -8,7 +6,6 @@ const crypto  = require('crypto');
 const admin   = require('firebase-admin');
 const db      = admin.database();
 
-// ── Utilitaire email (SMTP déjà configuré dans le projet) ──
 const nodemailer = require('nodemailer');
 function getMailer() {
   return nodemailer.createTransport({
@@ -21,8 +18,6 @@ function getMailer() {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/center/register
-// Créer un compte centre avec une clé de licence
-// Body: { licenseKey, nom, email, password, telephone?, ville? }
 // ══════════════════════════════════════════════════════════════
 router.post('/register', async (req, res) => {
   const { licenseKey, nom, email, password, telephone, ville } = req.body;
@@ -35,15 +30,13 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    // 1. Trouver la licence
     const licSnapshot = await db.ref(`licenses/${licenseKey}`).once('value');
     const licenseData = licSnapshot.val();
     if (!licenseData) {
-    return res.status(400).json({ success: false, error: 'Clé de licence invalide' });
+      return res.status(400).json({ success: false, error: 'Clé de licence invalide' });
     }
     const licenseId = licenseKey;
 
-    // 2. Vérifier que la licence est disponible
     if (licenseData.used && licenseData.centerId) {
       return res.status(400).json({ success: false, error: 'Cette clé de licence est déjà utilisée' });
     }
@@ -51,57 +44,35 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Cette clé de licence a expiré' });
     }
 
-    // 3. Vérifier email unique
     const emailCheck = await db.ref('centers').orderByChild('info/email').equalTo(email).once('value');
     if (emailCheck.exists()) {
       return res.status(400).json({ success: false, error: 'Cet email est déjà utilisé' });
     }
 
-    // 4. Hasher le mot de passe
     const passwordHash = await bcrypt.hash(password, 12);
-
-    // 5. Créer le centre dans Firebase
     const centerId = licenseData.centerId || `center_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-    
+
     const centerData = {
       centerId,
-      info: {
-        nom,
-        email,
-        telephone:  telephone || '',
-        ville:      ville || '',
-        createdAt:  Date.now()
-      },
-      auth: {
-        email,
-        passwordHash,
-        createdAt: Date.now(),
-        lastLogin: null
-      },
+      info: { nom, email, telephone: telephone || '', ville: ville || '', createdAt: Date.now() },
+      auth: { email, passwordHash, createdAt: Date.now(), lastLogin: null },
       license: {
-        key:            licenseKey,
-        type:           licenseData.type || 'DEMO',
-        expiresAt:      licenseData.expiresAt || null,
-        maxFormateurs:  licenseData.maxFormateurs || 1,
-        maxStagiaires:  licenseData.maxStagiaires || 10,
-        activatedAt:    Date.now()
+        key: licenseKey,
+        type: licenseData.type || 'DEMO',
+        expiresAt: licenseData.expiresAt || null,
+        maxFormateurs: licenseData.maxFormateurs || 1,
+        maxStagiaires: licenseData.maxStagiaires || 10,
+        activatedAt: Date.now()
       },
       stats: { formateurs: 0, stagiaires: 0, sessions: 0 },
       status: 'active'
     };
 
     await db.ref(`centers/${centerId}`).set(centerData);
-
-    // 6. Marquer la licence comme utilisée
     await db.ref(`licenses/${licenseId}`).update({
-      used:      true,
-      centerId,
-      usedAt:    Date.now(),
-      centerNom: nom,
-      centerEmail: email
+      used: true, centerId, usedAt: Date.now(), centerNom: nom, centerEmail: email
     });
 
-    // 7. Email de bienvenue (optionnel, ne bloque pas si SMTP absent)
     try {
       const mailer = getMailer();
       await mailer.sendMail({
@@ -113,32 +84,21 @@ router.post('/register', async (req, res) => {
             <h2 style="color:#c25a3a">🔥 Bienvenue sur SSIAP Training !</h2>
             <p>Votre compte centre <strong>${nom}</strong> a été créé avec succès.</p>
             <div style="background:#fdf0eb;border-radius:8px;padding:16px;margin:20px 0">
-              <p><strong>Email de connexion :</strong> ${email}</p>
+              <p><strong>Email :</strong> ${email}</p>
               <p><strong>ID Centre :</strong> ${centerId}</p>
               <p><strong>Licence :</strong> ${licenseData.type || 'DEMO'}</p>
             </div>
-            <a href="https://ssiap-training.netlify.app/center/center-login.html"
+            <a href="https://ssiap-training-center.onrender.com/center/center-login.html"
                style="display:inline-block;background:#c25a3a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">
               Se connecter →
             </a>
-            <p style="margin-top:24px;font-size:12px;color:#999">
-              Si vous n'êtes pas à l'origine de cette création, contactez-nous immédiatement.
-            </p>
-          </div>
-        `
+          </div>`
       });
     } catch (mailErr) {
-      console.log('Email bienvenue non envoyé (SMTP non configuré):', mailErr.message);
+      console.log('Email bienvenue non envoyé:', mailErr.message);
     }
 
-    res.json({
-      success:     true,
-      centerId,
-      nom,
-      email,
-      licenseType: licenseData.type || 'DEMO',
-      message:     'Compte créé avec succès'
-    });
+    res.json({ success: true, centerId, nom, email, licenseType: licenseData.type || 'DEMO', message: 'Compte créé avec succès' });
 
   } catch (err) {
     console.error('Erreur register centre:', err);
@@ -147,10 +107,8 @@ router.post('/register', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
-// POST /api/center/login
-// Body: { email, password }
+// POST /api/center/login  — avec protection brute-force
 // ══════════════════════════════════════════════════════════════
-// Compteur brute-force en mémoire
 const centerAttempts = {};
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000;
@@ -162,9 +120,9 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Email et mot de passe requis' });
   }
 
-  // ── Protection brute-force par email ──
   const key = email.toLowerCase();
   const now = Date.now();
+
   if (!centerAttempts[key] || now - centerAttempts[key].firstAttempt > WINDOW_MS) {
     centerAttempts[key] = { count: 0, firstAttempt: now };
   }
@@ -197,7 +155,6 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ success: false, error: "Compte désactivé, contactez l'administrateur" });
     }
 
-    // Succès → reset compteur
     delete centerAttempts[key];
 
     const licExp = centerData.license?.expiresAt;
@@ -206,66 +163,16 @@ router.post('/login', async (req, res) => {
     await db.ref(`centers/${centerData.id}/auth`).update({ lastLogin: Date.now() });
 
     res.json({
-      success:   true,
-      centerId:  centerData.id,
-      nom:       centerData.info?.nom || '—',
-      email:     centerData.auth.email,
+      success:  true,
+      centerId: centerData.id,
+      nom:      centerData.info?.nom || '—',
+      email:    centerData.auth.email,
       license: {
-        type:           centerData.license?.type || 'DEMO',
-        expiresAt:      licExp,
-        active:         licOk,
-        maxFormateurs:  centerData.license?.maxFormateurs || 1,
-        maxStagiaires:  centerData.license?.maxStagiaires || 10,
-      }
-    });
-
-  } catch (err) {
-    console.error('Erreur login centre:', err);
-    res.status(500).json({ success: false, error: 'Erreur serveur' });
-  }
-});
-    // Trouver le centre par email
-    const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
-    if (!snapshot.exists()) {
-      return res.status(401).json({ success: false, error: 'Email ou mot de passe incorrect' });
-    }
-
-    let centerData;
-    snapshot.forEach(child => { centerData = { id: child.key, ...child.val() }; });
-
-    if (!centerData?.auth?.passwordHash) {
-      return res.status(401).json({ success: false, error: 'Compte non initialisé, contactez l\'administrateur' });
-    }
-
-    // Vérifier le mot de passe
-    const valid = await bcrypt.compare(password, centerData.auth.passwordHash);
-    if (!valid) {
-      return res.status(401).json({ success: false, error: 'Email ou mot de passe incorrect' });
-    }
-
-    // Vérifier statut
-    if (centerData.status === 'inactive') {
-      return res.status(403).json({ success: false, error: 'Compte désactivé, contactez l\'administrateur' });
-    }
-
-    // Vérifier licence
-    const licExp = centerData.license?.expiresAt;
-    const licOk  = !licExp || licExp > Date.now();
-
-    // Mettre à jour lastLogin
-    await db.ref(`centers/${centerData.id}/auth`).update({ lastLogin: Date.now() });
-
-    res.json({
-      success:   true,
-      centerId:  centerData.id,
-      nom:       centerData.info?.nom || '—',
-      email:     centerData.auth.email,
-      license: {
-        type:           centerData.license?.type || 'DEMO',
-        expiresAt:      licExp,
-        active:         licOk,
-        maxFormateurs:  centerData.license?.maxFormateurs || 1,
-        maxStagiaires:  centerData.license?.maxStagiaires || 10,
+        type:          centerData.license?.type || 'DEMO',
+        expiresAt:     licExp,
+        active:        licOk,
+        maxFormateurs: centerData.license?.maxFormateurs || 1,
+        maxStagiaires: centerData.license?.maxStagiaires || 10,
       }
     });
 
@@ -277,8 +184,6 @@ router.post('/login', async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/center/forgot-password
-// Envoie un lien de réinitialisation par email
-// Body: { email }
 // ══════════════════════════════════════════════════════════════
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -286,8 +191,6 @@ router.post('/forgot-password', async (req, res) => {
 
   try {
     const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
-    
-    // Réponse toujours positive pour éviter l'énumération d'emails
     if (!snapshot.exists()) {
       return res.json({ success: true, message: 'Si cet email existe, un lien a été envoyé' });
     }
@@ -295,13 +198,12 @@ router.post('/forgot-password', async (req, res) => {
     let centerId, centerData;
     snapshot.forEach(c => { centerId = c.key; centerData = c.val(); });
 
-    // Générer token de reset
     const token     = crypto.randomBytes(32).toString('hex');
-    const expiresAt = Date.now() + 3600000; // 1 heure
+    const expiresAt = Date.now() + 3600000;
 
     await db.ref(`centers/${centerId}/auth`).update({ resetToken: token, resetTokenExpires: expiresAt });
 
-    const resetUrl = `https://ssiap-training.netlify.app/center/center-reset-password.html?token=${token}&id=${centerId}`;
+    const resetUrl = `https://ssiap-training-center.onrender.com/center/center-reset-password.html?token=${token}&id=${centerId}`;
 
     try {
       const mailer = getMailer();
@@ -312,27 +214,21 @@ router.post('/forgot-password', async (req, res) => {
         html: `
           <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px">
             <h2 style="color:#c25a3a">🔥 SSIAP Training</h2>
-            <p>Vous avez demandé la réinitialisation du mot de passe pour <strong>${centerData.info?.nom || email}</strong>.</p>
-            <p style="margin:16px 0">Cliquez sur le bouton ci-dessous dans l'heure qui suit :</p>
+            <p>Réinitialisation du mot de passe pour <strong>${centerData.info?.nom || email}</strong>.</p>
             <a href="${resetUrl}"
                style="display:inline-block;background:#c25a3a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">
               Réinitialiser mon mot de passe →
             </a>
-            <p style="margin-top:20px;font-size:12px;color:#999">
-              Ce lien est valable 1 heure. Si vous n'avez pas fait cette demande, ignorez cet email.
-            </p>
-            <p style="font-size:11px;color:#bbb">Lien : ${resetUrl}</p>
-          </div>
-        `
+            <p style="margin-top:20px;font-size:12px;color:#999">Lien valable 1 heure.</p>
+          </div>`
       });
       res.json({ success: true, message: 'Email de réinitialisation envoyé' });
     } catch (mailErr) {
       console.error('Erreur envoi email reset:', mailErr.message);
-      // En cas d'échec SMTP, retourner le token en dev
       if (process.env.NODE_ENV !== 'production') {
-        res.json({ success: true, debug_token: token, debug_id: centerId, message: 'SMTP non dispo — token en réponse (dev uniquement)' });
+        res.json({ success: true, debug_token: token, debug_id: centerId });
       } else {
-        res.status(500).json({ success: false, error: 'Erreur envoi email, contactez l\'administrateur' });
+        res.status(500).json({ success: false, error: "Erreur envoi email, contactez l'administrateur" });
       }
     }
 
@@ -344,7 +240,6 @@ router.post('/forgot-password', async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/center/reset-password
-// Body: { centerId, token, newPassword }
 // ══════════════════════════════════════════════════════════════
 router.post('/reset-password', async (req, res) => {
   const { centerId, token, newPassword } = req.body;
@@ -368,10 +263,7 @@ router.post('/reset-password', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await db.ref(`centers/${centerId}/auth`).update({
-      passwordHash,
-      resetToken: null,
-      resetTokenExpires: null,
-      passwordChangedAt: Date.now()
+      passwordHash, resetToken: null, resetTokenExpires: null, passwordChangedAt: Date.now()
     });
 
     res.json({ success: true, message: 'Mot de passe modifié avec succès' });
@@ -384,8 +276,6 @@ router.post('/reset-password', async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // POST /api/center/admin-reset-password
-// Reset forcé par l'admin (sans token)
-// Body: { centerId, newPassword }
 // ══════════════════════════════════════════════════════════════
 router.post('/admin-reset-password', async (req, res) => {
   const { centerId, newPassword } = req.body;
@@ -398,11 +288,8 @@ router.post('/admin-reset-password', async (req, res) => {
   try {
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await db.ref(`centers/${centerId}/auth`).update({
-      passwordHash,
-      resetToken: null,
-      resetTokenExpires: null,
-      passwordChangedAt: Date.now(),
-      resetByAdmin: true
+      passwordHash, resetToken: null, resetTokenExpires: null,
+      passwordChangedAt: Date.now(), resetByAdmin: true
     });
     res.json({ success: true, message: `Mot de passe réinitialisé pour ${centerId}` });
   } catch (err) {
@@ -412,7 +299,6 @@ router.post('/admin-reset-password', async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // GET /api/center/list
-// Liste tous les centres (admin)
 // ══════════════════════════════════════════════════════════════
 router.get('/list', async (req, res) => {
   try {
@@ -423,7 +309,7 @@ router.get('/list', async (req, res) => {
     snapshot.forEach(child => {
       const c = child.val();
       centers.push({
-        centerId:  child.key,
+        centerId: child.key,
         info: {
           nom:       c.info?.nom || '—',
           email:     c.info?.email || c.auth?.email || '—',
@@ -441,7 +327,6 @@ router.get('/list', async (req, res) => {
         stats:     c.stats  || { formateurs: 0, stagiaires: 0, sessions: 0 },
         status:    c.status || 'active',
         lastLogin: c.auth?.lastLogin || null
-        // NB: passwordHash intentionnellement exclus
       });
     });
 
@@ -485,7 +370,6 @@ router.get('/dashboard/:centerId', async (req, res) => {
 
 // ══════════════════════════════════════════════════════════════
 // PUT /api/center/update/:centerId
-// Mettre à jour les infos du centre
 // ══════════════════════════════════════════════════════════════
 router.put('/update/:centerId', async (req, res) => {
   const { centerId } = req.params;
