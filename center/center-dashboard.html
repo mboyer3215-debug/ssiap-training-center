@@ -528,35 +528,55 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════════════
+// REMPLACER le bloc <script> dans center-dashboard.html
+// par ce contenu (tout sauf les 2 lignes <script src=...>)
+// ════════════════════════════════════════════════════
+
 const API_URL = 'https://ssiap-training-center.onrender.com/api';
 let centerData = null;
 let currentNote = 4;
 let currentRole = 'formateur';
 let allAvisData = [];
 
-// ── Auth ──
-const token = localStorage.getItem('ssiap_token') || sessionStorage.getItem('centerId');
-if (!token) window.location.href = 'center-login.html';
+// ── Auth : récupère le JWT ──
+const JWT = sessionStorage.getItem('ssiap_jwt');
+if (!JWT) {
+    window.location.href = 'center-login.html';
+}
 
 const centerStored = localStorage.getItem('ssiap_center');
 if (centerStored) {
     centerData = JSON.parse(centerStored);
 } else {
-    const centerId = sessionStorage.getItem('centerId');
-    if (centerId) {
-        centerData = {
-            centerId,
-            nom:   sessionStorage.getItem('centerNom'),
-            email: sessionStorage.getItem('centerEmail'),
-            license: { type: sessionStorage.getItem('licenseType') }
-        };
-        localStorage.setItem('ssiap_token', centerId);
-        localStorage.setItem('ssiap_center', JSON.stringify(centerData));
-    }
+    window.location.href = 'center-login.html';
 }
 
 if (centerData) {
     document.getElementById('center-name').textContent = centerData.nom || 'Mon Centre';
+}
+
+// ── Helper fetch authentifié ──
+async function authFetch(url, options = {}) {
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${JWT}`,
+        ...(options.headers || {})
+    };
+    const res = await fetch(url, { ...options, headers });
+
+    // Session expirée → retour login
+    if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        if (data.expired || data.error?.includes('expiré') || data.error?.includes('Token')) {
+            sessionStorage.removeItem('ssiap_jwt');
+            localStorage.removeItem('ssiap_center');
+            alert('Votre session a expiré. Veuillez vous reconnecter.');
+            window.location.href = 'center-login.html';
+            return null;
+        }
+    }
+    return res;
 }
 
 // ── Navigation ──
@@ -581,14 +601,13 @@ async function loadDashboard() {
     if (!centerData) return;
     showLoader();
     try {
-        const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+        const r = await authFetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+        if (!r) return;
         const d = await r.json();
 
-        // Calculer les jours restants depuis expiresAt
         const exp = d.license?.expiresAt || d.license?.endDate;
         const days = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 86400000)) : 0;
 
-        // FIX : l'API retourne les données directement sans { success: true }
         if (d.stats || d.license) {
             document.getElementById('kpi-formateurs').textContent = d.stats?.formateurs ?? '—';
             document.getElementById('kpi-stagiaires').textContent = d.stats?.stagiaires ?? '—';
@@ -605,7 +624,7 @@ async function loadDashboard() {
     loadAvisOverview();
 }
 
-// ── Avis overview ──
+// ── Avis overview (route publique — pas de JWT nécessaire) ──
 async function loadAvisOverview() {
     if (!centerData) return;
     try {
@@ -615,9 +634,8 @@ async function loadAvisOverview() {
         renderAvisOverview(allAvisData);
     } catch {
         allAvisData = [
-            { id:'d1', role:'formateur', prenom:'Marie', nom:'D.', noteGlobale:4.8, commentaire:'Excellent outil, progrès visibles.', adminReplies:[{texte:'Merci pour votre retour !', timestamp:Date.now()-86400000}], createdAt:Date.now()-86400000*2, nps:9 },
-            { id:'d2', role:'stagiaire', prenom:'Thomas', nom:'M.', noteGlobale:4.2, commentaire:'Pratique pour réviser.', adminReplies:[], createdAt:Date.now()-86400000*4, nps:8 },
-            { id:'d3', role:'stagiaire', prenom:'Lucie', nom:'B.', noteGlobale:5, commentaire:"J'ai eu 18/20 !", adminReplies:[{texte:'Félicitations 🎉', timestamp:Date.now()-86400000*3}], createdAt:Date.now()-86400000*6, nps:10 },
+            { id:'d1', role:'formateur', prenom:'Marie', nom:'D.', noteGlobale:4.8, commentaire:'Excellent outil.', adminReplies:[{texte:'Merci !', timestamp:Date.now()-86400000}], createdAt:Date.now()-86400000*2, nps:9 },
+            { id:'d2', role:'stagiaire', prenom:'Thomas', nom:'M.', noteGlobale:4.2, commentaire:'Pratique.', adminReplies:[], createdAt:Date.now()-86400000*4, nps:8 },
         ];
         renderAvisOverview(allAvisData);
     }
@@ -672,37 +690,26 @@ function renderAvisOverview(avis) {
                     <span class="avis-mini-note">${starsStr(Math.round(a.noteGlobale))} ${a.noteGlobale.toFixed(1)}</span>
                 </div>
                 <div class="avis-mini-comment">${a.commentaire||'Aucun commentaire'}</div>
-                <span class="avis-reply-tag ${hasR?'has':'none'}">${hasR?"✓ Répondu par l'admin":'En attente de réponse'}</span>
-                ${hasR?`<div style="font-size:11px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--rouge-light);border-radius:6px;border-left:2px solid var(--rouge);font-style:italic">"${(a.adminReplies||[]).slice(-1)[0]?.texte||''}"</div>`:''}
+                <span class="avis-reply-tag ${hasR?'has':'none'}">${hasR?"✓ Répondu":'En attente'}</span>
             </div>
         </div>`;
     }).join('');
 }
 
-// ── Page Avis complète ──
+// ── Page Avis ──
 async function loadAvisPage() {
     await loadAvisOverview();
     const avis = allAvisData;
     const total = avis.length;
-
     const moy = total ? (avis.reduce((s,a) => s+a.noteGlobale,0)/total).toFixed(1) : '—';
     document.getElementById('av-note').textContent = moy;
     document.getElementById('av-total').textContent = total;
     document.getElementById('av-form').textContent = avis.filter(a=>a.role==='formateur').length;
     document.getElementById('av-stag').textContent = avis.filter(a=>a.role==='stagiaire').length;
 
-    // Compter nouvelles réponses admin
-    const newReplies = avis.filter(a => (a.adminReplies||[]).length > 0 && !a._read).length;
-    const badge = document.getElementById('notif-badge');
-    if (badge) {
-        if (newReplies > 0) { badge.textContent = newReplies + ' réponse' + (newReplies > 1 ? 's' : ''); badge.style.display = 'inline'; }
-        else badge.style.display = 'none';
-    }
-
-    // Liste complète avec réponses intégrées
     const container = document.getElementById('avis-full-list');
     if (!total) {
-        container.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu.<br>Partagez le formulaire !</p></div>';
+        container.innerHTML = '<div class="empty"><div class="empty-icon">⭐</div><p>Aucun avis reçu.</p></div>';
         return;
     }
     container.innerHTML = [...avis].sort((a,b)=>b.createdAt-a.createdAt).map(a => {
@@ -710,17 +717,13 @@ async function loadAvisPage() {
         const init = (a.prenom?.[0]||'?').toUpperCase();
         const replies = a.adminReplies || [];
         const hasR = replies.length > 0;
-        const isNew = hasR && !a._read;
         const date = new Date(a.createdAt).toLocaleDateString('fr-FR');
-        return `<div class="avis-mini" style="margin-bottom:10px;${isNew?'border-left:3px solid var(--rouge);background:var(--rouge-light)':''}">
+        return `<div class="avis-mini" style="margin-bottom:10px">
             <div class="avis-mini-av ${a.role==='formateur'?'f':'s'}">${init}</div>
             <div class="avis-mini-body">
                 <div class="avis-mini-top">
-                    <span class="avis-mini-nom">${nom}
-                        <span style="font-weight:400;color:var(--muted);font-size:10px"> · ${a.role==='formateur'?'Formateur':'Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</span>
-                        ${isNew ? '<span style="background:var(--rouge);color:#fff;font-size:9px;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:700">NEW</span>' : ''}
-                    </span>
-                    <span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                    <span class="avis-mini-nom">${nom} <span style="font-weight:400;color:var(--muted);font-size:10px">· ${a.role==='formateur'?'Formateur':'Stagiaire'}</span></span>
+                    <span style="display:flex;align-items:center;gap:8px">
                         <span class="avis-mini-note">${starsStr(Math.round(a.noteGlobale))} ${a.noteGlobale.toFixed(1)}</span>
                         <span style="font-size:10px;color:var(--muted)">${date}</span>
                     </span>
@@ -728,18 +731,15 @@ async function loadAvisPage() {
                 ${a.commentaire ? `<div class="avis-mini-comment" style="white-space:normal;margin:6px 0">${a.commentaire}</div>` : ''}
                 ${hasR ? replies.map(r => `
                 <div style="margin-top:8px;padding:8px 12px;background:var(--rouge-light);border-radius:7px;border-left:3px solid var(--rouge)">
-                    <div style="font-size:10px;color:var(--rouge);font-weight:700;margin-bottom:3px">
-                        💬 Réponse admin · ${new Date(r.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
-                        ${r.sentEmail ? '<span style="margin-left:6px;opacity:.7">✉</span>' : ''}
-                    </div>
-                    <div style="font-size:12px;color:var(--text2);line-height:1.5;font-style:italic">${r.texte}</div>
+                    <div style="font-size:10px;color:var(--rouge);font-weight:700;margin-bottom:3px">💬 Réponse admin · ${new Date(r.timestamp).toLocaleDateString('fr-FR')}</div>
+                    <div style="font-size:12px;color:var(--text2);font-style:italic">${r.texte}</div>
                 </div>`).join('') : '<span class="avis-reply-tag none" style="margin-top:6px;display:inline-block">En attente de réponse</span>'}
             </div>
         </div>`;
     }).join('');
 }
 
-// ── Notifications ──
+// ── Notifications (route publique) ──
 async function loadNotifications() {
     if (!centerData) return;
     let notifs = [];
@@ -747,45 +747,14 @@ async function loadNotifications() {
         const r = await fetch(`${API_URL}/notifications/${centerData.centerId}`);
         const d = await r.json();
         notifs = d.notifications || [];
-    } catch {
-        notifs = [
-            { type:'avis_reply', texteReponse:'Merci pour votre retour, nous travaillons sur les améliorations suggérées !', timestamp:Date.now()-86400000*1, read:false },
-            { type:'demande_reply', objet:'Problème connexion', texteReponse:'Nous avons résolu le problème de connexion. Merci de réessayer.', timestamp:Date.now()-86400000*3, read:true },
-        ];
-    }
+    } catch { notifs = []; }
     const unread = notifs.filter(n => !n.read).length;
     const dot = document.getElementById('avis-dot');
     if (unread > 0) dot.classList.add('visible'); else dot.classList.remove('visible');
-    const badge = document.getElementById('notif-badge');
-    if (unread > 0) { badge.textContent = unread + ' non lu' + (unread>1?'s':''); badge.style.display='inline'; }
-    else badge.style.display = 'none';
-
-    const list = document.getElementById('notif-list');
-    if (!notifs.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📬</div><p>Aucune réponse</p></div>'; return; }
-    list.innerHTML = notifs.map(n => `
-        <div class="notif-item ${n.read?'':'unread'}">
-            <div class="notif-icon">${n.type==='avis_reply'?'⭐':'📨'}</div>
-            <div class="notif-body">
-                <div class="notif-title">${n.type==='avis_reply'?'Réponse à votre avis':'Réponse à votre demande'} ${n.objet?`— ${n.objet}`:''}</div>
-                <div class="notif-reply-bubble">${n.texteReponse}</div>
-                <div class="notif-time">${new Date(n.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
-            </div>
-        </div>`).join('');
-}
-
-async function markAllRead() {
-    try { await fetch(`${API_URL}/notifications/${centerData.centerId}/read`, {method:'PUT'}); } catch {}
-    document.getElementById('avis-dot').classList.remove('visible');
-    document.getElementById('notif-badge').style.display = 'none';
-    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
-    showToast('Notifications marquées comme lues');
 }
 
 // ── Modal avis rapide ──
-function openAvisModal(fromSession=false) {
-    document.getElementById('modal-avis').classList.add('open');
-    if (fromSession) document.querySelector('.modal-sub').textContent = 'Session terminée — partagez votre expérience !';
-}
+function openAvisModal() { document.getElementById('modal-avis').classList.add('open'); }
 function closeAvisModal() { document.getElementById('modal-avis').classList.remove('open'); }
 
 function selectRole(role) {
@@ -807,37 +776,19 @@ async function submitAvisQuick() {
         centerId: centerData?.centerId || 'demo',
         centreNom: centerData?.nom || '',
         role: currentRole,
-        ratings: { questions:currentNote, explications:currentNote, interface:currentNote, progression:currentNote, rolespecific:currentNote },
         noteGlobale: currentNote,
-        positifs: [], negatifs: [],
         commentaire: comment,
         createdAt: Date.now()
     };
     try {
-        const r = await fetch(`${API_URL}/avis/submit`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-        if (!r.ok) throw new Error();
+        await fetch(`${API_URL}/avis/submit`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     } catch {}
     closeAvisModal();
     showToast('✓ Avis envoyé — merci !');
     loadAvisOverview();
 }
 
-function openFullForm() {
-    const url = `formulaire-avis.html?centerId=${centerData?.centerId||'demo'}&role=${currentRole}`;
-    closeAvisModal();
-    window.open(url, '_blank');
-}
-
-// ── Fin de session ──
-window.onSessionTerminee = function(sessionData) {
-    setTimeout(() => {
-        if (confirm(`✅ Session "${sessionData?.nom||'Training'}" terminée !\n\nSouhaitez-vous laisser un avis sur la plateforme ?`)) {
-            openAvisModal(true);
-        }
-    }, 500);
-};
-
-// ── Formateurs / Sessions / Licence ──
+// ── Formateurs / Sessions ──
 function loadFormateurs() {
     if (typeof initFormateurs === 'function') initFormateurs();
     else document.getElementById('formateurs-list').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Script center-formateurs.js non chargé</p></div>';
@@ -847,13 +798,13 @@ function initSessions() {
     if (typeof window.initSessionsModule === 'function') window.initSessionsModule();
 }
 
+// ── Licence ──
 async function loadLicenseInfo() {
     if (!centerData) return;
-
     try {
-        const r = await fetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+        const r = await authFetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+        if (!r) return;
         const d = await r.json();
-        // FIX : pas de { success } dans la réponse API
         if (d.license) {
             centerData.license = { ...centerData.license, ...d.license };
             localStorage.setItem('ssiap_center', JSON.stringify(centerData));
@@ -861,23 +812,18 @@ async function loadLicenseInfo() {
     } catch {}
 
     const l = centerData.license || {};
-    const expiresAt = l.expiresAt || l.endDate || null;
-    let daysRemaining = 0;
-    let status = 'expired';
-    let validUntil = '—';
-
+    const expiresAt = l.expiresAt || null;
+    let daysRemaining = 0, status = 'expired', validUntil = '—';
     if (expiresAt) {
-        const now = Date.now();
-        const exp = typeof expiresAt === 'number' ? expiresAt : new Date(expiresAt).getTime();
-        daysRemaining = Math.max(0, Math.ceil((exp - now) / 86400000));
+        daysRemaining = Math.max(0, Math.ceil((expiresAt - Date.now()) / 86400000));
         status = daysRemaining > 0 ? 'active' : 'expired';
-        validUntil = new Date(exp).toLocaleDateString('fr-FR');
+        validUntil = new Date(expiresAt).toLocaleDateString('fr-FR');
     }
 
     document.getElementById('license-info').innerHTML = `
         <div class="licence-row"><strong>Type :</strong> <span class="badge badge-gold">${l.type||'—'}</span></div>
         <div class="licence-row"><strong>Statut :</strong> <span class="badge ${status==='active'?'badge-green':'badge-red'}">${status==='active'?'Active':'Expirée'}</span></div>
-        <div class="licence-row"><strong>Valide jusqu'au :</strong> ${validUntil} <span style="color:var(--muted)">(${daysRemaining} jours restants)</span></div>
+        <div class="licence-row"><strong>Valide jusqu'au :</strong> ${validUntil} (${daysRemaining} jours restants)</div>
         <div class="licence-row"><strong>Formateurs autorisés :</strong> ${l.maxFormateurs||'—'}</div>
         <div class="licence-row"><strong>Stagiaires simultanés :</strong> ${l.maxStagiaires||'—'}</div>
     `;
@@ -900,13 +846,13 @@ function showToast(msg) {
 // ── Déconnexion ──
 document.getElementById('btn-logout').addEventListener('click', () => {
     if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-        localStorage.removeItem('ssiap_token');
+        sessionStorage.removeItem('ssiap_jwt');
         localStorage.removeItem('ssiap_center');
         window.location.href = 'center-login.html';
     }
 });
 
-// ── Boutons sessions / formateurs ──
+// ── Boutons ──
 document.getElementById('btn-add-session').addEventListener('click', () => {
     if (typeof showAddSessionModal === 'function') showAddSessionModal();
 });
@@ -915,10 +861,10 @@ document.getElementById('btn-add-formateur').addEventListener('click', () => {
     else alert('⚠️ Script center-formateurs.js non chargé');
 });
 
+// ── Init ──
 loadDashboard();
-console.log('🔥 Dashboard Centre SSIAP Training chargé');
 
-// ── AUTO-REFRESH ── polling toutes les 30s
+// ── AUTO-REFRESH toutes les 30s ──
 let _refreshTimer = null;
 function startAutoRefresh() {
     if (_refreshTimer) clearInterval(_refreshTimer);
@@ -929,7 +875,6 @@ function startAutoRefresh() {
     }, 30000);
 }
 startAutoRefresh();
-// Reprendre le polling quand la page redevient visible (retour onglet)
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) { loadDashboard(); startAutoRefresh(); }
     else { if (_refreshTimer) clearInterval(_refreshTimer); }
