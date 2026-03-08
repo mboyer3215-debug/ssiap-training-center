@@ -272,7 +272,7 @@ var ficheHistoChart = null;
 var ficheThemeChart = null;
 
 // ── Auth ──
-var stored = localStorage.getItem('ssiap_formateur');
+var stored = sessionStorage.getItem('ssiap_formateur') || localStorage.getItem('ssiap_formateur');
 if (!stored) { window.location.href = 'formateur-login.html'; }
 try { formateurData = JSON.parse(stored); } catch(e) { window.location.href = 'formateur-login.html'; }
 document.getElementById('formateur-name').textContent = '👨‍🏫 ' + (formateurData.prenom || formateurData.nom || 'Formateur');
