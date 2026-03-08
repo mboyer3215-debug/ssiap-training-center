@@ -2,6 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { error: 'Trop de tentatives, réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 const qcmRoutes = require('./routes/qcm.routes');
 const stagiaireRoutes = require('./routes/stagiaire.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
