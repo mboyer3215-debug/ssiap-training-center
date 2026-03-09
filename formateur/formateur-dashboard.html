@@ -201,7 +201,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
     <h2 class="page-title">Statistiques questions</h2>
     <div class="scard">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h3 style="font-size:15px;font-weight:700;margin:0">Questions les plus échouées</h3>
+        <div>
+          <h3 style="font-size:15px;font-weight:700;margin:0">Questions les plus échouées</h3>
+          <p style="font-size:11px;color:var(--muted);margin-top:3px">Cliquez sur une question pour voir la bonne réponse et l'explication</p>
+        </div>
         <select id="filter-niveau" onchange="loadQuestionStats(this.value)"
           style="border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--subtle);outline:none">
           <option value="1">SSIAP 1</option><option value="2">SSIAP 2</option><option value="3">SSIAP 3</option>
@@ -253,8 +256,6 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   </div>
 </div>
 
-<!-- MODAL QUIZ EN SALLE -->
-
 <div id="print-area"></div>
 <div id="loader" class="loader"><div class="spinner"></div><p style="font-size:13px;color:var(--muted)">Chargement…</p></div>
 
@@ -288,7 +289,7 @@ function showPage(id) {
   var pg = document.getElementById('page-'+id); if (pg) pg.classList.add('active');
   if (id==='overview')  loadOverview();
   if (id==='sessions')  loadSessions();
-  if (id==='questions') loadQuestionStats(1);
+  if (id==='questions') loadQuestionStats(document.getElementById('filter-niveau').value || 1);
   if (id==='formateur') loadFormateurProfile();
 }
 
@@ -486,7 +487,6 @@ function lancerQuizSalle(sessionId) {
     '&sessionNom=' + titre;
 }
 
-
 // ══════════════════════════════════════
 //  AJOUT STAGIAIRE ANTI-DOUBLON
 // ══════════════════════════════════════
@@ -531,7 +531,6 @@ async function openFiche(idx) {
   var body=document.getElementById('fiche-body');
   body.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Chargement…</div>';
 
-  // Toujours refetch
   var historique=[];
   try {
     var r=await fetch(API+'/stagiaire/historique/'+s.stagiaireId+'?centerId='+s.centerId);
@@ -552,7 +551,6 @@ async function openFiche(idx) {
   var debut=s.dateDebut?new Date(s.dateDebut).toLocaleDateString('fr-FR'):'—';
   var fin=s.dateFin?new Date(s.dateFin).toLocaleDateString('fr-FR'):'—';
 
-  // Thématiques
   var parTheme={};
   trains.forEach(function(h) {
     var cle=h.partieId||h.partie||null;
@@ -562,7 +560,6 @@ async function openFiche(idx) {
   var themes=Object.values(parTheme).filter(function(t){return t.totalQuestions>0;});
   var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQuestions)*100);});
 
-  // Stocker pour la modal questions incorrectes
   window._currentFicheTrains = trains;
 
   var html='';
@@ -585,13 +582,11 @@ async function openFiche(idx) {
     '<div class="fiche-info-item"><div class="fiche-info-lbl">Tendance</div><div class="fiche-info-val">'+tendance+'</div></div>' +
   '</div>';
 
-  // Graphique évolution
   if(trains.length>=2) {
     html+='<div style="margin-bottom:22px"><div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Évolution des scores</div>' +
       '<div style="height:130px;position:relative"><canvas id="fiche-histo-chart"></canvas></div></div>';
   }
 
-  // Graphique thématiques
   if(themes.length>=1) {
     var ch=Math.max(120,themes.length*44);
     html+='<div style="margin-bottom:22px"><div style="font-size:13px;font-weight:700;margin-bottom:12px">📊 Réussite par thématique</div>' +
@@ -601,7 +596,6 @@ async function openFiche(idx) {
       '📊 Données thématiques disponibles après des entraînements sur des parties spécifiques.</div>';
   }
 
-  // ── ENTRAÎNEMENTS avec bouton questions incorrectes ──
   if(trains.length>0) {
     html+='<div style="margin-bottom:20px"><div style="font-size:13px;font-weight:700;margin-bottom:10px">🏋️ Historique entraînements ('+trains.length+')</div>';
     var niveauLabel={'1':'SSIAP 1','2':'SSIAP 2','3':'SSIAP 3'};
@@ -633,7 +627,6 @@ async function openFiche(idx) {
       '<div style="font-size:32px;margin-bottom:8px">📭</div><p style="font-size:13px">Aucun entraînement effectué.</p></div>';
   }
 
-  // Quiz salle
   if(quizzes.length) {
     html+='<div><div style="font-size:13px;font-weight:700;margin-bottom:10px">🎮 Quiz en salle ('+quizzes.length+')</div>';
     quizzes.slice(0,4).forEach(function(h){
@@ -786,21 +779,86 @@ function printSessionList(sessionId) {
   setTimeout(function(){window.print();},500);
 }
 
-// ── Questions ──
+// ══════════════════════════════════════
+//  QUESTIONS — calcul local depuis detailsEchecs
+// ══════════════════════════════════════
 async function loadQuestionStats(niveau) {
-  try {
-    var fId=(formateurData&&(formateurData.formateurId||formateurData.id))||'demo';
-    var centerId = formateurData.centerId || '';
-    var r=await fetch(API+'/formateur/questions-stats/'+fId+'?centerId='+centerId+'&niveau='+niveau);
-    var d=await r.json(); renderQuestions(d.questions||[]);
-  } catch(e) {
-    renderQuestions([{texte:"Quel est le rôle du SSIAP 1 en cas d'alarme ?",tauxEchec:68,nTentatives:45},{texte:"Quelle est la portée d'un extincteur CO2 ?",tauxEchec:55,nTentatives:38}]);
-  }
+  var c = document.getElementById('questions-list');
+  c.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)"><div class="spinner" style="margin:0 auto 10px"></div><p style="font-size:13px">Chargement…</p></div>';
+  if (allStagiaires.length === 0) { showLoader(); await fetchAllData(); hideLoader(); }
+  var statsMap = {};
+  allStagiaires.forEach(function(s) {
+    var hist = Array.isArray(s.historique) ? s.historique : Object.values(s.historique || {});
+    hist.forEach(function(h) {
+      if (String(h.niveau) !== String(niveau)) return;
+      if (!h.detailsEchecs || !h.detailsEchecs.length) return;
+      h.detailsEchecs.forEach(function(q) {
+        var key = (q.question || '').trim();
+        if (!key) return;
+        if (!statsMap[key]) {
+          statsMap[key] = { question: key, correctAnswerLabels: [], explanation: '', nbEchecs: 0 };
+        }
+        statsMap[key].nbEchecs++;
+        if (q.correctAnswerLabels && q.correctAnswerLabels.length) statsMap[key].correctAnswerLabels = q.correctAnswerLabels;
+        if (q.explanation) statsMap[key].explanation = q.explanation;
+      });
+    });
+  });
+  var list = Object.values(statsMap).sort(function(a, b) { return b.nbEchecs - a.nbEchecs; }).slice(0, 30);
+  renderQuestions(list);
 }
+
 function renderQuestions(list) {
-  var c=document.getElementById('questions-list');
-  if(!list.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">Aucune donnée</div>';return;}
-  c.innerHTML=list.map(function(q){return '<div style="padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px"><div style="flex:1;font-size:13px">'+(q.texte||q.question||'')+'</div><div style="text-align:center"><div style="font-size:20px;font-weight:800;color:'+(q.tauxEchec>60?'var(--rouge)':'var(--gold)')+'">'+q.tauxEchec+'%</div><div style="font-size:10px;color:var(--muted)">taux échec</div></div><div style="font-size:11px;color:var(--muted)">'+(q.nTentatives||0)+' tentatives</div></div>';}).join('');
+  var c = document.getElementById('questions-list');
+  if (!list.length) {
+    c.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted)">' +
+      '<div style="font-size:36px;margin-bottom:10px">📊</div>' +
+      '<p style="font-size:13px;font-weight:600">Aucune donnée disponible pour ce niveau.</p>' +
+      '<p style="font-size:12px;margin-top:6px">Les erreurs des stagiaires apparaîtront ici au fil des entraînements.</p>' +
+    '</div>';
+    return;
+  }
+  c.innerHTML = list.map(function(q, i) {
+    var col = q.nbEchecs >= 5 ? 'var(--rouge)' : q.nbEchecs >= 2 ? 'var(--gold)' : 'var(--muted)';
+    var hasCorrect = q.correctAnswerLabels && q.correctAnswerLabels.length > 0;
+    var hasExpl = !!q.explanation;
+    var hasDetail = hasCorrect || hasExpl;
+    return '<div style="border-bottom:1px solid var(--border)">' +
+      '<div style="padding:14px 16px;display:flex;align-items:center;gap:14px;' +
+        (hasDetail ? 'cursor:pointer;user-select:none" onmouseenter="this.style.background=\'var(--subtle)\'" onmouseleave="this.style.background=\'\'" onclick="toggleQDetail(' + i + ')' : '') + '">' +
+        '<div style="flex:1;font-size:13px;font-weight:600;color:var(--text);line-height:1.45">' + q.question + '</div>' +
+        '<div style="text-align:center;flex-shrink:0;min-width:68px">' +
+          '<div style="font-size:22px;font-weight:800;line-height:1;color:' + col + '">' + q.nbEchecs + '</div>' +
+          '<div style="font-size:10px;color:var(--muted);margin-top:2px">' + (q.nbEchecs > 1 ? 'fois échouée' : 'fois échouée') + '</div>' +
+        '</div>' +
+        (hasDetail ? '<div style="font-size:13px;color:var(--muted);flex-shrink:0;transition:.25s;transform-origin:center" id="qchev-' + i + '">▼</div>' : '<div style="width:17px"></div>') +
+      '</div>' +
+      (hasDetail ?
+        '<div id="qdetail-' + i + '" style="display:none;background:var(--subtle);border-top:1px solid var(--border);padding:14px 18px">' +
+          (hasCorrect ?
+            '<div style="background:#edf7f2;border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #2e7d52">' +
+              '<div style="font-size:10px;font-weight:700;color:#2e7d52;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">✅ Bonne réponse</div>' +
+              '<div style="font-size:13px;color:#1e4a30;font-weight:600;line-height:1.45">' + q.correctAnswerLabels.join(' &nbsp;·&nbsp; ') + '</div>' +
+            '</div>' : '') +
+          (hasExpl ?
+            '<div style="background:#fef7e0;border-radius:8px;padding:10px 14px;border-left:3px solid #d4960a">' +
+              '<div style="font-size:10px;font-weight:700;color:#d4960a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">💡 Explication</div>' +
+              '<div style="font-size:13px;color:#4a4340;line-height:1.55">' + q.explanation + '</div>' +
+            '</div>' :
+            (!hasCorrect ? '' :
+              '<div style="font-size:11px;color:var(--muted);font-style:italic;padding:4px 2px">Pas d\'explication disponible pour cette question.</div>')) +
+        '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function toggleQDetail(i) {
+  var el = document.getElementById('qdetail-' + i);
+  var chev = document.getElementById('qchev-' + i);
+  if (!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
 }
 
 // ── Profil ──
