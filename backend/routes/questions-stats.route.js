@@ -6,7 +6,7 @@ const db      = admin.database();
 // GET /api/formateur/questions-stats/:formateurId
 // Query: centerId (requis), niveau (optionnel: "SSIAP1","SSIAP2","SSIAP3")
 router.get('/questions-stats/:formateurId', async (req, res) => {
-  const { formateurId } = req.params;
+  const { formateurId } = req.params; 
   const { centerId, niveau } = req.query;
 
   if (!centerId) return res.status(400).json({ error: 'centerId requis' });
