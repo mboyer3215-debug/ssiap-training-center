@@ -10,6 +10,10 @@
 //     - question, correctAnswerLabels[], userAnswerLabels[], explanation
 //   + historique/{trainId}: niveau (int 1/2/3), partieId, sessionId
 // ══════════════════════════════════════════════════════════════
+const express = require('express');
+const router  = express.Router();
+const admin   = require('firebase-admin');
+const db      = admin.database();
 router.get('/questions-stats/:formateurId', async (req, res) => {
   const { formateurId } = req.params;
   const { centerId, niveau } = req.query;
@@ -94,3 +98,4 @@ router.get('/questions-stats/:formateurId', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+module.exports = router;
