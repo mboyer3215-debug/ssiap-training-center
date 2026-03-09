@@ -790,7 +790,8 @@ function printSessionList(sessionId) {
 async function loadQuestionStats(niveau) {
   try {
     var fId=(formateurData&&(formateurData.formateurId||formateurData.id))||'demo';
-    var r=await fetch(API+'/formateur/questions-stats/'+fId+'?niveau='+niveau);
+    var centerId = formateurData.centerId || '';
+    var r=await fetch(API+'/formateur/questions-stats/'+fId+'?centerId='+centerId+'&niveau='+niveau);
     var d=await r.json(); renderQuestions(d.questions||[]);
   } catch(e) {
     renderQuestions([{texte:"Quel est le rôle du SSIAP 1 en cas d'alarme ?",tauxEchec:68,nTentatives:45},{texte:"Quelle est la portée d'un extincteur CO2 ?",tauxEchec:55,nTentatives:38}]);
