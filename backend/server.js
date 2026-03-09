@@ -68,6 +68,7 @@ app.use('/api', demandesAvisRoutes);
 app.use('/api/quiz', quizSalleRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);   // ← public : login
 app.use('/api/admin', adminQuestionsRoutes);   // ← protégé : JWT requis
+app.use('/api/formateur', require('./routes/questions-stats.route'));
 // Route santé
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
