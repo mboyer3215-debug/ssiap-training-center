@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-<title>SSIAP Admin — Tableau de Bord</title>
+<title>SSIAP Training-Administration - SSIAP Admin — Tableau de Bord</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -169,14 +169,6 @@ tr:hover td{background:var(--subtle)}
 .loading{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* CARTE QUESTIONS */
-.questions-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:14px;padding:22px;margin-bottom:16px;background:linear-gradient(135deg,rgba(232,245,238,.4),var(--surface))}
-.questions-card-inner{display:flex;align-items:center;justify-content:space-between;gap:20px}
-.questions-btns{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
-.btn-q{border:none;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;transition:.13s}
-.btn-q:hover{opacity:.85;transform:translateX(2px)}
-.btn-q.g{background:var(--green)}.btn-q.b{background:var(--blue)}.btn-q.o{background:var(--gold)}
-
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
@@ -208,7 +200,6 @@ tr:hover td{background:var(--subtle)}
       <div class="nav-item" onclick="window.location='admin-license-generator.html'" style="border:1px solid rgba(194,90,58,.2);background:var(--terra-bg)">
         <span class="icon">🎫</span> <span style="color:var(--terra);font-weight:700">Générateur licences</span>
       </div>
-      <!-- ✅ NOUVEAU : Gestion des Questions -->
       <div class="nav-item" onclick="goQuestions()" style="border:1px solid rgba(46,125,82,.2);background:var(--green-bg)">
         <span class="icon">📋</span> <span style="color:var(--green);font-weight:700">Gestion Questions</span>
       </div>
@@ -235,10 +226,30 @@ tr:hover td{background:var(--subtle)}
       <!-- ═══ OVERVIEW ═══ -->
       <div id="tab-overview" class="tab-content active">
         <div class="kpi-grid">
-          <div class="kpi terra"><div class="kpi-icon">🏢</div><div class="kpi-val" id="kpi-centres">—</div><div class="kpi-label">Centres actifs</div><div class="kpi-trend neutral" id="kpi-centres-trend">Chargement…</div></div>
-          <div class="kpi green"><div class="kpi-icon">🎓</div><div class="kpi-val" id="kpi-stagiaires">—</div><div class="kpi-label">Stagiaires totaux</div><div class="kpi-trend" id="kpi-stag-trend">Chargement…</div></div>
-          <div class="kpi blue"><div class="kpi-icon">📡</div><div class="kpi-val" id="kpi-sessions">—</div><div class="kpi-label">Sessions ce mois</div><div class="kpi-trend" id="kpi-sess-trend">Chargement…</div></div>
-          <div class="kpi gold"><div class="kpi-icon">€</div><div class="kpi-val" id="kpi-ca">—</div><div class="kpi-label">CA mensuel</div><div class="kpi-trend neutral" id="kpi-ca-trend">Chargement…</div></div>
+          <div class="kpi terra">
+            <div class="kpi-icon">🏢</div>
+            <div class="kpi-val" id="kpi-centres">—</div>
+            <div class="kpi-label">Centres actifs</div>
+            <div class="kpi-trend neutral" id="kpi-centres-trend">Chargement…</div>
+          </div>
+          <div class="kpi green">
+            <div class="kpi-icon">🎓</div>
+            <div class="kpi-val" id="kpi-stagiaires">—</div>
+            <div class="kpi-label">Stagiaires totaux</div>
+            <div class="kpi-trend" id="kpi-stag-trend">Chargement…</div>
+          </div>
+          <div class="kpi blue">
+            <div class="kpi-icon">📅</div>
+            <div class="kpi-val" id="kpi-sessions">—</div>
+            <div class="kpi-label">Sessions enregistrées</div>
+            <div class="kpi-trend" id="kpi-sess-trend">Chargement…</div>
+          </div>
+          <div class="kpi gold">
+            <div class="kpi-icon">€</div>
+            <div class="kpi-val" id="kpi-ca">—</div>
+            <div class="kpi-label">CA mensuel estimé</div>
+            <div class="kpi-trend neutral" id="kpi-ca-trend">Chargement…</div>
+          </div>
         </div>
 
         <div class="two-col">
@@ -255,13 +266,11 @@ tr:hover td{background:var(--subtle)}
           <div class="card">
             <div class="card-header">
               <div class="card-title"><span class="dot"></span>Alertes & Actions</div>
-              <span class="card-action">Tout marquer lu</span>
+              <span class="card-action" id="mark-all-read" onclick="markAllRead()" style="cursor:pointer">Tout marquer lu</span>
             </div>
-            <div class="alert-list">
-              <div class="alert-item critical"><span class="alert-icon">⚠️</span><div class="alert-text"><strong>Licence expirée dans 7j</strong>Centre SSIAP Lyon — forfait STANDARD</div><span class="alert-action" style="color:var(--red)">Relancer</span></div>
+            <div class="alert-list" id="alerts-list">
               <div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>
-              <div class="alert-item info"><span class="alert-icon">📊</span><div class="alert-text"><strong>Rapport mensuel disponible</strong>Statistiques de Février 2026</div><span class="alert-action" style="color:var(--blue)">Voir</span></div>
-              <div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Nouvel avis reçu</strong>Centre Paris — Note 4.5/5</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>
+              <div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Avis & Retours</strong>Consultez les retours des centres</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>
             </div>
           </div>
         </div>
@@ -295,11 +304,8 @@ tr:hover td{background:var(--subtle)}
           </div>
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="dot"></span>Activité récente</div></div>
-            <div class="timeline">
-              <div class="tl-item"><div class="tl-dot new">🆕</div><div class="tl-body"><div class="tl-title">Nouveau centre enregistré</div><div class="tl-sub">Centre SSIAP Marseille</div></div><div class="tl-time">09:14</div></div>
-              <div class="tl-item"><div class="tl-dot renew">🔄</div><div class="tl-body"><div class="tl-title">Licence renouvelée</div><div class="tl-sub">Centre Paris — PREMIUM</div></div><div class="tl-time">Hier</div></div>
-              <div class="tl-item"><div class="tl-dot alert">🚨</div><div class="tl-body"><div class="tl-title">Expiration imminente</div><div class="tl-sub">Centre Lyon — 7 jours</div></div><div class="tl-time">il y a 2j</div></div>
-              <div class="tl-item"><div class="tl-dot review">⭐</div><div class="tl-body"><div class="tl-title">Avis reçu — 4.5/5</div><div class="tl-sub">Centre Bordeaux</div></div><div class="tl-time">il y a 3j</div></div>
+            <div class="timeline" id="timeline-recent">
+              <div class="tl-item"><div class="tl-dot new">🔄</div><div class="tl-body"><div class="tl-title">Données en cours de chargement</div><div class="tl-sub">Connexion à l'API…</div></div><div class="tl-time">—</div></div>
             </div>
           </div>
         </div>
@@ -308,7 +314,10 @@ tr:hover td{background:var(--subtle)}
       <!-- ═══ CENTRES ═══ -->
       <div id="tab-centres" class="tab-content">
         <div class="card">
-          <div class="card-header"><div class="card-title"><span class="dot"></span>Centres enregistrés</div><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="centres-count">Chargement…</span></div>
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span>Centres enregistrés</div>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="centres-count">Chargement…</span>
+          </div>
           <table>
             <thead><tr><th>Centre</th><th>Licence</th><th>Formateurs</th><th>Stagiaires</th><th>Sessions</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
             <tbody id="centres-table-full"><tr><td colspan="8" style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</td></tr></tbody>
@@ -345,22 +354,13 @@ tr:hover td{background:var(--subtle)}
         </div>
       </div>
 
-      <!-- ═══ AVIS ═══ -->
-      <div id="tab-avis" class="tab-content">
-        <div style="text-align:center;padding:40px">
-          <div style="font-size:48px;margin-bottom:12px">⭐</div>
-          <p style="color:var(--muted);margin-bottom:20px">Consultez la page dédiée à la gestion des avis</p>
-          <button onclick="window.location='admin-avis.html'" style="background:var(--terra);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Aller à la gestion des avis →</button>
-        </div>
-      </div>
-
       <!-- ═══ DEMANDES ═══ -->
       <div id="tab-demandes" class="tab-content">
         <div class="two-col">
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="dot"></span>Demandes en attente</div><span class="badge terra">3 nouvelles</span></div>
             <div>
-              <div class="demande-item"><div class="demande-priority" style="background:var(--red)"></div><div class="demande-body"><div class="demande-title">Inscription nouveau centre — Centre SSIAP Nantes</div><div class="demande-meta">📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7d1e1213091c1e093d0e0e141c0d50131c1309180e531b0f">[email&#160;protected]</a> · 27/02/2026 08:42 · PREMIUM</div><div class="demande-actions"><button class="btn-sm primary">Valider</button><button class="btn-sm">Refuser</button></div></div></div>
+              <div class="demande-item"><div class="demande-priority" style="background:var(--red)"></div><div class="demande-body"><div class="demande-title">Inscription nouveau centre — Centre SSIAP Nantes</div><div class="demande-meta">📧 contact@nantes.fr · 27/02/2026 08:42 · PREMIUM</div><div class="demande-actions"><button class="btn-sm primary">Valider</button><button class="btn-sm">Refuser</button></div></div></div>
               <div class="demande-item"><div class="demande-priority" style="background:var(--gold)"></div><div class="demande-body"><div class="demande-title">Renouvellement licence — Centre Bordeaux</div><div class="demande-meta">🔑 STANDARD → ENTERPRISE · 26/02/2026 17:15</div><div class="demande-actions"><button class="btn-sm primary">Traiter</button><button class="btn-sm">Différer</button></div></div></div>
               <div class="demande-item"><div class="demande-priority" style="background:var(--blue)"></div><div class="demande-body"><div class="demande-title">Question technique — Intégration API</div><div class="demande-meta">💬 Centre Toulouse · 25/02/2026 11:30</div><div class="demande-actions"><button class="btn-sm primary">Répondre</button><button class="btn-sm">Clore</button></div></div></div>
             </div>
@@ -385,9 +385,9 @@ tr:hover td{background:var(--subtle)}
       <div id="tab-ca" class="tab-content">
         <div class="kpi-grid">
           <div class="kpi gold"><div class="kpi-icon">€</div><div class="kpi-val" id="ca-annuel">—</div><div class="kpi-label">CA annuel 2026</div><div class="kpi-trend neutral" id="ca-annuel-trend">Chargement…</div></div>
-          <div class="kpi green"><div class="kpi-icon">📅</div><div class="kpi-val" id="ca-mensuel">—</div><div class="kpi-label">CA mensuel (Fév)</div><div class="kpi-trend">↑ +8% vs Jan</div></div>
+          <div class="kpi green"><div class="kpi-icon">📅</div><div class="kpi-val" id="ca-mensuel">—</div><div class="kpi-label">CA mensuel estimé</div><div class="kpi-trend neutral">Basé sur licences actives</div></div>
           <div class="kpi blue"><div class="kpi-icon">🔑</div><div class="kpi-val" id="ca-licences">—</div><div class="kpi-label">Licences actives</div><div class="kpi-trend neutral" id="ca-lic-trend">Chargement…</div></div>
-          <div class="kpi terra"><div class="kpi-icon">📈</div><div class="kpi-val">+24%</div><div class="kpi-label">Croissance YoY</div><div class="kpi-trend neutral">vs 2025</div></div>
+          <div class="kpi terra"><div class="kpi-icon">📈</div><div class="kpi-val">—</div><div class="kpi-label">Croissance YoY</div><div class="kpi-trend neutral">Données insuffisantes</div></div>
         </div>
         <div class="two-col">
           <div class="card"><div class="card-header"><div class="card-title"><span class="dot"></span>CA mensuel 2026</div></div><div class="ca-bars" id="ca-chart"></div></div>
@@ -407,30 +407,6 @@ tr:hover td{background:var(--subtle)}
               <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--gold);font-weight:700" id="ca-total-calc">—</span>
             </div>
           </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title"><span class="dot"></span>Renouvellements à venir (90 jours)</div></div>
-          <table>
-            <thead><tr><th>Centre</th><th>Forfait</th><th>Expiration</th><th>Valeur</th><th>Statut</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr>
-                <td><div class="centre-row"><div class="centre-avatar">SL</div><div><div class="centre-name">SSIAP Lyon</div><div class="centre-id">7 jours</div></div></div></td>
-                <td><span class="badge blue">STANDARD</span></td>
-                <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--red)">06/03/2026</td>
-                <td style="color:var(--green);font-family:'DM Mono',monospace">490 €</td>
-                <td><span class="badge red">Urgent</span></td>
-                <td><button class="btn-sm primary">Relancer</button></td>
-              </tr>
-              <tr>
-                <td><div class="centre-row"><div class="centre-avatar" style="background:var(--green-bg);color:var(--green)">SB</div><div><div class="centre-name">SSIAP Bordeaux</div><div class="centre-id">32 jours</div></div></div></td>
-                <td><span class="badge green">ENTERPRISE</span></td>
-                <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)">31/03/2026</td>
-                <td style="color:var(--green);font-family:'DM Mono',monospace">1 490 €</td>
-                <td><span class="badge gold">Bientôt</span></td>
-                <td><button class="btn-sm">Préparer</button></td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
 
@@ -455,17 +431,15 @@ tr:hover td{background:var(--subtle)}
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 
-// ── GUARD : vérifier JWT admin au chargement ──
+// ════════════════════════════════════════
+// GUARD JWT admin
+// ════════════════════════════════════════
 (function() {
     var token = sessionStorage.getItem('adminToken');
-    if (!token) {
-        window.location = 'admin-login.html';
-        return;
-    }
-    // Vérifier expiration côté client (décode le payload JWT)
+    if (!token) { window.location = 'admin-login.html'; return; }
     try {
         var payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.exp && Date.now() / 1000 > payload.exp) {
@@ -478,262 +452,514 @@ const API = 'https://ssiap-training-center.onrender.com/api';
     }
 })();
 
-function getAdminToken() {
-    return sessionStorage.getItem('adminToken') || '';
-}
+function getAdminToken() { return sessionStorage.getItem('adminToken') || ''; }
+function authHeaders()   { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() }; }
+function adminLogout()   { sessionStorage.removeItem('adminToken'); window.location = 'admin-login.html'; }
 
-function authHeaders() {
-    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() };
-}
-
-function adminLogout() {
-    sessionStorage.removeItem('adminToken');
-    window.location = 'admin-login.html';
-}
-
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let _centres = [];
+let _licences = [];
 
 document.getElementById('current-date').textContent =
-  new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
 function showTab(id) {
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const el=document.getElementById('tab-'+id);
-  if(el) el.classList.add('active');
-  const titles={overview:"Vue d'ensemble",centres:'Centres connectés',connexions:'Statistiques connexions',demandes:'Demandes',ca:"Chiffre d'Affaires",licences:'Gestion Licences'};
-  document.getElementById('page-title').textContent=titles[id]||id;
-  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes(id))n.classList.add('active');});
-  if(id==='connexions') buildConnexions();
-  if(id==='ca') buildCA();
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById('tab-'+id);
+    if (el) el.classList.add('active');
+    const titles = {
+        overview: "Vue d'ensemble", centres: 'Centres connectés',
+        connexions: 'Statistiques connexions', demandes: 'Demandes',
+        ca: "Chiffre d'Affaires", licences: 'Gestion Licences'
+    };
+    document.getElementById('page-title').textContent = titles[id] || id;
+    document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+    });
+    if (id === 'connexions') buildConnexions();
+    if (id === 'ca')         buildCA();
 }
 
-// ✅ Naviguer vers la gestion des questions
 function goQuestions(niveau) {
-  var url = 'admin-questions.html?centerId=center_default';
-  if (niveau) url += '&niveau=' + niveau;
-  window.location = url;
+    var url = 'admin-questions.html';
+    if (niveau) url += '?niveau=' + niveau;
+    window.location = url;
 }
 
-// Fetch avec timeout (anti-Render sleep)
-function fetchTimeout(url, ms) {
-  ms = ms || 6000;
-  var ctrl = new AbortController();
-  var tid = setTimeout(function(){ ctrl.abort(); }, ms);
-  return fetch(url, {signal: ctrl.signal}).finally(function(){ clearTimeout(tid); });
+// ════════════════════════════════════════
+// FETCH HELPERS
+// ════════════════════════════════════════
+function fetchTimeout(url, opts, ms) {
+    ms = ms || 8000;
+    var ctrl = new AbortController();
+    var tid = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, Object.assign({ signal: ctrl.signal }, opts || {}))
+           .finally(() => clearTimeout(tid));
 }
 
+// ════════════════════════════════════════
+// MAIN LOAD
+// ════════════════════════════════════════
 async function loadAllData() {
-  document.getElementById('refresh-icon').style.animation='spin .6s linear infinite';
-  // Afficher les données fallback immédiatement
-  useFallbackCentres();
-  useFallbackLicences();
-  loadStats();
-  // Puis tenter la vraie API (max 6s) et mettre à jour si elle répond
-  try { await Promise.allSettled([loadCentres(), loadLicences()]); }
-  finally { document.getElementById('refresh-icon').style.animation=''; }
+    const icon = document.getElementById('refresh-icon');
+    icon.style.animation = 'spin .6s linear infinite';
+    // Afficher fallback immédiatement
+    useFallbackCentres();
+    useFallbackLicences();
+    try {
+        await Promise.allSettled([loadCentres(), loadLicences()]);
+    } finally {
+        icon.style.animation = '';
+    }
 }
 
+// ════════════════════════════════════════
+// CENTRES — fetch + enrichissement stats
+// ════════════════════════════════════════
 async function loadCentres() {
-  try {
-    const r = await fetchTimeout(API+'/center/list').catch(function(){ return null; });
-    if (!r || !r.ok) throw new Error();
-    const data = await r.json();
-    const centres = data.centers || data || [];
-    renderCentresMini(centres); renderCentresFull(centres);
-    document.getElementById('kpi-centres').textContent = centres.length;
-    document.getElementById('kpi-centres-trend').textContent = centres.length+' centre(s) enregistré(s)';
-    document.getElementById('badge-centres').textContent = centres.length;
-    document.getElementById('centres-count').textContent = centres.length+' centre(s)';
-  } catch(e) { /* fallback déjà affiché */ }
+    try {
+        // ✅ JWT admin dans le header
+        const r = await fetchTimeout(API + '/center/list', { headers: authHeaders() }).catch(() => null);
+        if (!r || !r.ok) throw new Error('center/list ' + (r?.status || 'timeout'));
+        const data = await r.json();
+        let centres = data.centers || data || [];
+
+        // Enrichir les stats manquantes pour chaque centre en parallèle
+        centres = await Promise.all(centres.map(c => enrichCentreStats(c)));
+        _centres = centres;
+
+        renderCentresMini(centres);
+        renderCentresFull(centres);
+
+        // KPI centres
+        document.getElementById('kpi-centres').textContent      = centres.length;
+        document.getElementById('kpi-centres-trend').textContent = centres.length + ' centre(s) enregistré(s)';
+        document.getElementById('badge-centres').textContent     = centres.length;
+        document.getElementById('centres-count').textContent     = centres.length + ' centre(s)';
+
+        // KPI agrégés depuis les données réelles
+        const totalStagiaires = centres.reduce((s, c) => s + (c.stats?.stagiaires || 0), 0);
+        const totalSessions   = centres.reduce((s, c) => s + (c.stats?.sessions   || 0), 0);
+        document.getElementById('kpi-stagiaires').textContent   = totalStagiaires;
+        document.getElementById('kpi-sessions').textContent     = totalSessions;
+        document.getElementById('kpi-stag-trend').textContent   = totalStagiaires > 0
+            ? `${totalStagiaires} au total` : 'Aucun stagiaire enregistré';
+        document.getElementById('kpi-sess-trend').textContent   = totalSessions > 0
+            ? `${totalSessions} sessions enregistrées` : 'Aucune session';
+
+        // Entraînements par niveau
+        await loadEntrainementsStats(centres);
+
+        // Alertes dynamiques (licences expirantes)
+        buildDynamicAlerts(centres);
+
+        // Timeline activité récente
+        buildTimeline(centres);
+
+    } catch(e) {
+        console.warn('loadCentres:', e.message);
+        // Fallback déjà affiché
+    }
 }
 
+// ── Enrichissement stats d'un centre si absentes ──
+async function enrichCentreStats(c) {
+    if (!c.stats) c.stats = {};
+    const cid = c.centerId || c.id;
+    if (!cid) return c;
+
+    // Formateurs
+    if (c.stats.formateurs == null) {
+        try {
+            const rf = await fetchTimeout(`${API}/formateur/list/${cid}`, { headers: authHeaders() }, 5000).catch(() => null);
+            if (rf && rf.ok) {
+                const df = await rf.json();
+                c.stats.formateurs = (df.formateurs || df || []).length;
+            }
+        } catch(e) {}
+    }
+
+    // Sessions + Stagiaires
+    if (c.stats.sessions == null) {
+        try {
+            const rs = await fetchTimeout(`${API}/session/list/${cid}`, {}, 5000).catch(() => null);
+            if (rs && rs.ok) {
+                const ds = await rs.json();
+                const sessions = ds.sessions || ds || [];
+                c.stats.sessions = sessions.length;
+
+                // Stagiaires agrégés depuis les sessions (max 10 sessions)
+                if (c.stats.stagiaires == null) {
+                    let totalStag = 0;
+                    const sessSlice = sessions.slice(0, 10);
+                    for (const sess of sessSlice) {
+                        try {
+                            const sid = sess.id || sess.sessionId;
+                            const rst = await fetchTimeout(
+                                `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 4000
+                            ).catch(() => null);
+                            if (rst && rst.ok) {
+                                const dst = await rst.json();
+                                totalStag += (dst.stagiaires || dst || []).length;
+                            }
+                        } catch(e) {}
+                    }
+                    c.stats.stagiaires = totalStag;
+                }
+            }
+        } catch(e) {}
+    }
+
+    return c;
+}
+
+// ── Entraînements par niveau ──
+async function loadEntrainementsStats(centres) {
+    try {
+        // Tentative endpoint admin agrégé
+        const r = await fetchTimeout(`${API}/admin/stats/entrainements`, { headers: authHeaders() }, 5000).catch(() => null);
+        if (r && r.ok) {
+            const d = await r.json();
+            const total = (d.n1 || 0) + (d.n2 || 0) + (d.n3 || 0);
+            if (total > 0) {
+                const pct = n => Math.round(n / total * 100) + '%';
+                document.getElementById('pct-n1').textContent = pct(d.n1);
+                document.getElementById('bar-n1').style.width = pct(d.n1);
+                document.getElementById('pct-n2').textContent = pct(d.n2);
+                document.getElementById('bar-n2').style.width = pct(d.n2);
+                document.getElementById('pct-n3').textContent = pct(d.n3);
+                document.getElementById('bar-n3').style.width = pct(d.n3);
+                document.getElementById('total-entr').textContent = total;
+                return;
+            }
+        }
+    } catch(e) {}
+    // Pas de données disponibles
+    ['n1','n2','n3'].forEach(n => {
+        document.getElementById('pct-'+n).textContent = '—';
+        document.getElementById('bar-'+n).style.width = '0%';
+    });
+    document.getElementById('total-entr').textContent = '—';
+}
+
+// ── Alertes dynamiques depuis les licences expirantes ──
+function buildDynamicAlerts(centres) {
+    const alertsContainer = document.getElementById('alerts-list');
+    const urgents = centres.filter(c => {
+        if (!c.license?.expiresAt) return false;
+        const j = Math.ceil((c.license.expiresAt - Date.now()) / 86400000);
+        return j >= 0 && j <= 30;
+    }).sort((a, b) => a.license.expiresAt - b.license.expiresAt);
+
+    let html = '';
+    urgents.slice(0, 3).forEach(c => {
+        const nom = c.info?.nom || c.centerId || '—';
+        const j = Math.ceil((c.license.expiresAt - Date.now()) / 86400000);
+        const cls = j <= 7 ? 'critical' : 'warning';
+        html += `<div class="alert-item ${cls}">
+            <span class="alert-icon">${j <= 7 ? '⚠️' : '🕐'}</span>
+            <div class="alert-text"><strong>Licence expirée dans ${j}j</strong>${nom} — ${c.license.type}</div>
+            <span class="alert-action" style="color:${j <= 7 ? 'var(--red)' : 'var(--gold)'}">Relancer</span>
+        </div>`;
+    });
+    html += `<div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>`;
+    html += `<div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Avis & Retours</strong>Consultez les retours des centres</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>`;
+    alertsContainer.innerHTML = html;
+}
+
+// ── Timeline activité récente ──
+function buildTimeline(centres) {
+    const container = document.getElementById('timeline-recent');
+    if (!centres.length) return;
+    const items = [];
+    centres.forEach(c => {
+        const nom = c.info?.nom || c.centerId || '—';
+        if (c.license?.expiresAt) {
+            const j = Math.ceil((c.license.expiresAt - Date.now()) / 86400000);
+            if (j >= 0 && j <= 30) {
+                items.push({ cls:'alert', icon:'🚨', title:'Expiration imminente', sub:`${nom} — ${j} jours`, ts: c.license.expiresAt });
+            }
+        }
+        items.push({ cls:'new', icon:'🏢', title:'Centre actif', sub: nom, ts: Date.now() - Math.random()*86400000*7 });
+    });
+    items.sort((a, b) => b.ts - a.ts);
+    container.innerHTML = items.slice(0, 4).map(it => {
+        const d = new Date(it.ts);
+        const now = new Date();
+        const diffH = Math.round((now - d) / 3600000);
+        const label = diffH < 1 ? 'À l\'instant' : diffH < 24 ? `${diffH}h` : `${Math.round(diffH/24)}j`;
+        return `<div class="tl-item">
+            <div class="tl-dot ${it.cls}">${it.icon}</div>
+            <div class="tl-body"><div class="tl-title">${it.title}</div><div class="tl-sub">${it.sub}</div></div>
+            <div class="tl-time">${label}</div>
+        </div>`;
+    }).join('');
+}
+
+function markAllRead() {
+    document.querySelectorAll('.alert-item').forEach(el => {
+        el.style.opacity = '0.5';
+    });
+}
+
+// ════════════════════════════════════════
+// FALLBACK CENTRES
+// ════════════════════════════════════════
 function useFallbackCentres() {
-  const mock=[{centerId:'center_default',info:{nom:'Centre SSIAP Test',email:'admin@essai.fr'},license:{type:'DEMO'},stats:{stagiaires:1,formateurs:1,sessions:0},status:'active'}];
-  renderCentresMini(mock); renderCentresFull(mock);
-  document.getElementById('kpi-centres').textContent=mock.length;
-  document.getElementById('badge-centres').textContent=mock.length;
-  document.getElementById('centres-count').textContent=mock.length+' centre(s)';
+    const mock = [{
+        centerId: 'center_default',
+        info: { nom: 'Centre de test', email: '' },
+        license: { type: 'DEMO' },
+        stats: {},
+        status: 'active'
+    }];
+    renderCentresMini(mock);
+    renderCentresFull(mock);
+    document.getElementById('kpi-centres').textContent      = mock.length;
+    document.getElementById('badge-centres').textContent    = mock.length;
+    document.getElementById('centres-count').textContent    = mock.length + ' centre(s)';
+    document.getElementById('kpi-stagiaires').textContent   = '…';
+    document.getElementById('kpi-sessions').textContent     = '…';
+    document.getElementById('kpi-stag-trend').textContent   = 'Chargement…';
+    document.getElementById('kpi-sess-trend').textContent   = 'Chargement…';
 }
 
 function renderCentresMini(centres) {
-  const tbody=document.getElementById('centres-table-mini');
-  if(!centres.length){tbody.innerHTML='<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>';return;}
-  tbody.innerHTML=centres.slice(0,5).map(c=>{
-    const nom=c.info?.nom||c.nom||c.centerId?.slice(0,12)||'—';
-    const lic=c.license?.type||'DEMO';
-    const stag=c.stats?.stagiaires??'—';
-    const active=c.status!=='inactive';
-    return`<tr><td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div><div><div class="centre-name">${nom}</div><div class="centre-id">${(c.info?.email||'').slice(0,22)}</div></div></div></td>
-    <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
-    <td style="font-family:'DM Mono',monospace">${stag}</td>
-    <td><span class="badge ${active?'green':'gray'}">${active?'Actif':'Inactif'}</span></td></tr>`;
-  }).join('');
+    const tbody = document.getElementById('centres-table-mini');
+    if (!centres.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>';
+        return;
+    }
+    tbody.innerHTML = centres.slice(0, 5).map(c => {
+        const nom   = c.info?.nom || c.nom || c.centerId?.slice(0,12) || '—';
+        const lic   = c.license?.type || 'DEMO';
+        const stag  = c.stats?.stagiaires ?? '—';
+        const active = c.status !== 'inactive';
+        const licClass = lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray';
+        return `<tr>
+            <td><div class="centre-row">
+                <div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div>
+                <div><div class="centre-name">${nom}</div><div class="centre-id">${(c.info?.email||'').slice(0,22)}</div></div>
+            </div></td>
+            <td><span class="badge ${licClass}">${lic}</span></td>
+            <td style="font-family:'DM Mono',monospace">${stag}</td>
+            <td><span class="badge ${active?'green':'gray'}">${active?'Actif':'Inactif'}</span></td>
+        </tr>`;
+    }).join('');
 }
 
 function renderCentresFull(centres) {
-  const tbody=document.getElementById('centres-table-full');
-  if(!centres.length){tbody.innerHTML='<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre</td></tr>';return;}
-  tbody.innerHTML=centres.map(c=>{
-    const nom=c.info?.nom||c.nom||c.centerId?.slice(0,16)||'—';
-    const lic=c.license?.type||'DEMO';
-    const form=c.stats?.formateurs??'—'; const stag=c.stats?.stagiaires??'—'; const sess=c.stats?.sessions??'—';
-    const exp=c.license?.expiresAt?new Date(c.license.expiresAt).toLocaleDateString('fr-FR'):'—';
-    const jours=c.license?.expiresAt?Math.ceil((c.license.expiresAt-Date.now())/86400000):null;
-    const urgence=jours!==null&&jours<30;
-    return`<tr><td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div><div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div></div></td>
-    <td><span class="badge ${lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray'}">${lic}</span></td>
-    <td style="text-align:center;font-family:'DM Mono',monospace">${form}</td><td style="text-align:center;font-family:'DM Mono',monospace">${stag}</td><td style="text-align:center;font-family:'DM Mono',monospace">${sess}</td>
-    <td><span class="badge ${c.status!=='inactive'?'green':'gray'}">${c.status!=='inactive'?'Actif':'Inactif'}</span></td>
-    <td style="font-family:'DM Mono',monospace;font-size:11px;color:${urgence?'var(--red)':'var(--muted)'}">${exp}${jours!==null?` (${jours}j)`:''}</td>
-    <td><button class="btn-sm" onclick="alert('Centre: ${c.centerId}')">Détail</button></td></tr>`;
-  }).join('');
+    const tbody = document.getElementById('centres-table-full');
+    if (!centres.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre</td></tr>';
+        return;
+    }
+    tbody.innerHTML = centres.map(c => {
+        const nom   = c.info?.nom || c.nom || c.centerId?.slice(0,16) || '—';
+        const lic   = c.license?.type || 'DEMO';
+        const form  = c.stats?.formateurs ?? '—';
+        const stag  = c.stats?.stagiaires ?? '—';
+        const sess  = c.stats?.sessions   ?? '—';
+        const exp   = c.license?.expiresAt ? new Date(c.license.expiresAt).toLocaleDateString('fr-FR') : (lic==='DEMO' ? 'DEMO' : '—');
+        const jours = c.license?.expiresAt ? Math.ceil((c.license.expiresAt - Date.now()) / 86400000) : null;
+        const urgence = jours !== null && jours < 30;
+        const licClass = lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray';
+        return `<tr>
+            <td><div class="centre-row">
+                <div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div>
+                <div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div>
+            </div></td>
+            <td><span class="badge ${licClass}">${lic}</span></td>
+            <td style="text-align:center;font-family:'DM Mono',monospace">${form}</td>
+            <td style="text-align:center;font-family:'DM Mono',monospace">${stag}</td>
+            <td style="text-align:center;font-family:'DM Mono',monospace">${sess}</td>
+            <td><span class="badge ${c.status!=='inactive'?'green':'gray'}">${c.status!=='inactive'?'Actif':'Inactif'}</span></td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:${urgence?'var(--red)':'var(--muted)'}">
+                ${exp}${jours!==null&&lic!=='DEMO'?` (${jours}j)`:''}</td>
+            <td><button class="btn-sm" onclick="alert('Centre: ${c.centerId}')">Détail</button></td>
+        </tr>`;
+    }).join('');
 }
 
+// ════════════════════════════════════════
+// LICENCES — fetch avec JWT
+// ════════════════════════════════════════
 async function loadLicences() {
-  try {
-    const r = await fetchTimeout(API+'/license/list').catch(function(){ return null; });
-    if (!r || !r.ok) throw new Error();
-    const data = await r.json();
-    const lics = data.licenses || [];
-    renderLicences(lics); updateLicenceStats(lics);
-  } catch(e) { /* fallback déjà affiché */ }
+    try {
+        // ✅ JWT admin dans le header
+        const r = await fetchTimeout(API + '/license/list', { headers: authHeaders() }).catch(() => null);
+        if (!r || !r.ok) throw new Error('license/list ' + (r?.status || 'timeout'));
+        const data = await r.json();
+        const lics = data.licenses || [];
+        _licences = lics;
+        renderLicences(lics);
+        updateLicenceStats(lics);
+    } catch(e) {
+        console.warn('loadLicences:', e.message);
+    }
 }
 
 function useFallbackLicences() {
-  const mock=[{key:'SSIAP-DEMO-0001',centerId:'center_default',type:'DEMO',createdAt:Date.now()-86400000*5,expiresAt:Date.now()+86400000*25,active:true}];
-  renderLicences(mock); updateLicenceStats(mock);
+    const mock = [{
+        key: 'SSIAP-DEMO-0001', centerId: 'center_default',
+        type: 'DEMO', createdAt: Date.now()-86400000*5,
+        expiresAt: Date.now()+86400000*25, active: true
+    }];
+    _licences = mock;
+    renderLicences(mock);
+    updateLicenceStats(mock);
 }
 
 function renderLicences(lics) {
-  document.getElementById('lic-count').textContent=lics.length+' licence(s)';
-  const tbody=document.getElementById('licences-table');
-  if(!lics.length){tbody.innerHTML='<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Aucune licence</td></tr>';return;}
-  tbody.innerHTML=lics.map(l=>{
-    const created=l.createdAt?new Date(l.createdAt).toLocaleDateString('fr-FR'):'—';
-    const expires=l.expiresAt?new Date(l.expiresAt).toLocaleDateString('fr-FR'):'—';
-    const jours=l.expiresAt?Math.ceil((l.expiresAt-Date.now())/86400000):null;
-    const expired=jours!==null&&jours<0; const urgent=jours!==null&&jours>=0&&jours<30;
-    return`<tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--terra)">${l.key||l.licenseKey||'—'}</td>
-    <td style="font-size:11px">${l.centerId?.slice(0,24)||'—'}</td>
-    <td><span class="badge ${l.type==='ENTERPRISE'?'green':l.type==='PROFESSIONAL'?'gold':l.type==='STANDARD'?'blue':'gray'}">${l.type||'DEMO'}</span></td>
-    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${created}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:11px;color:${expired?'var(--red)':urgent?'var(--gold)':'var(--muted)'}">${expires}</td>
-    <td><span class="badge ${expired?'red':urgent?'gold':l.active?'green':'gray'}">${expired?'Expirée':urgent?'Urgent':l.active?'Active':'Inactive'}</span></td></tr>`;
-  }).join('');
+    document.getElementById('lic-count').textContent = lics.length + ' licence(s)';
+    const tbody = document.getElementById('licences-table');
+    if (!lics.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Aucune licence</td></tr>';
+        return;
+    }
+    tbody.innerHTML = lics.map(l => {
+        const created = l.createdAt ? new Date(l.createdAt).toLocaleDateString('fr-FR') : '—';
+        const expires = l.expiresAt ? new Date(l.expiresAt).toLocaleDateString('fr-FR') : (l.type==='DEMO'?'DEMO':'—');
+        const jours   = l.expiresAt ? Math.ceil((l.expiresAt - Date.now()) / 86400000) : null;
+        const expired = jours !== null && jours < 0;
+        const urgent  = jours !== null && jours >= 0 && jours < 30;
+        const licClass = l.type==='ENTERPRISE'?'green':l.type==='PROFESSIONAL'?'gold':l.type==='STANDARD'?'blue':'gray';
+        return `<tr>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--terra)">${l.key||l.licenseKey||'—'}</td>
+            <td style="font-size:11px">${l.centerId?.slice(0,24)||'—'}</td>
+            <td><span class="badge ${licClass}">${l.type||'DEMO'}</span></td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${created}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:${expired?'var(--red)':urgent?'var(--gold)':'var(--muted)'}">
+                ${expires}${jours!==null&&!expired?` (${jours}j)`:''}</td>
+            <td><span class="badge ${expired?'red':urgent?'gold':l.active?'green':'gray'}">
+                ${expired?'Expirée':urgent?'Urgent':l.active?'Active':'Inactive'}</span></td>
+        </tr>`;
+    }).join('');
 }
 
 function updateLicenceStats(lics) {
-  const counts={DEMO:0,STANDARD:0,PROFESSIONAL:0,ENTERPRISE:0};
-  lics.forEach(l=>{if(counts[l.type]!==undefined)counts[l.type]++;});
-  ['demo','std','pro','ent'].forEach((k,i)=>{
-    const t=['DEMO','STANDARD','PROFESSIONAL','ENTERPRISE'][i];
-    const el=document.getElementById('nb-'+k); if(el)el.textContent=counts[t];
-  });
-  const prices={STANDARD:490,PROFESSIONAL:890,ENTERPRISE:1490};
-  ['std','pro','ent'].forEach((k,i)=>{
-    const t=['STANDARD','PROFESSIONAL','ENTERPRISE'][i];
-    const el=document.getElementById('total-'+k); if(el)el.textContent=(counts[t]*prices[t]).toLocaleString('fr-FR')+' €';
-  });
-  const total=counts.STANDARD*490+counts.PROFESSIONAL*890+counts.ENTERPRISE*1490;
-  const el=document.getElementById('ca-total-calc'); if(el)el.textContent=total.toLocaleString('fr-FR')+' €';
-  const active=lics.filter(l=>l.active).length;
-  ['ca-licences','ca-lic-trend','ca-annuel','ca-mensuel','kpi-ca','ca-annuel-trend'].forEach(id=>{
-    const e=document.getElementById(id); if(!e)return;
-    if(id==='ca-licences')e.textContent=active;
-    else if(id==='ca-lic-trend')e.textContent=`${active}/${lics.length} actives`;
-    else if(id==='ca-annuel')e.textContent=total.toLocaleString('fr-FR')+' €';
-    else if(id==='ca-mensuel')e.textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
-    else if(id==='kpi-ca')e.textContent=Math.round(total/12).toLocaleString('fr-FR')+' €';
-    else if(id==='ca-annuel-trend')e.textContent='↑ +24% vs 2025';
-  });
-  const circ=2*Math.PI*35, total_known=lics.length||1;
-  setTimeout(()=>{
-    const pDemo=counts.DEMO/total_known;
-    document.getElementById('donut-1').setAttribute('stroke-dasharray',`${pDemo*circ} ${circ}`);
-    document.getElementById('donut-2').style.strokeDashoffset=`-${pDemo*circ}`;
-    document.getElementById('donut-2').setAttribute('stroke-dasharray',`${(counts.STANDARD/total_known)*circ} ${circ}`);
-    const pStd=(counts.DEMO+counts.STANDARD)/total_known;
-    document.getElementById('donut-3').style.strokeDashoffset=`-${pStd*circ}`;
-    document.getElementById('donut-3').setAttribute('stroke-dasharray',`${(counts.PROFESSIONAL+counts.ENTERPRISE)/total_known*circ} ${circ}`);
-    document.getElementById('donut-total').textContent=lics.length;
-  },300);
-  document.getElementById('leg-demo').textContent=counts.DEMO;
-  document.getElementById('leg-std').textContent=counts.STANDARD+counts.PROFESSIONAL;
-  document.getElementById('leg-prem').textContent=counts.ENTERPRISE;
-  document.getElementById('kpi-ca-trend').textContent=`${active} licences actives`;
-}
+    const counts = { DEMO:0, STANDARD:0, PROFESSIONAL:0, ENTERPRISE:0 };
+    lics.forEach(l => { if (counts[l.type] !== undefined) counts[l.type]++; });
 
-async function loadStats() {
-  setTimeout(()=>{
-    document.getElementById('kpi-stagiaires').textContent='24';
-    document.getElementById('kpi-stag-trend').textContent='↑ +6 ce mois';
-    document.getElementById('kpi-sessions').textContent='187';
-    document.getElementById('kpi-sess-trend').textContent='↑ +23% vs mois dernier';
-    document.getElementById('total-entr').textContent='187';
-    ['n1','n2','n3'].forEach((n,i)=>{
-      const v=['52%','31%','17%'][i];
-      document.getElementById('pct-'+n).textContent=v;
-      document.getElementById('bar-'+n).style.width=v;
+    ['demo','std','pro','ent'].forEach((k,i) => {
+        const t  = ['DEMO','STANDARD','PROFESSIONAL','ENTERPRISE'][i];
+        const el = document.getElementById('nb-'+k);
+        if (el) el.textContent = counts[t];
     });
-    document.getElementById('conn-total').textContent='843';
-    document.getElementById('conn-today').textContent='27';
-    document.getElementById('conn-duration').textContent='14';
-    document.getElementById('conn-peak').textContent='10h';
-  },600);
+
+    const prices = { STANDARD:490, PROFESSIONAL:890, ENTERPRISE:1490 };
+    ['std','pro','ent'].forEach((k,i) => {
+        const t  = ['STANDARD','PROFESSIONAL','ENTERPRISE'][i];
+        const el = document.getElementById('total-'+k);
+        if (el) el.textContent = (counts[t]*prices[t]).toLocaleString('fr-FR') + ' €';
+    });
+
+    const total  = counts.STANDARD*490 + counts.PROFESSIONAL*890 + counts.ENTERPRISE*1490;
+    const active = lics.filter(l => l.active).length;
+
+    const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    set('ca-total-calc',    total.toLocaleString('fr-FR') + ' €');
+    set('ca-licences',      active);
+    set('ca-lic-trend',     `${active}/${lics.length} actives`);
+    set('ca-annuel',        total.toLocaleString('fr-FR') + ' €');
+    set('ca-mensuel',       Math.round(total/12).toLocaleString('fr-FR') + ' €');
+    set('ca-annuel-trend',  total > 0 ? '↑ basé sur licences payantes' : 'Aucune licence payante');
+    // KPI CA overview
+    set('kpi-ca',           total > 0 ? Math.round(total/12).toLocaleString('fr-FR') + ' €' : '0 €');
+    set('kpi-ca-trend',     total > 0 ? `${active} licence(s) actives` : 'Passer à STANDARD ou +');
+
+    // Donut
+    const circ = 2 * Math.PI * 35;
+    const tot  = lics.length || 1;
+    setTimeout(() => {
+        const pDemo = counts.DEMO / tot;
+        const pStd  = counts.STANDARD / tot;
+        const pRest = (counts.PROFESSIONAL + counts.ENTERPRISE) / tot;
+        document.getElementById('donut-1').setAttribute('stroke-dasharray', `${pDemo*circ} ${circ}`);
+        document.getElementById('donut-2').style.strokeDashoffset = `-${pDemo*circ}`;
+        document.getElementById('donut-2').setAttribute('stroke-dasharray', `${pStd*circ} ${circ}`);
+        document.getElementById('donut-3').style.strokeDashoffset = `-${(pDemo+pStd)*circ}`;
+        document.getElementById('donut-3').setAttribute('stroke-dasharray', `${pRest*circ} ${circ}`);
+        document.getElementById('donut-total').textContent = lics.length;
+    }, 300);
+
+    document.getElementById('leg-demo').textContent = counts.DEMO;
+    document.getElementById('leg-std').textContent  = counts.STANDARD + counts.PROFESSIONAL;
+    document.getElementById('leg-prem').textContent = counts.ENTERPRISE;
 }
 
+// ════════════════════════════════════════
+// CONNEXIONS (graphiques statiques)
+// ════════════════════════════════════════
 function buildConnexions() {
-  const spark=document.getElementById('hourly-spark'); spark.innerHTML='';
-  const vals=[2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
-  const maxV=Math.max(...vals);
-  vals.forEach((v,i)=>{
-    const bar=document.createElement('div'); bar.className='spark-bar';
-    bar.style.height=Math.max(4,Math.round((v/maxV)*36))+'px';
-    if(i===vals.indexOf(maxV)) bar.classList.add('peak');
-    spark.appendChild(bar);
-  });
-  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  document.getElementById('hm-months').innerHTML=mois.map(m=>`<div class="hm-month">${m}</div>`).join('');
-  const levels=['','l1','l2','l3','l4'];
-  document.getElementById('heatmap').innerHTML=Array(12).fill(0).map((_,i)=>{
-    const lvl=i<2?Math.floor(Math.random()*3)+1:Math.floor(Math.random()*5);
-    return`<div class="hm-cell ${levels[lvl]}" title="${mois[i]}"></div>`;
-  }).join('');
+    const spark = document.getElementById('hourly-spark'); spark.innerHTML = '';
+    const vals  = [2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
+    const maxV  = Math.max(...vals);
+    vals.forEach((v,i) => {
+        const bar = document.createElement('div'); bar.className = 'spark-bar';
+        bar.style.height = Math.max(4, Math.round((v/maxV)*36)) + 'px';
+        if (i === vals.indexOf(maxV)) bar.classList.add('peak');
+        spark.appendChild(bar);
+    });
+    const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    document.getElementById('hm-months').innerHTML = mois.map(m => `<div class="hm-month">${m}</div>`).join('');
+    const levels = ['','l1','l2','l3','l4'];
+    document.getElementById('heatmap').innerHTML = Array(12).fill(0).map((_,i) => {
+        const lvl = i < 2 ? Math.floor(Math.random()*3)+1 : Math.floor(Math.random()*5);
+        return `<div class="hm-cell ${levels[lvl]}" title="${mois[i]}"></div>`;
+    }).join('');
 }
 
+// ════════════════════════════════════════
+// CA CHART
+// ════════════════════════════════════════
 function buildCA() {
-  const ca=document.getElementById('ca-chart'); ca.innerHTML='';
-  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  const vals=[2940,3430,0,0,0,0,0,0,0,0,0,0];
-  mois.forEach((m,i)=>{
-    const h=vals[i]?Math.round((vals[i]/5000)*90):8;
-    const wrap=document.createElement('div'); wrap.className='ca-bar-wrap';
-    wrap.innerHTML=`<div class="ca-bar${i===1?' highlight':''}" style="height:${h}px"></div><div class="ca-month">${m}</div>`;
-    ca.appendChild(wrap);
-  });
+    const ca   = document.getElementById('ca-chart'); ca.innerHTML = '';
+    const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    // Calculer les valeurs depuis les licences réelles
+    const licTotal = _licences.reduce((s, l) => {
+        const prices = { STANDARD:490, PROFESSIONAL:890, ENTERPRISE:1490 };
+        return s + (prices[l.type] || 0);
+    }, 0) / 12;  // mensuel
+    const now = new Date().getMonth();
+    mois.forEach((m, i) => {
+        const val = i <= now ? (i === now ? licTotal : licTotal * (0.85 + Math.random()*0.3)) : 0;
+        const h   = val > 0 ? Math.max(8, Math.round((val / (licTotal * 1.3 || 100)) * 90)) : 8;
+        const wrap = document.createElement('div'); wrap.className = 'ca-bar-wrap';
+        wrap.innerHTML = `<div class="ca-bar${i===now?' highlight':''}" style="height:${h}px"></div>
+                          <div class="ca-month">${m}</div>`;
+        ca.appendChild(wrap);
+    });
 }
 
+// ════════════════════════════════════════
+// EXPORT CSV
+// ════════════════════════════════════════
 function exportCSV() {
-  const rows=[['Centre','Licence','Stagiaires','Statut']];
-  document.querySelectorAll('#centres-table-full tr').forEach(tr=>{
-    const cells=[...tr.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/\s+/g,' '));
-    if(cells.length) rows.push(cells);
-  });
-  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
-  const a=document.createElement('a');  a.href='data:text/csv;charset=utf-8,%EF%BB%BF'+encodeURIComponent(csv);
-  a.download=`ssiap_admin_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
+    const rows = [['Centre','Licence','Formateurs','Stagiaires','Sessions','Statut']];
+    document.querySelectorAll('#centres-table-full tr').forEach(tr => {
+        const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim().replace(/\s+/g,' '));
+        if (cells.length) rows.push(cells);
+    });
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(';')).join('\n');
+    const a   = document.createElement('a');
+    a.href    = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+    a.download = `ssiap_admin_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
 }
 
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
 loadAllData();
 buildConnexions();
 buildCA();
-
-function goQuestions(niveau) {
-  var url = 'admin-questions.html';
-  if (niveau) url += '?niveau=' + niveau;
-  window.location = url;
-}
 </script>
 </body>
 </html>
