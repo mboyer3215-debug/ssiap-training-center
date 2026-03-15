@@ -16,7 +16,7 @@ const PLANS = {
     label: 'INDÉPENDANT',
     prix: '99 €/mois',
     maxCentres: 1,
-    maxFormateurs: 2,
+    maxFormateurs: 2, 
     maxStagiaires: 30,
   },
   starter: {
