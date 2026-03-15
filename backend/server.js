@@ -9,7 +9,7 @@ const loginLimiter = rateLimit({
   max: 5,
   message: { error: 'Trop de tentatives, réessayez dans 15 minutes.' },
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: false, 
 });
 const qcmRoutes = require('./routes/qcm.routes');
 const stagiaireRoutes = require('./routes/stagiaire.routes');
