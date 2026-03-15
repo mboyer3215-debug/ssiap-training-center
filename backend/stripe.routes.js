@@ -1,9 +1,8 @@
-
 // stripe.routes.js — MIB PREVENTION / SSIAP Training
 // Intégrer dans server.js : app.use('/api/stripe', require('./stripe.routes'));
 
 const express = require('express');
-const router = express.Router(); 
+const router = express.Router();
 const Stripe = require('stripe');
 const admin = require('firebase-admin'); // déjà initialisé dans server.js
 
@@ -12,15 +11,15 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 // ─── PRICE IDs (mode test) ─────────────────────────────────────────────────
 const PLANS = {
   independant: {
-    priceId: 'price_1TB190GBD0GNj9cdfwvGx3vb', 
+    priceId: 'price_1TBC005V2d1nGQ17pM0Myyws',
     label: 'INDÉPENDANT',
     prix: '99 €/mois',
     maxCentres: 1,
-    maxFormateurs: 2, 
+    maxFormateurs: 2,
     maxStagiaires: 30,
   },
   starter: {
-    priceId: 'price_1TB16WGBD0GNj9cdCk1bfJ7N',
+    priceId: 'price_1TBC015V2d1nGQ17Cg4cuxqj',
     label: 'STARTER',
     prix: '199 €/mois',
     maxCentres: 3,
@@ -28,7 +27,7 @@ const PLANS = {
     maxStagiaires: 150,
   },
   pro: {
-    priceId: 'price_1TB17SGBD0GNj9cdlHWwsjrL',
+    priceId: 'price_1TBC015V2d1nGQ17AyCaD0ST',
     label: 'PRO',
     prix: '299 €/mois',
     maxCentres: 10,
@@ -36,7 +35,7 @@ const PLANS = {
     maxStagiaires: 500,
   },
   entreprise: {
-    priceId: 'price_1TB18lGBD0GNj9cdDYmDGy8M',
+    priceId: 'price_1TBC015V2d1nGQ17zkqn8GHu',
     label: 'ENTREPRISE',
     prix: '3 999 €/an',
     maxCentres: 999,
