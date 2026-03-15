@@ -18,17 +18,16 @@
         loadSessions();
     };
 
-    // Alias pour compatibilité dashboard
     window.initSessionsModule = window.initSessions;
 
-    window.showAddSessionModal       = function ()           { openSessionModal(null); };
-    window.editSession               = function (id)         { openSessionModal(id); };
-    window.deleteSession             = function (id)         { confirmDeleteSession(id); };
-    window.openSession               = function (id)         { showSessionDetail(id); };
-    window.showAddStagiaireToSession = function (id)         { openAddStagiaireModal(id); };
-    window.deleteStagiaire           = function (id)         { confirmDeleteStagiaire(id); };
-    window.showQRCode                = function (id)         { displayQRCode(id); };
-    window.backToSessions            = function ()           { loadSessions(); currentSessionId = null; };
+    window.showAddSessionModal       = function ()  { openSessionModal(null); };
+    window.editSession               = function (id){ openSessionModal(id); };
+    window.deleteSession             = function (id){ confirmDeleteSession(id); };
+    window.openSession               = function (id){ showSessionDetail(id); };
+    window.showAddStagiaireToSession = function (id){ openAddStagiaireModal(id); };
+    window.deleteStagiaire           = function (id){ confirmDeleteStagiaire(id); };
+    window.showQRCode                = function (id){ displayQRCode(id); };
+    window.backToSessions            = function ()  { loadSessions(); currentSessionId = null; };
 
     // =============================================
     // CHARGEMENT DONNÉES
@@ -37,7 +36,8 @@
     async function loadFormateurs() {
         if (!centerData) return;
         try {
-            const r = await fetch(`${API_URL}/formateur/list/${centerData.centerId}`);
+            const r = await authFetch(`${API_URL}/formateur/list/${centerData.centerId}`);
+            if (!r) return;
             const d = await r.json();
             if (d.success) formateurs = d.formateurs || [];
         } catch (e) { console.error('Erreur chargement formateurs:', e); }
@@ -47,9 +47,9 @@
         if (!centerData) return;
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/session/list/${centerData.centerId}`);
+            const r = await authFetch(`${API_URL}/session/list/${centerData.centerId}`);
+            if (!r) return;
             const d = await r.json();
-            // FIX : accepter aussi les réponses sans { success }
             sessions = d.sessions || (Array.isArray(d) ? d : []);
             displaySessions(sessions);
         } catch (e) {
@@ -84,7 +84,6 @@
         let html = '<div style="display:grid;gap:16px;">';
 
         sessionsList.forEach(session => {
-            // FIX : fallback si status absent
             const status = session.status || 'à venir';
             const color = statusColor[status] || '#6b7280';
             const dateDebut = session.dateDebut ? new Date(session.dateDebut).toLocaleDateString('fr-FR') : '—';
@@ -134,9 +133,9 @@
         currentSessionId = sessionId;
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/session/detail/${centerData.centerId}/${sessionId}`);
+            const r = await authFetch(`${API_URL}/session/detail/${centerData.centerId}/${sessionId}`);
+            if (!r) return;
             const d = await r.json();
-            // FIX : accepter réponse directe ou { success, session }
             const session = d.session || d;
             if (!session || !session.sessionId) { alert('Erreur : session introuvable'); return; }
 
@@ -325,12 +324,12 @@
         modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 
         document.getElementById('modal-session-submit').addEventListener('click', async () => {
-            const titre      = document.getElementById('modal-session-titre').value.trim();
-            const niveau     = document.getElementById('modal-session-niveau').value;
-            const dateDebut  = document.getElementById('modal-session-debut').value;
-            const dateFin    = document.getElementById('modal-session-fin').value;
+            const titre     = document.getElementById('modal-session-titre').value.trim();
+            const niveau    = document.getElementById('modal-session-niveau').value;
+            const dateDebut = document.getElementById('modal-session-debut').value;
+            const dateFin   = document.getElementById('modal-session-fin').value;
             const formateurIds = [...document.querySelectorAll('#modal-session input[type="checkbox"]:checked')].map(cb => cb.value);
-            const errorDiv   = document.getElementById('modal-session-error');
+            const errorDiv  = document.getElementById('modal-session-error');
 
             if (!titre) {
                 errorDiv.style.display = 'block';
@@ -357,13 +356,12 @@
     async function createSession(data) {
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/session/create`, {
+            const r = await authFetch(`${API_URL}/session/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ centerId: centerData.centerId, ...data })
             });
+            if (!r) return;
             const result = await r.json();
-            // FIX : accepter { success } ou réponse directe avec sessionId
             if (result.success || result.sessionId) {
                 await loadSessions();
             } else {
@@ -380,11 +378,11 @@
     async function updateSession(sessionId, data) {
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/session/update/${sessionId}`, {
+            const r = await authFetch(`${API_URL}/session/update/${sessionId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ centerId: centerData.centerId, ...data })
             });
+            if (!r) return;
             const result = await r.json();
             if (result.success || result.sessionId) {
                 await loadSessions();
@@ -406,7 +404,10 @@
 
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/session/delete/${sessionId}?centerId=${centerData.centerId}`, { method: 'DELETE' });
+            const r = await authFetch(`${API_URL}/session/delete/${sessionId}?centerId=${centerData.centerId}`, {
+                method: 'DELETE'
+            });
+            if (!r) return;
             const result = await r.json();
             if (result.success) {
                 await loadSessions();
@@ -496,11 +497,11 @@
     async function createStagiaire(sessionId, data) {
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/stagiaire/create`, {
+            const r = await authFetch(`${API_URL}/stagiaire/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ centerId: centerData.centerId, sessionId, ...data })
             });
+            if (!r) return;
             const result = await r.json();
             if (result.success || result.stagiaire) {
                 const s = result.stagiaire || result;
@@ -524,7 +525,10 @@
 
         _showLoader();
         try {
-            const r = await fetch(`${API_URL}/stagiaire/delete/${stagiaireId}?centerId=${centerData.centerId}`, { method: 'DELETE' });
+            const r = await authFetch(`${API_URL}/stagiaire/delete/${stagiaireId}?centerId=${centerData.centerId}`, {
+                method: 'DELETE'
+            });
+            if (!r) return;
             const result = await r.json();
             if (result.success) {
                 await showSessionDetail(currentSessionId);

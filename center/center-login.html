@@ -147,22 +147,23 @@ async function login() {
     });
     const data = await r.json();
 
-    if (data.success) {
-      localStorage.setItem('ssiap_token', data.centerId);
-      localStorage.setItem('ssiap_center', JSON.stringify({
-        centerId:  data.centerId,
-        nom:       data.nom,
-        email:     data.email,
-        license: {
-          type:          data.license?.type || 'DEMO',
-          expiresAt:     data.license?.expiresAt || null,
-          maxFormateurs: data.license?.maxFormateurs || 1,
-          maxStagiaires: data.license?.maxStagiaires || 10
-        }
-      }));
-      showAlert('success', `✅ Bienvenue ${data.nom} !`);
-      setTimeout(() => window.location = 'center-dashboard.html', 800);
-    } else {
+     if (data.success) {
+    // Stocker JWT + infos centre
+    sessionStorage.setItem('ssiap_jwt', data.token);  // ← JWT
+    localStorage.setItem('ssiap_center', JSON.stringify({
+      centerId:  data.centerId,
+      nom:       data.nom,
+      email:     data.email,
+      license: {
+        type:          data.license?.type || 'DEMO',
+        expiresAt:     data.license?.expiresAt || null,
+        maxFormateurs: data.license?.maxFormateurs || 1,
+        maxStagiaires: data.license?.maxStagiaires || 10
+      }
+    }));
+    showAlert('success', `✅ Bienvenue ${data.nom} !`);
+    setTimeout(() => window.location = 'center-dashboard.html', 800);
+  } else {
       showAlert('error', '❌ ' + (data.error || 'Email ou mot de passe incorrect'));
     }
   } catch (err) {
