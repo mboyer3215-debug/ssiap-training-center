@@ -191,10 +191,29 @@ router.post('/activate-manual', async (req, res) => {
     const plan = PLANS[planKey];
     if (!plan) return res.status(400).json({ error: 'Plan inconnu' });
 
-    const licenceKey = await createLicenceInFirebase({ planKey, nomCentre, email, plan, source: 'virement' });
-    await sendWelcomeEmail({ to: email, nomCentre, plan, licenceKey, loginUrl: process.env.APP_URL });
+    console.log(`🔧 Activation manuelle : ${planKey} pour ${email}`);
+
+    let licenceKey;
+    try {
+      licenceKey = await createLicenceInFirebase({ planKey, nomCentre, email, plan, source: 'virement' });
+      console.log(`✅ Licence Firebase créée : ${licenceKey}`);
+    } catch (fbErr) {
+      console.error('❌ Erreur Firebase:', fbErr.message);
+      return res.status(500).json({ error: 'Erreur Firebase: ' + fbErr.message });
+    }
+
+    try {
+      await sendWelcomeEmail({ to: email, nomCentre, plan, licenceKey, loginUrl: process.env.APP_URL });
+      console.log(`📧 Email envoyé à ${email}`);
+    } catch (mailErr) {
+      console.error('❌ Erreur Mailgun:', mailErr.message);
+      // On retourne quand même succès car la licence est créée
+      return res.json({ success: true, licenceKey, warning: 'Licence créée mais email non envoyé: ' + mailErr.message });
+    }
+
     res.json({ success: true, licenceKey });
   } catch (err) {
+    console.error('❌ Erreur activate-manual:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
