@@ -3,7 +3,7 @@
 // Intégrer dans server.js : app.use('/api/stripe', require('./stripe.routes'));
 
 const express = require('express');
-const router = express.Router();
+const router = express.Router(); 
 const Stripe = require('stripe');
 const admin = require('firebase-admin'); // déjà initialisé dans server.js
 
