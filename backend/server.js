@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
-const rateLimit = require('express-rate-limit'); 
-
+const rateLimit = require('express-rate-limit');  
+ 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes 
   max: 5,
@@ -23,6 +23,7 @@ const demandesAvisRoutes = require('./routes/demandes_avis.routes');
 const quizSalleRoutes = require('./routes/quizsalle.routes');
 const adminQuestionsRoutes = require('./routes/admin_questions.routes');
 const adminAuthRoutes = require('./routes/admin.auth.routes');
+const stripeRoutes = require('./stripe.routes'); // ← STRIPE AJOUTÉ
 
 const app = express();
 app.set('trust proxy', 1); // Render est derrière un reverse proxy
@@ -32,12 +33,12 @@ const ROOT = path.join(__dirname, '..');
 // ── Sécurité CORS ──
 const ALLOWED_ORIGINS = [
   'https://ssiap-training-center.onrender.com',
+  'https://formation.mib-prevention.fr', // ← landing page ajoutée
   'http://localhost:3000',
   'http://localhost:10000',
 ];
 app.use(cors({
   origin: function(origin, callback) {
-    // Autoriser les requêtes sans origin (Postman, mobile natif, même domaine)
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
@@ -47,6 +48,9 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// ── Webhook Stripe : doit recevoir le body RAW (avant express.json) ──
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 
 // ── Body size limité à 1 Mo (évite les payloads géants) ──
 app.use(express.json({ limit: '1mb' }));
@@ -66,8 +70,12 @@ app.use('/api/formateur', formateurRoutes);
 app.use('/api/session', sessionRoutes);
 app.use('/api', demandesAvisRoutes);
 app.use('/api/quiz', quizSalleRoutes);
-app.use('/api/admin/auth', adminAuthRoutes);   // ← public : login
+app.use('/api/admin/auth/login', loginLimiter);
+app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminQuestionsRoutes);   // ← protégé : JWT requis
+app.use('/api/formateur', require('./routes/questions-stats.route'));
+app.use('/api/stripe', stripeRoutes); // ← STRIPE AJOUTÉ
+
 // Route santé
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
