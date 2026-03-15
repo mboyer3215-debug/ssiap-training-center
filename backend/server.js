@@ -9,12 +9,12 @@ const loginLimiter = rateLimit({
   max: 5,
   message: { error: 'Trop de tentatives, réessayez dans 15 minutes.' },
   standardHeaders: true,
-  legacyHeaders: false, 
+  legacyHeaders: false,
 });
 const qcmRoutes = require('./routes/qcm.routes');
 const stagiaireRoutes = require('./routes/stagiaire.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
-const entrainementRoutes = require('./routes/entrainement.routes'); 
+const entrainementRoutes = require('./routes/entrainement.routes');
 const licenseRoutes = require('./routes/license.routes');
 const centerRoutes = require('./routes/center.routes');
 const formateurRoutes = require('./routes/formateur.routes');
@@ -56,6 +56,7 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '1mb' }));
 
 // ── Fichiers statiques (uniquement les dossiers publics) ──
+app.use(express.static(ROOT)); // ← fichiers racine (style.css, app.js, etc.)
 app.use(express.static(path.join(ROOT, 'stagiaire')));
 app.use(express.static(path.join(ROOT, 'formateur')));
 app.use(express.static(path.join(ROOT, 'admin')));
