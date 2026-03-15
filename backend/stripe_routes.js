@@ -12,7 +12,7 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 // ─── PRICE IDs (mode test) ─────────────────────────────────────────────────
 const PLANS = {
   independant: {
-    priceId: 'price_1TB190GBD0GNj9cdfwvGx3vb',
+    priceId: 'price_1TB190GBD0GNj9cdfwvGx3vb', 
     label: 'INDÉPENDANT',
     prix: '99 €/mois',
     maxCentres: 1,
