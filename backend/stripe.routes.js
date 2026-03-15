@@ -90,7 +90,7 @@ async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, loginUrl }) {
   formData.append('html', html);
 
   const response = await fetch(
-    `https://api.mailgun.net/v3/${process.env.MAILGUN_DOMAIN}/messages`,
+    `https://api.eu.mailgun.net/v3/${process.env.MAILGUN_DOMAIN}/messages`,
     {
       method: 'POST',
       headers: {
