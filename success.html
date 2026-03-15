@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paiement confirmé — SSIAP Training</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px 40px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+    .icon { font-size: 64px; margin-bottom: 16px; }
+    h1 { color: #1a3a5c; font-size: 26px; margin-bottom: 12px; }
+    p { color: #64748b; font-size: 16px; line-height: 1.6; margin-bottom: 8px; }
+    .email { font-weight: bold; color: #1a3a5c; }
+    .box {
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 24px 0;
+      text-align: left;
+    }
+    .box p { font-size: 14px; color: #475569; margin-bottom: 6px; }
+    .box p:last-child { margin-bottom: 0; }
+    .btn {
+      display: inline-block;
+      background: #1a3a5c;
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 8px;
+    }
+    .btn:hover { background: #0f2540; }
+    .loading { color: #94a3b8; font-size: 14px; margin-top: 16px; }
+    .spinner {
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #1a3a5c;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+      margin: 16px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-state { display: block; }
+    #success-state { display: none; }
+    #error-state { display: none; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- État chargement -->
+  <div id="loading-state">
+    <div class="spinner"></div>
+    <p class="loading">Confirmation de votre paiement en cours...</p>
+  </div>
+
+  <!-- État succès -->
+  <div id="success-state">
+    <div class="icon">🎉</div>
+    <h1>Paiement confirmé !</h1>
+    <p>Merci pour votre abonnement <strong id="plan-name"></strong>.</p>
+    <p>Un email avec votre <strong>clé de licence</strong> a été envoyé à :</p>
+    <p class="email" id="customer-email"></p>
+    <div class="box">
+      <p>✅ Votre licence est activée automatiquement</p>
+      <p>✅ Email avec identifiants envoyé sous 2 minutes</p>
+      <p>✅ Accès immédiat à la plateforme</p>
+    </div>
+    <a href="https://ssiap-training-center.onrender.com" class="btn">Accéder à ma plateforme →</a>
+  </div>
+
+  <!-- État erreur -->
+  <div id="error-state">
+    <div class="icon">⚠️</div>
+    <h1>Vérification en cours</h1>
+    <p>Votre paiement est en cours de traitement.</p>
+    <div class="box">
+      <p>📧 Vous recevrez un email de confirmation avec votre licence dans quelques minutes.</p>
+      <p style="margin-top:10px">En cas de problème : <a href="mailto:contact@mib-prevention.fr">contact@mib-prevention.fr</a></p>
+    </div>
+    <a href="https://ssiap-training-center.onrender.com" class="btn">Retour à l'accueil</a>
+  </div>
+
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('session_id');
+
+  async function verifySession() {
+    if (!sessionId) {
+      showError();
+      return;
+    }
+    try {
+      const res = await fetch(`/api/stripe/session/${sessionId}`);
+      const data = await res.json();
+
+      if (data.status === 'paid' || data.status === 'no_payment_required') {
+        document.getElementById('plan-name').textContent = data.plan || '';
+        document.getElementById('customer-email').textContent = data.email || '';
+        showSuccess();
+      } else {
+        showError();
+      }
+    } catch (err) {
+      showError();
+    }
+  }
+
+  function showSuccess() {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('success-state').style.display = 'block';
+  }
+
+  function showError() {
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+  }
+
+  verifySession();
+</script>
+</body>
+</html>
