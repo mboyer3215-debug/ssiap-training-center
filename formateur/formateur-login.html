@@ -244,7 +244,11 @@ async function loadCentres() {
 
     // ⚠️ On affiche le NOM du centre, jamais l'ID
     sel.innerHTML = '<option value="">— Choisissez votre centre —</option>'
-      + list.map(c => `<option value="${c.centerId}">${c.info?.nom || 'Centre sans nom'}</option>`).join('');
+      + list.map(c => {
+    const nom = c.nom || c.info?.nom || 'Centre sans nom';
+    const label = c.license?.type === 'INDEPENDANT' ? '👤 Formateur indépendant' : nom;
+    return `<option value="${c.centerId}">${label}</option>`;
+  }).join('');
     sel.disabled = false;
 
     // Un seul centre → pré-sélectionner directement
