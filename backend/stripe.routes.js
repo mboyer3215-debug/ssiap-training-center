@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
+const crypto = require('crypto'); // natif Node.js
 const admin = require('firebase-admin'); // déjà initialisé dans server.js
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -234,7 +235,7 @@ router.get('/licence/:key', async (req, res) => {
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 function generateLicenceKey(planKey) {
   const prefix = planKey.substring(0, 3).toUpperCase();
-  const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
+  const rand = crypto.randomBytes(8).toString('hex').toUpperCase();
   return `MIB-${prefix}-${rand}`;
 }
 
