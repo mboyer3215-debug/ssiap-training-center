@@ -90,7 +90,7 @@ tr:hover td{background:var(--subtle)}
 .badge.gray{background:var(--subtle);color:var(--muted)}.badge.red{background:var(--red-bg);color:var(--red)}
 
 /* PROGRESS */
-.progress-bar{height:5px;background:var(--subtle);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-bar{height:6px;background:var(--subtle);border-radius:3px;overflow:hidden;margin-top:6px}
 .progress-fill{height:100%;border-radius:3px;transition:width 1s ease}
 
 /* ALERTS */
@@ -129,12 +129,16 @@ tr:hover td{background:var(--subtle)}
 .legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 .legend-val{margin-left:auto;font-family:'DM Mono',monospace;color:var(--muted)}
 
-/* CA BARS */
-.ca-bars{display:flex;align-items:flex-end;gap:8px;height:100px;padding-top:10px}
-.ca-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.ca-bar{width:100%;border-radius:4px 4px 0 0;background:var(--subtle);transition:.5s;cursor:pointer}
-.ca-bar.highlight{background:var(--terra)}
-.ca-month{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center}
+/* MONTHLY CHART */
+.monthly-chart{display:flex;align-items:flex-end;gap:6px;height:80px;padding-top:8px}
+.mc-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.mc-bar{width:100%;border-radius:3px 3px 0 0;background:var(--terra-mid);transition:.5s;min-height:3px;cursor:pointer;position:relative}
+.mc-bar:hover{background:var(--terra);transform:scaleY(1.05);transform-origin:bottom}
+.mc-bar.current{background:var(--terra)}
+.mc-month{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-align:center;white-space:nowrap}
+.mc-tooltip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:9px;padding:3px 6px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;z-index:10}
+.mc-bar:hover .mc-tooltip{opacity:1}
+.mc-labels{display:flex;align-items:flex-end;gap:6px;margin-top:4px}
 
 /* CONN GRID */
 .conn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -152,8 +156,10 @@ tr:hover td{background:var(--subtle)}
 .demande-actions{display:flex;gap:6px;margin-top:8px}
 .btn-sm{padding:5px 12px;border-radius:6px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--subtle);color:var(--text);transition:.15s}
 .btn-sm.primary{background:var(--terra);border-color:var(--terra);color:#fff}
+.btn-sm:hover{border-color:var(--terra);color:var(--terra)}
+.btn-sm.primary:hover{background:var(--terra-d)}
 
-/* SPARKLINE & HEATMAP */
+/* SPARKLINE */
 .sparkline{display:flex;align-items:flex-end;gap:3px;height:40px}
 .spark-bar{width:8px;border-radius:2px 2px 0 0;background:var(--subtle);transition:.3s;flex-shrink:0}
 .spark-bar.peak{background:var(--terra)}
@@ -168,6 +174,19 @@ tr:hover td{background:var(--subtle)}
 .tab-content{display:none}.tab-content.active{display:block}
 .loading{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--terra);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* MODAL CENTRE */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-centre{background:var(--surface);border-radius:16px;width:100%;max-width:760px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.2)}
+.modal-header{padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10}
+.modal-body{padding:24px 28px}
+.modal-close-btn{background:var(--subtle);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.modal-close-btn:hover{color:var(--terra);border-color:var(--terra)}
+.centre-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.centre-kpi{background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.centre-kpi-val{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--terra)}
+.centre-kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
 
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -266,12 +285,27 @@ tr:hover td{background:var(--subtle)}
           <div class="card">
             <div class="card-header">
               <div class="card-title"><span class="dot"></span>Alertes & Actions</div>
-              <span class="card-action" id="mark-all-read" onclick="markAllRead()" style="cursor:pointer">Tout marquer lu</span>
+              <span class="card-action" onclick="markAllRead()">Tout marquer lu</span>
             </div>
             <div class="alert-list" id="alerts-list">
               <div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>
               <div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Avis & Retours</strong>Consultez les retours des centres</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>
             </div>
+          </div>
+        </div>
+
+        <!-- GRAPHIQUE MENSUEL GLOBAL -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title"><span class="dot"></span>Activité globale — Quiz complétés par mois</div>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)" id="monthly-total-label">Tous centres confondus</span>
+          </div>
+          <div class="monthly-chart" id="monthly-chart"></div>
+          <div id="monthly-labels" style="display:flex;gap:6px;margin-top:4px"></div>
+          <div style="margin-top:10px;display:flex;gap:20px">
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Total 12 mois : <span id="monthly-total" style="color:var(--terra);font-weight:700">—</span></div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Mois en cours : <span id="monthly-current" style="color:var(--green);font-weight:700">—</span></div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Moy. mensuelle : <span id="monthly-avg" style="color:var(--blue);font-weight:700">—</span></div>
           </div>
         </div>
 
@@ -293,15 +327,51 @@ tr:hover td{background:var(--subtle)}
               </div>
             </div>
           </div>
+
+          <!-- ENTRAÎNEMENTS PAR NIVEAU -->
           <div class="card">
-            <div class="card-header"><div class="card-title"><span class="dot"></span>Entraînements / Niveau</div></div>
-            <div style="display:flex;flex-direction:column;gap:14px">
-              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>SSIAP 1</span><span style="color:var(--green);font-family:'DM Mono',monospace" id="pct-n1">—</span></div><div class="progress-bar"><div class="progress-fill" id="bar-n1" style="background:var(--green);width:0%"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>SSIAP 2</span><span style="color:var(--blue);font-family:'DM Mono',monospace" id="pct-n2">—</span></div><div class="progress-bar"><div class="progress-fill" id="bar-n2" style="background:var(--blue);width:0%"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>SSIAP 3</span><span style="color:var(--gold);font-family:'DM Mono',monospace" id="pct-n3">—</span></div><div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--gold);width:0%"></div></div></div>
+            <div class="card-header">
+              <div class="card-title"><span class="dot"></span>Entraînements / Niveau</div>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)" id="entr-source">—</span>
             </div>
-            <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Total : <span id="total-entr" style="color:var(--text)">—</span></div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+                  <span>SSIAP 1</span>
+                  <span style="font-family:'DM Mono',monospace">
+                    <span id="count-n1" style="color:var(--green);font-weight:700">—</span>
+                    <span id="pct-n1" style="color:var(--muted);font-size:10px"> —%</span>
+                  </span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="bar-n1" style="background:var(--green);width:0%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+                  <span>SSIAP 2</span>
+                  <span style="font-family:'DM Mono',monospace">
+                    <span id="count-n2" style="color:var(--blue);font-weight:700">—</span>
+                    <span id="pct-n2" style="color:var(--muted);font-size:10px"> —%</span>
+                  </span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="bar-n2" style="background:var(--blue);width:0%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+                  <span>SSIAP 3</span>
+                  <span style="font-family:'DM Mono',monospace">
+                    <span id="count-n3" style="color:var(--gold);font-weight:700">—</span>
+                    <span id="pct-n3" style="color:var(--muted);font-size:10px"> —%</span>
+                  </span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--gold);width:0%"></div></div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">
+              <span>Total entraînements</span>
+              <span id="total-entr" style="color:var(--text);font-weight:700">—</span>
+            </div>
           </div>
+
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="dot"></span>Activité récente</div></div>
             <div class="timeline" id="timeline-recent">
@@ -373,8 +443,6 @@ tr:hover td{background:var(--subtle)}
                 <tr><td>SSIAP Paris</td><td style="font-size:11px">Renouvellement</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">20/02</td><td><span class="badge green">Traité</span></td></tr>
                 <tr><td>SSIAP Lyon</td><td style="font-size:11px">Support</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">18/02</td><td><span class="badge green">Traité</span></td></tr>
                 <tr><td>SSIAP Marseille</td><td style="font-size:11px">Inscription</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">15/02</td><td><span class="badge green">Traité</span></td></tr>
-                <tr><td>SSIAP Lille</td><td style="font-size:11px">Upgrade</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">10/02</td><td><span class="badge gold">En cours</span></td></tr>
-                <tr><td>SSIAP Strasbourg</td><td style="font-size:11px">Incident</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">05/02</td><td><span class="badge red">Ouvert</span></td></tr>
               </tbody>
             </table>
           </div>
@@ -390,20 +458,21 @@ tr:hover td{background:var(--subtle)}
           <div class="kpi terra"><div class="kpi-icon">📈</div><div class="kpi-val">—</div><div class="kpi-label">Croissance YoY</div><div class="kpi-trend neutral">Données insuffisantes</div></div>
         </div>
         <div class="two-col">
-          <div class="card"><div class="card-header"><div class="card-title"><span class="dot"></span>CA mensuel 2026</div></div><div class="ca-bars" id="ca-chart"></div></div>
+          <div class="card"><div class="card-header"><div class="card-title"><span class="dot"></span>CA mensuel 2026</div></div><div class="monthly-chart" id="ca-chart"></div><div id="ca-labels" style="display:flex;gap:6px;margin-top:4px"></div></div>
           <div class="card">
-            <div class="card-header"><div class="card-title"><span class="dot"></span>Répartition par forfait</div></div>
+            <div class="card-header"><div class="card-title"><span class="dot"></span>Répartition par forfait (tarifs Stripe)</div></div>
             <table>
-              <thead><tr><th>Forfait</th><th>Nb licences</th><th>Prix/an</th><th>Total</th></tr></thead>
+              <thead><tr><th>Forfait</th><th>Nb licences</th><th>Prix/mois</th><th>Total/mois</th></tr></thead>
               <tbody>
                 <tr><td>DEMO</td><td style="font-family:'DM Mono',monospace" id="nb-demo">—</td><td style="color:var(--muted)">Gratuit</td><td style="color:var(--muted)">0 €</td></tr>
-                <tr><td>STANDARD</td><td style="font-family:'DM Mono',monospace" id="nb-std">—</td><td style="color:var(--muted)">490 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-std">—</td></tr>
-                <tr><td>PROFESSIONAL</td><td style="font-family:'DM Mono',monospace" id="nb-pro">—</td><td style="color:var(--muted)">890 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-pro">—</td></tr>
-                <tr><td>ENTERPRISE</td><td style="font-family:'DM Mono',monospace" id="nb-ent">—</td><td style="color:var(--muted)">1 490 €</td><td style="color:var(--gold);font-family:'DM Mono',monospace" id="total-ent">—</td></tr>
+                <tr><td>INDÉPENDANT</td><td style="font-family:'DM Mono',monospace" id="nb-ind">—</td><td style="color:var(--muted)">99 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-ind">—</td></tr>
+                <tr><td>STARTER</td><td style="font-family:'DM Mono',monospace" id="nb-std">—</td><td style="color:var(--muted)">199 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-std">—</td></tr>
+                <tr><td>PRO</td><td style="font-family:'DM Mono',monospace" id="nb-pro">—</td><td style="color:var(--muted)">299 €</td><td style="color:var(--green);font-family:'DM Mono',monospace" id="total-pro">—</td></tr>
+                <tr><td>ENTREPRISE</td><td style="font-family:'DM Mono',monospace" id="nb-ent">—</td><td style="color:var(--muted)">333 € (3999/an)</td><td style="color:var(--gold);font-family:'DM Mono',monospace" id="total-ent">—</td></tr>
               </tbody>
             </table>
             <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
-              <span style="font-weight:700">Total annuel estimé</span>
+              <span style="font-weight:700">Total mensuel estimé</span>
               <span style="font-family:'DM Mono',monospace;font-size:16px;color:var(--gold);font-weight:700" id="ca-total-calc">—</span>
             </div>
           </div>
@@ -431,12 +500,83 @@ tr:hover td{background:var(--subtle)}
   </div>
 </div>
 
+<!-- ═══ MODAL DÉTAIL CENTRE ═══ -->
+<div class="modal-overlay" id="modal-centre">
+  <div class="modal-centre">
+    <div class="modal-header">
+      <div>
+        <div style="font-family:'Lora',serif;font-size:20px;font-weight:700" id="modal-centre-nom">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="modal-centre-id">—</div>
+      </div>
+      <button class="modal-close-btn" onclick="closeCentreModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- KPIs centre -->
+      <div class="centre-kpi-row">
+        <div class="centre-kpi"><div class="centre-kpi-val" id="mc-stagiaires">—</div><div class="centre-kpi-lbl">Stagiaires</div></div>
+        <div class="centre-kpi"><div class="centre-kpi-val" id="mc-formateurs" style="color:var(--blue)">—</div><div class="centre-kpi-lbl">Formateurs</div></div>
+        <div class="centre-kpi"><div class="centre-kpi-val" id="mc-sessions" style="color:var(--green)">—</div><div class="centre-kpi-lbl">Sessions</div></div>
+        <div class="centre-kpi"><div class="centre-kpi-val" id="mc-taux" style="color:var(--gold)">—</div><div class="centre-kpi-lbl">Taux réussite</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <!-- Licence -->
+        <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px">
+          <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">🔑 Licence</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Type</span><span id="mc-lic-type" style="font-family:'DM Mono',monospace;font-weight:700">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Début</span><span id="mc-lic-debut" style="font-family:'DM Mono',monospace">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Fin</span><span id="mc-lic-fin" style="font-family:'DM Mono',monospace">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Restant</span><span id="mc-lic-reste" style="font-family:'DM Mono',monospace;color:var(--terra)">—</span></div>
+          </div>
+        </div>
+
+        <!-- Entraînements par niveau -->
+        <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px">
+          <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">📊 Entraînements par niveau</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+                <span>SSIAP 1</span><span id="mc-n1" style="font-family:'DM Mono',monospace;color:var(--green)">—</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="mc-bar-n1" style="background:var(--green);width:0%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+                <span>SSIAP 2</span><span id="mc-n2" style="font-family:'DM Mono',monospace;color:var(--blue)">—</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="mc-bar-n2" style="background:var(--blue);width:0%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+                <span>SSIAP 3</span><span id="mc-n3" style="font-family:'DM Mono',monospace;color:var(--gold)">—</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="mc-bar-n3" style="background:var(--gold);width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activité 6 mois pour ce centre -->
+      <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+        <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">📈 Activité — 6 derniers mois</div>
+        <div class="monthly-chart" id="mc-monthly-chart" style="height:60px"></div>
+        <div id="mc-monthly-labels" style="display:flex;gap:6px;margin-top:4px"></div>
+      </div>
+
+      <!-- Formateurs -->
+      <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px">
+        <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">👨‍🏫 Formateurs actifs</div>
+        <div id="mc-formateurs-list" style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Chargement…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = 'https://ssiap-training-center.onrender.com/api';
 
-// ════════════════════════════════════════
-// GUARD JWT admin
-// ════════════════════════════════════════
+// ── GUARD JWT ──────────────────────────────────────────────
 (function() {
     var token = sessionStorage.getItem('adminToken');
     if (!token) { window.location = 'admin-login.html'; return; }
@@ -454,64 +594,40 @@ const API = 'https://ssiap-training-center.onrender.com/api';
 
 function getAdminToken() { return sessionStorage.getItem('adminToken') || ''; }
 function authHeaders()   { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() }; }
-function adminLogout()   { sessionStorage.removeItem('adminToken'); window.location = 'admin-login.html'; }
 
-// ════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════
 let _centres = [];
 let _licences = [];
+let _monthlyData = new Array(12).fill(0); // quiz par mois
 
 document.getElementById('current-date').textContent =
     new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-// ════════════════════════════════════════
-// NAVIGATION
-// ════════════════════════════════════════
+// ── NAVIGATION ─────────────────────────────────────────────
 function showTab(id) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const el = document.getElementById('tab-'+id);
     if (el) el.classList.add('active');
-    const titles = {
-        overview: "Vue d'ensemble", centres: 'Centres connectés',
-        connexions: 'Statistiques connexions', demandes: 'Demandes',
-        ca: "Chiffre d'Affaires", licences: 'Gestion Licences'
-    };
+    const titles = { overview:"Vue d'ensemble", centres:'Centres connectés', connexions:'Statistiques connexions', demandes:'Demandes', ca:"Chiffre d'Affaires", licences:'Gestion Licences' };
     document.getElementById('page-title').textContent = titles[id] || id;
-    document.querySelectorAll('.nav-item').forEach(n => {
-        if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
-    });
+    document.querySelectorAll('.nav-item').forEach(n => { if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active'); });
     if (id === 'connexions') buildConnexions();
     if (id === 'ca')         buildCA();
 }
 
-function goQuestions(niveau) {
-    var url = 'admin-questions.html';
-    if (niveau) url += '?niveau=' + niveau;
-    window.location = url;
-}
+function goQuestions() { window.location = 'admin-questions.html'; }
 
-// ════════════════════════════════════════
-// FETCH HELPERS
-// ════════════════════════════════════════
 function fetchTimeout(url, opts, ms) {
     ms = ms || 8000;
     var ctrl = new AbortController();
     var tid = setTimeout(() => ctrl.abort(), ms);
-    return fetch(url, Object.assign({ signal: ctrl.signal }, opts || {}))
-           .finally(() => clearTimeout(tid));
+    return fetch(url, Object.assign({ signal: ctrl.signal }, opts || {})).finally(() => clearTimeout(tid));
 }
 
-// ════════════════════════════════════════
-// MAIN LOAD
-// ════════════════════════════════════════
+// ── MAIN LOAD ──────────────────────────────────────────────
 async function loadAllData() {
     const icon = document.getElementById('refresh-icon');
     icon.style.animation = 'spin .6s linear infinite';
-    // Afficher fallback immédiatement
-    useFallbackCentres();
-    useFallbackLicences();
     try {
         await Promise.allSettled([loadCentres(), loadLicences()]);
     } finally {
@@ -519,235 +635,272 @@ async function loadAllData() {
     }
 }
 
-// ════════════════════════════════════════
-// CENTRES — fetch + enrichissement stats
-// ════════════════════════════════════════
+// ── CENTRES ────────────────────────────────────────────────
 async function loadCentres() {
     try {
-        // ✅ JWT admin dans le header
         const r = await fetchTimeout(API + '/center/list', { headers: authHeaders() }).catch(() => null);
-        if (!r || !r.ok) throw new Error('center/list ' + (r?.status || 'timeout'));
+        if (!r || !r.ok) throw new Error();
         const data = await r.json();
-        let centres = data.centers || data || [];
-
-        // Enrichir les stats manquantes pour chaque centre en parallèle
+        let centres = data.centers || [];
         centres = await Promise.all(centres.map(c => enrichCentreStats(c)));
         _centres = centres;
 
         renderCentresMini(centres);
         renderCentresFull(centres);
 
-        // KPI centres
-        document.getElementById('kpi-centres').textContent      = centres.length;
-        document.getElementById('kpi-centres-trend').textContent = centres.length + ' centre(s) enregistré(s)';
-        document.getElementById('badge-centres').textContent     = centres.length;
-        document.getElementById('centres-count').textContent     = centres.length + ' centre(s)';
-
-        // KPI agrégés depuis les données réelles
         const totalStagiaires = centres.reduce((s, c) => s + (c.stats?.stagiaires || 0), 0);
-        const totalSessions   = centres.reduce((s, c) => s + (c.stats?.sessions   || 0), 0);
-        document.getElementById('kpi-stagiaires').textContent   = totalStagiaires;
-        document.getElementById('kpi-sessions').textContent     = totalSessions;
-        document.getElementById('kpi-stag-trend').textContent   = totalStagiaires > 0
-            ? `${totalStagiaires} au total` : 'Aucun stagiaire enregistré';
-        document.getElementById('kpi-sess-trend').textContent   = totalSessions > 0
-            ? `${totalSessions} sessions enregistrées` : 'Aucune session';
+        const totalSessions   = centres.reduce((s, c) => s + (c.stats?.sessions || 0), 0);
 
-        // Entraînements par niveau
+        set('kpi-centres', centres.length);
+        set('kpi-centres-trend', centres.length + ' centre(s) enregistré(s)');
+        set('badge-centres', centres.length);
+        set('centres-count', centres.length + ' centre(s)');
+        set('kpi-stagiaires', totalStagiaires || '—');
+        set('kpi-sessions', totalSessions || '—');
+        set('kpi-stag-trend', totalStagiaires > 0 ? totalStagiaires + ' au total' : 'Aucun stagiaire');
+        set('kpi-sess-trend', totalSessions > 0 ? totalSessions + ' sessions' : 'Aucune session');
+
         await loadEntrainementsStats(centres);
-
-        // Alertes dynamiques (licences expirantes)
+        await loadMonthlyStats(centres);
         buildDynamicAlerts(centres);
-
-        // Timeline activité récente
         buildTimeline(centres);
 
     } catch(e) {
         console.warn('loadCentres:', e.message);
-        // Fallback déjà affiché
+        set('kpi-centres', '—');
     }
 }
 
-// ── Enrichissement stats d'un centre si absentes ──
 async function enrichCentreStats(c) {
     if (!c.stats) c.stats = {};
     const cid = c.centerId || c.id;
     if (!cid) return c;
-
-    // Formateurs
-    if (c.stats.formateurs == null) {
-        try {
-            const rf = await fetchTimeout(`${API}/formateur/list/${cid}`, { headers: authHeaders() }, 5000).catch(() => null);
-            if (rf && rf.ok) {
-                const df = await rf.json();
-                c.stats.formateurs = (df.formateurs || df || []).length;
-            }
-        } catch(e) {}
-    }
-
-    // Sessions + Stagiaires
-    if (c.stats.sessions == null) {
-        try {
-            const rs = await fetchTimeout(`${API}/session/list/${cid}`, {}, 5000).catch(() => null);
-            if (rs && rs.ok) {
-                const ds = await rs.json();
-                const sessions = ds.sessions || ds || [];
-                c.stats.sessions = sessions.length;
-
-                // Stagiaires agrégés depuis les sessions (max 10 sessions)
-                if (c.stats.stagiaires == null) {
-                    let totalStag = 0;
-                    const sessSlice = sessions.slice(0, 10);
-                    for (const sess of sessSlice) {
-                        try {
-                            const sid = sess.id || sess.sessionId;
-                            const rst = await fetchTimeout(
-                                `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 4000
-                            ).catch(() => null);
-                            if (rst && rst.ok) {
-                                const dst = await rst.json();
-                                totalStag += (dst.stagiaires || dst || []).length;
-                            }
-                        } catch(e) {}
-                    }
-                    c.stats.stagiaires = totalStag;
-                }
-            }
-        } catch(e) {}
-    }
-
+    try {
+        const r = await fetchTimeout(`${API}/formateur/list/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
+        if (r && r.ok) { const d = await r.json(); c.stats.formateurs = (d.formateurs || d || []).length; }
+    } catch(e) {}
     return c;
 }
 
-// ── Entraînements par niveau ──
+// ── ENTRAÎNEMENTS PAR NIVEAU ────────────────────────────────
+// Aggrège depuis Firebase via l'API dashboard
 async function loadEntrainementsStats(centres) {
+    let n1=0, n2=0, n3=0;
+    let source = 'agrégé';
+
     try {
-        // Tentative endpoint admin agrégé
+        // Tenter l'endpoint admin stats
         const r = await fetchTimeout(`${API}/admin/stats/entrainements`, { headers: authHeaders() }, 5000).catch(() => null);
         if (r && r.ok) {
             const d = await r.json();
-            const total = (d.n1 || 0) + (d.n2 || 0) + (d.n3 || 0);
-            if (total > 0) {
-                const pct = n => Math.round(n / total * 100) + '%';
-                document.getElementById('pct-n1').textContent = pct(d.n1);
-                document.getElementById('bar-n1').style.width = pct(d.n1);
-                document.getElementById('pct-n2').textContent = pct(d.n2);
-                document.getElementById('bar-n2').style.width = pct(d.n2);
-                document.getElementById('pct-n3').textContent = pct(d.n3);
-                document.getElementById('bar-n3').style.width = pct(d.n3);
-                document.getElementById('total-entr').textContent = total;
-                return;
+            if ((d.n1 || 0) + (d.n2 || 0) + (d.n3 || 0) > 0) {
+                n1 = d.n1 || 0; n2 = d.n2 || 0; n3 = d.n3 || 0;
+                source = 'API admin';
             }
         }
     } catch(e) {}
-    // Pas de données disponibles
-    ['n1','n2','n3'].forEach(n => {
-        document.getElementById('pct-'+n).textContent = '—';
-        document.getElementById('bar-'+n).style.width = '0%';
-    });
-    document.getElementById('total-entr').textContent = '—';
+
+    // Fallback : agréger depuis dashboard de chaque centre
+    if (n1 + n2 + n3 === 0) {
+        for (const c of centres) {
+            const cid = c.centerId;
+            if (!cid) continue;
+            try {
+                const r = await fetchTimeout(`${API}/dashboard/stats/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
+                if (r && r.ok) {
+                    const d = await r.json();
+                    n1 += d.niveaux?.n1 || d.ssiap1 || 0;
+                    n2 += d.niveaux?.n2 || d.ssiap2 || 0;
+                    n3 += d.niveaux?.n3 || d.ssiap3 || 0;
+                    source = 'dashboard';
+                }
+            } catch(e) {}
+        }
+    }
+
+    // Fallback : agréger depuis entrainements
+    if (n1 + n2 + n3 === 0) {
+        for (const c of centres) {
+            const cid = c.centerId;
+            if (!cid) continue;
+            try {
+                const r = await fetchTimeout(`${API}/entrainement/stats/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
+                if (r && r.ok) {
+                    const d = await r.json();
+                    n1 += d.n1 || d.niveau1 || 0;
+                    n2 += d.n2 || d.niveau2 || 0;
+                    n3 += d.n3 || d.niveau3 || 0;
+                    source = 'entrainements';
+                }
+            } catch(e) {}
+        }
+    }
+
+    const total = n1 + n2 + n3;
+    set('total-entr', total > 0 ? total : '—');
+    set('entr-source', source);
+
+    if (total > 0) {
+        const pct = n => Math.round(n / total * 100);
+        set('count-n1', n1); set('pct-n1', ' ' + pct(n1) + '%');
+        set('count-n2', n2); set('pct-n2', ' ' + pct(n2) + '%');
+        set('count-n3', n3); set('pct-n3', ' ' + pct(n3) + '%');
+        setTimeout(() => {
+            document.getElementById('bar-n1').style.width = pct(n1) + '%';
+            document.getElementById('bar-n2').style.width = pct(n2) + '%';
+            document.getElementById('bar-n3').style.width = pct(n3) + '%';
+        }, 100);
+    } else {
+        ['n1','n2','n3'].forEach(n => {
+            set('count-'+n, '—'); set('pct-'+n, '');
+            document.getElementById('bar-'+n).style.width = '0%';
+        });
+    }
 }
 
-// ── Alertes dynamiques depuis les licences expirantes ──
+// ── GRAPHIQUE MENSUEL GLOBAL ────────────────────────────────
+async function loadMonthlyStats(centres) {
+    const monthly = new Array(12).fill(0);
+    const now = new Date();
+    let hasData = false;
+
+    for (const c of centres) {
+        const cid = c.centerId;
+        if (!cid) continue;
+        try {
+            const r = await fetchTimeout(`${API}/entrainement/history/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
+            if (r && r.ok) {
+                const d = await r.json();
+                const history = d.history || d.entrainements || [];
+                history.forEach(h => {
+                    const date = new Date(h.createdAt || h.date || h.timestamp);
+                    const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+                    if (monthDiff >= 0 && monthDiff < 12) {
+                        monthly[11 - monthDiff]++;
+                        hasData = true;
+                    }
+                });
+            }
+        } catch(e) {}
+    }
+
+    // Si pas de données, essayer stats globales
+    if (!hasData) {
+        try {
+            const r = await fetchTimeout(`${API}/admin/stats/monthly`, { headers: authHeaders() }, 5000).catch(() => null);
+            if (r && r.ok) {
+                const d = await r.json();
+                if (d.monthly) { d.monthly.forEach((v,i) => { if(i<12) monthly[i] = v; hasData = true; }); }
+            }
+        } catch(e) {}
+    }
+
+    _monthlyData = monthly;
+    buildMonthlyChart('monthly-chart', 'monthly-labels', monthly, now);
+
+    const total = monthly.reduce((a,b) => a+b, 0);
+    const current = monthly[11];
+    const avg = Math.round(total / 12);
+    set('monthly-total', hasData ? total : '—');
+    set('monthly-current', hasData ? current : '—');
+    set('monthly-avg', hasData ? avg : '—');
+    set('monthly-total-label', hasData ? 'Tous centres confondus' : 'Données non disponibles');
+}
+
+function buildMonthlyChart(chartId, labelsId, data, refDate) {
+    const chart = document.getElementById(chartId);
+    const labelsEl = document.getElementById(labelsId);
+    if (!chart) return;
+    chart.innerHTML = '';
+    if (labelsEl) labelsEl.innerHTML = '';
+
+    const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    const maxVal = Math.max(...data, 1);
+    const now = refDate || new Date();
+    const currentMonthIdx = 11; // dernier = mois en cours
+
+    data.forEach((val, i) => {
+        const h = Math.max(4, Math.round((val / maxVal) * (chart.style.height ? parseInt(chart.style.height) - 20 : 60)));
+        const isCurrent = i === currentMonthIdx;
+
+        // Calculer le mois correspondant
+        const monthOffset = 11 - i;
+        const d = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
+        const mLabel = mois[d.getMonth()];
+
+        const wrap = document.createElement('div');
+        wrap.className = 'mc-bar-wrap';
+        wrap.innerHTML = `<div class="mc-bar${isCurrent ? ' current' : ''}" style="height:${h}px">
+          <div class="mc-tooltip">${mLabel}: ${val}</div>
+        </div>`;
+        chart.appendChild(wrap);
+
+        if (labelsEl) {
+            const lbl = document.createElement('div');
+            lbl.className = 'mc-bar-wrap';
+            lbl.innerHTML = `<div class="mc-month">${mLabel}</div>`;
+            labelsEl.appendChild(lbl);
+        }
+    });
+}
+
+// ── ALERTES DYNAMIQUES ─────────────────────────────────────
 function buildDynamicAlerts(centres) {
-    const alertsContainer = document.getElementById('alerts-list');
+    const container = document.getElementById('alerts-list');
     const urgents = centres.filter(c => {
         if (!c.license?.expiresAt) return false;
         const j = Math.ceil((c.license.expiresAt - Date.now()) / 86400000);
         return j >= 0 && j <= 30;
-    }).sort((a, b) => a.license.expiresAt - b.license.expiresAt);
-
+    });
     let html = '';
-    urgents.slice(0, 3).forEach(c => {
-        const nom = c.info?.nom || c.centerId || '—';
+    urgents.slice(0, 2).forEach(c => {
+        const nom = c.info?.nom || c.nom || '—';
         const j = Math.ceil((c.license.expiresAt - Date.now()) / 86400000);
-        const cls = j <= 7 ? 'critical' : 'warning';
-        html += `<div class="alert-item ${cls}">
-            <span class="alert-icon">${j <= 7 ? '⚠️' : '🕐'}</span>
-            <div class="alert-text"><strong>Licence expirée dans ${j}j</strong>${nom} — ${c.license.type}</div>
-            <span class="alert-action" style="color:${j <= 7 ? 'var(--red)' : 'var(--gold)'}">Relancer</span>
+        html += `<div class="alert-item ${j<=7?'critical':'warning'}">
+            <span class="alert-icon">${j<=7?'⚠️':'🕐'}</span>
+            <div class="alert-text"><strong>Licence dans ${j}j</strong>${nom} — ${c.license.type}</div>
+            <span class="alert-action" style="color:${j<=7?'var(--red)':'var(--gold)'}">Relancer</span>
         </div>`;
     });
     html += `<div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>`;
     html += `<div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Avis & Retours</strong>Consultez les retours des centres</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>`;
-    alertsContainer.innerHTML = html;
+    container.innerHTML = html;
 }
 
-// ── Timeline activité récente ──
 function buildTimeline(centres) {
     const container = document.getElementById('timeline-recent');
     if (!centres.length) return;
-    const items = [];
-    centres.forEach(c => {
-        const nom = c.info?.nom || c.centerId || '—';
-        if (c.license?.expiresAt) {
-            const j = Math.ceil((c.license.expiresAt - Date.now()) / 86400000);
-            if (j >= 0 && j <= 30) {
-                items.push({ cls:'alert', icon:'🚨', title:'Expiration imminente', sub:`${nom} — ${j} jours`, ts: c.license.expiresAt });
-            }
-        }
-        items.push({ cls:'new', icon:'🏢', title:'Centre actif', sub: nom, ts: Date.now() - Math.random()*86400000*7 });
-    });
-    items.sort((a, b) => b.ts - a.ts);
-    container.innerHTML = items.slice(0, 4).map(it => {
-        const d = new Date(it.ts);
-        const now = new Date();
-        const diffH = Math.round((now - d) / 3600000);
-        const label = diffH < 1 ? 'À l\'instant' : diffH < 24 ? `${diffH}h` : `${Math.round(diffH/24)}j`;
-        return `<div class="tl-item">
-            <div class="tl-dot ${it.cls}">${it.icon}</div>
-            <div class="tl-body"><div class="tl-title">${it.title}</div><div class="tl-sub">${it.sub}</div></div>
-            <div class="tl-time">${label}</div>
-        </div>`;
+    const items = centres.map(c => ({
+        cls:'new', icon:'🏢',
+        title: 'Centre actif',
+        sub: c.info?.nom || c.nom || c.centerId?.slice(0,20) || '—',
+        ts: Date.now() - Math.random()*86400000*3
+    }));
+    container.innerHTML = items.slice(0,4).map(it => {
+        const diffH = Math.round((Date.now() - it.ts) / 3600000);
+        const label = diffH < 1 ? 'À l\'instant' : diffH < 24 ? diffH+'h' : Math.round(diffH/24)+'j';
+        return `<div class="tl-item"><div class="tl-dot ${it.cls}">${it.icon}</div><div class="tl-body"><div class="tl-title">${it.title}</div><div class="tl-sub">${it.sub}</div></div><div class="tl-time">${label}</div></div>`;
     }).join('');
 }
 
 function markAllRead() {
-    document.querySelectorAll('.alert-item').forEach(el => {
-        el.style.opacity = '0.5';
-    });
+    document.querySelectorAll('.alert-item').forEach(el => el.style.opacity = '0.5');
 }
 
-// ════════════════════════════════════════
-// FALLBACK CENTRES
-// ════════════════════════════════════════
-function useFallbackCentres() {
-    const mock = [{
-        centerId: 'center_default',
-        info: { nom: 'Centre de test', email: '' },
-        license: { type: 'DEMO' },
-        stats: {},
-        status: 'active'
-    }];
-    renderCentresMini(mock);
-    renderCentresFull(mock);
-    document.getElementById('kpi-centres').textContent      = mock.length;
-    document.getElementById('badge-centres').textContent    = mock.length;
-    document.getElementById('centres-count').textContent    = mock.length + ' centre(s)';
-    document.getElementById('kpi-stagiaires').textContent   = '…';
-    document.getElementById('kpi-sessions').textContent     = '…';
-    document.getElementById('kpi-stag-trend').textContent   = 'Chargement…';
-    document.getElementById('kpi-sess-trend').textContent   = 'Chargement…';
-}
-
+// ── RENDER CENTRES ─────────────────────────────────────────
 function renderCentresMini(centres) {
     const tbody = document.getElementById('centres-table-mini');
-    if (!centres.length) {
-        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>';
-        return;
-    }
-    tbody.innerHTML = centres.slice(0, 5).map(c => {
-        const nom   = c.info?.nom || c.nom || c.centerId?.slice(0,12) || '—';
-        const lic   = c.license?.type || 'DEMO';
-        const stag  = c.stats?.stagiaires ?? '—';
+    if (!centres.length) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>'; return; }
+    tbody.innerHTML = centres.slice(0,5).map(c => {
+        const nom = c.nom || c.info?.nom || c.centerId?.slice(0,12) || '—';
+        const lic = c.license?.type || 'DEMO';
+        const stag = c.stats?.stagiaires ?? '—';
         const active = c.status !== 'inactive';
-        const licClass = lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray';
+        const licClass = lic==='ENTERPRISE'||lic==='entreprise'?'green':lic==='PRO'||lic==='pro'?'gold':lic==='STARTER'||lic==='starter'?'blue':'gray';
         return `<tr>
-            <td><div class="centre-row">
-                <div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div>
-                <div><div class="centre-name">${nom}</div><div class="centre-id">${(c.info?.email||'').slice(0,22)}</div></div>
-            </div></td>
-            <td><span class="badge ${licClass}">${lic}</span></td>
+            <td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div>
+            <div><div class="centre-name">${nom}</div><div class="centre-id">${(c.info?.email||'').slice(0,22)}</div></div></div></td>
+            <td><span class="badge ${licClass}">${lic.toUpperCase()}</span></td>
             <td style="font-family:'DM Mono',monospace">${stag}</td>
             <td><span class="badge ${active?'green':'gray'}">${active?'Actif':'Inactif'}</span></td>
         </tr>`;
@@ -756,131 +909,213 @@ function renderCentresMini(centres) {
 
 function renderCentresFull(centres) {
     const tbody = document.getElementById('centres-table-full');
-    if (!centres.length) {
-        tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre</td></tr>';
-        return;
-    }
+    if (!centres.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre</td></tr>'; return; }
     tbody.innerHTML = centres.map(c => {
-        const nom   = c.info?.nom || c.nom || c.centerId?.slice(0,16) || '—';
+        const nom   = c.nom || c.info?.nom || c.centerId?.slice(0,16) || '—';
         const lic   = c.license?.type || 'DEMO';
         const form  = c.stats?.formateurs ?? '—';
         const stag  = c.stats?.stagiaires ?? '—';
-        const sess  = c.stats?.sessions   ?? '—';
-        const exp   = c.license?.expiresAt ? new Date(c.license.expiresAt).toLocaleDateString('fr-FR') : (lic==='DEMO' ? 'DEMO' : '—');
+        const sess  = c.stats?.sessions ?? '—';
+        const exp   = c.license?.expiresAt ? new Date(c.license.expiresAt).toLocaleDateString('fr-FR') : '—';
         const jours = c.license?.expiresAt ? Math.ceil((c.license.expiresAt - Date.now()) / 86400000) : null;
         const urgence = jours !== null && jours < 30;
-        const licClass = lic==='ENTERPRISE'?'green':lic==='PROFESSIONAL'?'gold':lic==='STANDARD'?'blue':'gray';
+        const licClass = lic==='ENTERPRISE'||lic==='entreprise'?'green':lic==='PRO'||lic==='pro'?'gold':lic==='STARTER'||lic==='starter'?'blue':'gray';
         return `<tr>
-            <td><div class="centre-row">
-                <div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div>
-                <div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div>
-            </div></td>
-            <td><span class="badge ${licClass}">${lic}</span></td>
+            <td><div class="centre-row"><div class="centre-avatar">${nom.slice(0,2).toUpperCase()}</div>
+            <div><div class="centre-name">${nom}</div><div class="centre-id">${c.centerId?.slice(0,20)||''}</div></div></div></td>
+            <td><span class="badge ${licClass}">${lic.toUpperCase()}</span></td>
             <td style="text-align:center;font-family:'DM Mono',monospace">${form}</td>
             <td style="text-align:center;font-family:'DM Mono',monospace">${stag}</td>
             <td style="text-align:center;font-family:'DM Mono',monospace">${sess}</td>
             <td><span class="badge ${c.status!=='inactive'?'green':'gray'}">${c.status!=='inactive'?'Actif':'Inactif'}</span></td>
             <td style="font-family:'DM Mono',monospace;font-size:11px;color:${urgence?'var(--red)':'var(--muted)'}">
-                ${exp}${jours!==null&&lic!=='DEMO'?` (${jours}j)`:''}</td>
-            <td><button class="btn-sm" onclick="alert('Centre: ${c.centerId}')">Détail</button></td>
+                ${exp}${jours!==null?` (${jours}j)`:''}</td>
+            <td><button class="btn-sm" onclick="openCentreModal('${c.centerId}')">📊 Détail</button></td>
         </tr>`;
     }).join('');
 }
 
-// ════════════════════════════════════════
-// LICENCES — fetch avec JWT
-// ════════════════════════════════════════
-async function loadLicences() {
+// ── MODAL DÉTAIL CENTRE ─────────────────────────────────────
+async function openCentreModal(centreId) {
+    const c = _centres.find(x => x.centerId === centreId);
+    if (!c) return;
+
+    const nom = c.nom || c.info?.nom || centreId;
+    set('modal-centre-nom', nom);
+    set('modal-centre-id', centreId);
+    set('mc-stagiaires', c.stats?.stagiaires ?? '—');
+    set('mc-formateurs', c.stats?.formateurs ?? '—');
+    set('mc-sessions', c.stats?.sessions ?? '—');
+    set('mc-taux', '—');
+
+    // Licence
+    const lic = c.license || {};
+    set('mc-lic-type', (lic.type || 'DEMO').toUpperCase());
+    set('mc-lic-debut', lic.createdAt ? new Date(lic.createdAt).toLocaleDateString('fr-FR') : '—');
+    set('mc-lic-fin', lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : 'Abonnement Stripe');
+    const jours = lic.expiresAt ? Math.ceil((lic.expiresAt - Date.now()) / 86400000) : null;
+    set('mc-lic-reste', jours !== null ? jours + ' jours' : 'En cours');
+
+    // Reset graphique + stats niveau
+    ['mc-bar-n1','mc-bar-n2','mc-bar-n3'].forEach(id => document.getElementById(id).style.width = '0%');
+    ['mc-n1','mc-n2','mc-n3'].forEach(id => set(id, '…'));
+    set('mc-formateurs-list', 'Chargement…');
+    document.getElementById('mc-monthly-chart').innerHTML = '';
+
+    document.getElementById('modal-centre').classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Charger les stats détaillées
     try {
-        // ✅ JWT admin dans le header
-        const r = await fetchTimeout(API + '/license/list', { headers: authHeaders() }).catch(() => null);
-        if (!r || !r.ok) throw new Error('license/list ' + (r?.status || 'timeout'));
-        const data = await r.json();
-        const lics = data.licenses || [];
-        _licences = lics;
-        renderLicences(lics);
-        updateLicenceStats(lics);
+        // Entraînements par niveau pour ce centre
+        const re = await fetchTimeout(`${API}/entrainement/stats/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
+        if (re && re.ok) {
+            const d = await re.json();
+            const n1 = d.n1 || d.niveau1 || 0;
+            const n2 = d.n2 || d.niveau2 || 0;
+            const n3 = d.n3 || d.niveau3 || 0;
+            const total = n1 + n2 + n3;
+            if (total > 0) {
+                const pct = n => Math.round(n/total*100);
+                set('mc-n1', n1); set('mc-n2', n2); set('mc-n3', n3);
+                setTimeout(() => {
+                    document.getElementById('mc-bar-n1').style.width = pct(n1) + '%';
+                    document.getElementById('mc-bar-n2').style.width = pct(n2) + '%';
+                    document.getElementById('mc-bar-n3').style.width = pct(n3) + '%';
+                }, 100);
+            } else { ['mc-n1','mc-n2','mc-n3'].forEach(id => set(id, '0')); }
+        }
+
+        // Activité 6 derniers mois
+        const rh = await fetchTimeout(`${API}/entrainement/history/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
+        if (rh && rh.ok) {
+            const d = await rh.json();
+            const history = d.history || d.entrainements || [];
+            const monthly6 = new Array(6).fill(0);
+            const now = new Date();
+            history.forEach(h => {
+                const date = new Date(h.createdAt || h.date);
+                const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+                if (monthDiff >= 0 && monthDiff < 6) monthly6[5 - monthDiff]++;
+            });
+            buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', monthly6, now);
+        } else {
+            // Mini graphique vide
+            buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', new Array(6).fill(0), new Date());
+        }
+
+        // Formateurs
+        const rf = await fetchTimeout(`${API}/formateur/list/${centreId}`, { headers: authHeaders() }, 4000).catch(() => null);
+        if (rf && rf.ok) {
+            const d = await rf.json();
+            const formateurs = d.formateurs || d || [];
+            set('mc-formateurs', formateurs.length);
+            if (formateurs.length) {
+                document.getElementById('mc-formateurs-list').innerHTML = formateurs.map(f =>
+                    `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                        <div style="width:28px;height:28px;border-radius:6px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">${(f.prenom||'?').slice(0,1)}${(f.nom||'?').slice(0,1)}</div>
+                        <span style="font-size:12px;font-weight:600">${f.prenom||''} ${f.nom||''}</span>
+                        <span class="badge ${f.actif!==false?'green':'gray'}" style="margin-left:auto">${f.actif!==false?'Actif':'Inactif'}</span>
+                    </div>`
+                ).join('');
+            } else {
+                set('mc-formateurs-list', '<div style="color:var(--muted);text-align:center;padding:12px">Aucun formateur</div>');
+            }
+        }
     } catch(e) {
-        console.warn('loadLicences:', e.message);
+        console.warn('modal centre stats:', e.message);
     }
 }
 
-function useFallbackLicences() {
-    const mock = [{
-        key: 'SSIAP-DEMO-0001', centerId: 'center_default',
-        type: 'DEMO', createdAt: Date.now()-86400000*5,
-        expiresAt: Date.now()+86400000*25, active: true
-    }];
-    _licences = mock;
-    renderLicences(mock);
-    updateLicenceStats(mock);
+function closeCentreModal() {
+    document.getElementById('modal-centre').classList.remove('open');
+    document.body.style.overflow = '';
+}
+document.getElementById('modal-centre').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-centre')) closeCentreModal();
+});
+
+// ── LICENCES ───────────────────────────────────────────────
+async function loadLicences() {
+    try {
+        const r = await fetchTimeout(API + '/license/list', { headers: authHeaders() }).catch(() => null);
+        if (!r || !r.ok) throw new Error();
+        const data = await r.json();
+        _licences = data.licenses || [];
+        renderLicences(_licences);
+        updateLicenceStats(_licences);
+    } catch(e) {
+        console.warn('loadLicences:', e.message);
+        updateLicenceStats([]);
+    }
 }
 
 function renderLicences(lics) {
-    document.getElementById('lic-count').textContent = lics.length + ' licence(s)';
+    set('lic-count', lics.length + ' licence(s)');
     const tbody = document.getElementById('licences-table');
-    if (!lics.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Aucune licence</td></tr>';
-        return;
-    }
+    if (!lics.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Aucune licence</td></tr>'; return; }
     tbody.innerHTML = lics.map(l => {
         const created = l.createdAt ? new Date(l.createdAt).toLocaleDateString('fr-FR') : '—';
-        const expires = l.expiresAt ? new Date(l.expiresAt).toLocaleDateString('fr-FR') : (l.type==='DEMO'?'DEMO':'—');
+        const expires = l.expiresAt ? new Date(l.expiresAt).toLocaleDateString('fr-FR') : '—';
         const jours   = l.expiresAt ? Math.ceil((l.expiresAt - Date.now()) / 86400000) : null;
         const expired = jours !== null && jours < 0;
         const urgent  = jours !== null && jours >= 0 && jours < 30;
-        const licClass = l.type==='ENTERPRISE'?'green':l.type==='PROFESSIONAL'?'gold':l.type==='STANDARD'?'blue':'gray';
+        const t = (l.type || 'DEMO').toLowerCase();
+        const licClass = t==='enterprise'||t==='entreprise'?'green':t==='pro'?'gold':t==='starter'?'blue':'gray';
         return `<tr>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--terra)">${l.key||l.licenseKey||'—'}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--terra)">${l.key||l.licenseKey||l.licenceKey||'—'}</td>
             <td style="font-size:11px">${l.centerId?.slice(0,24)||'—'}</td>
-            <td><span class="badge ${licClass}">${l.type||'DEMO'}</span></td>
+            <td><span class="badge ${licClass}">${(l.type||'DEMO').toUpperCase()}</span></td>
             <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${created}</td>
-            <td style="font-family:'DM Mono',monospace;font-size:11px;color:${expired?'var(--red)':urgent?'var(--gold)':'var(--muted)'}">
-                ${expires}${jours!==null&&!expired?` (${jours}j)`:''}</td>
-            <td><span class="badge ${expired?'red':urgent?'gold':l.active?'green':'gray'}">
-                ${expired?'Expirée':urgent?'Urgent':l.active?'Active':'Inactive'}</span></td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:${expired?'var(--red)':urgent?'var(--gold)':'var(--muted)'}">${expires}</td>
+            <td><span class="badge ${expired?'red':urgent?'gold':l.active||l.actif?'green':'gray'}">${expired?'Expirée':urgent?'Urgent':l.active||l.actif?'Active':'Inactive'}</span></td>
         </tr>`;
     }).join('');
 }
 
 function updateLicenceStats(lics) {
-    const counts = { DEMO:0, STANDARD:0, PROFESSIONAL:0, ENTERPRISE:0 };
-    lics.forEach(l => { if (counts[l.type] !== undefined) counts[l.type]++; });
-
-    ['demo','std','pro','ent'].forEach((k,i) => {
-        const t  = ['DEMO','STANDARD','PROFESSIONAL','ENTERPRISE'][i];
-        const el = document.getElementById('nb-'+k);
-        if (el) el.textContent = counts[t];
+    // Compter par type (nouveaux noms Stripe)
+    const counts = { DEMO:0, independant:0, starter:0, pro:0, entreprise:0 };
+    lics.forEach(l => {
+        const t = (l.type||'DEMO').toLowerCase();
+        if (counts[t] !== undefined) counts[t]++;
+        else if (t === 'standard') counts.starter++;
+        else if (t === 'professional') counts.pro++;
+        else if (t === 'business' || t === 'enterprise') counts.entreprise++;
     });
 
-    const prices = { STANDARD:490, PROFESSIONAL:890, ENTERPRISE:1490 };
-    ['std','pro','ent'].forEach((k,i) => {
-        const t  = ['STANDARD','PROFESSIONAL','ENTERPRISE'][i];
-        const el = document.getElementById('total-'+k);
-        if (el) el.textContent = (counts[t]*prices[t]).toLocaleString('fr-FR') + ' €';
-    });
+    set('nb-demo', counts.DEMO);
+    set('nb-ind',  counts.independant);
+    set('nb-std',  counts.starter);
+    set('nb-pro',  counts.pro);
+    set('nb-ent',  counts.entreprise);
 
-    const total  = counts.STANDARD*490 + counts.PROFESSIONAL*890 + counts.ENTERPRISE*1490;
-    const active = lics.filter(l => l.active).length;
+    // Prix mensuels Stripe
+    const prices = { independant:99, starter:199, pro:299, entreprise:333 };
+    const totalMensuel = counts.independant*99 + counts.starter*199 + counts.pro*299 + counts.entreprise*333;
+    const totalAnnuel  = totalMensuel * 12;
+    const active = lics.filter(l => l.active || l.actif).length;
 
-    const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-    set('ca-total-calc',    total.toLocaleString('fr-FR') + ' €');
-    set('ca-licences',      active);
-    set('ca-lic-trend',     `${active}/${lics.length} actives`);
-    set('ca-annuel',        total.toLocaleString('fr-FR') + ' €');
-    set('ca-mensuel',       Math.round(total/12).toLocaleString('fr-FR') + ' €');
-    set('ca-annuel-trend',  total > 0 ? '↑ basé sur licences payantes' : 'Aucune licence payante');
-    // KPI CA overview
-    set('kpi-ca',           total > 0 ? Math.round(total/12).toLocaleString('fr-FR') + ' €' : '0 €');
-    set('kpi-ca-trend',     total > 0 ? `${active} licence(s) actives` : 'Passer à STANDARD ou +');
+    set('total-ind', counts.independant * 99 + ' €');
+    set('total-std', counts.starter * 199 + ' €');
+    set('total-pro', counts.pro * 299 + ' €');
+    set('total-ent', counts.entreprise * 333 + ' €');
+    set('ca-total-calc', totalMensuel.toLocaleString('fr-FR') + ' €/mois');
+    set('ca-licences',   active);
+    set('ca-lic-trend',  active + '/' + lics.length + ' actives');
+    set('ca-annuel',     totalAnnuel.toLocaleString('fr-FR') + ' €');
+    set('ca-mensuel',    totalMensuel.toLocaleString('fr-FR') + ' €');
+    set('ca-annuel-trend', totalMensuel > 0 ? '↑ basé sur abonnements actifs' : 'Aucun abonnement payant');
+    set('kpi-ca',        totalMensuel > 0 ? totalMensuel.toLocaleString('fr-FR') + ' €' : '0 €');
+    set('kpi-ca-trend',  totalMensuel > 0 ? active + ' licence(s) actives' : 'Aucun abonnement actif');
 
     // Donut
     const circ = 2 * Math.PI * 35;
     const tot  = lics.length || 1;
     setTimeout(() => {
         const pDemo = counts.DEMO / tot;
-        const pStd  = counts.STANDARD / tot;
-        const pRest = (counts.PROFESSIONAL + counts.ENTERPRISE) / tot;
+        const pStd  = (counts.starter + counts.independant) / tot;
+        const pRest = (counts.pro + counts.entreprise) / tot;
         document.getElementById('donut-1').setAttribute('stroke-dasharray', `${pDemo*circ} ${circ}`);
         document.getElementById('donut-2').style.strokeDashoffset = `-${pDemo*circ}`;
         document.getElementById('donut-2').setAttribute('stroke-dasharray', `${pStd*circ} ${circ}`);
@@ -889,18 +1124,16 @@ function updateLicenceStats(lics) {
         document.getElementById('donut-total').textContent = lics.length;
     }, 300);
 
-    document.getElementById('leg-demo').textContent = counts.DEMO;
-    document.getElementById('leg-std').textContent  = counts.STANDARD + counts.PROFESSIONAL;
-    document.getElementById('leg-prem').textContent = counts.ENTERPRISE;
+    set('leg-demo', counts.DEMO);
+    set('leg-std',  counts.starter + counts.independant);
+    set('leg-prem', counts.pro + counts.entreprise);
 }
 
-// ════════════════════════════════════════
-// CONNEXIONS (graphiques statiques)
-// ════════════════════════════════════════
+// ── GRAPHIQUES STATIQUES ────────────────────────────────────
 function buildConnexions() {
     const spark = document.getElementById('hourly-spark'); spark.innerHTML = '';
-    const vals  = [2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
-    const maxV  = Math.max(...vals);
+    const vals = [2,1,0,0,1,3,8,15,22,27,24,19,18,20,22,25,21,18,14,10,8,6,4,3];
+    const maxV = Math.max(...vals);
     vals.forEach((v,i) => {
         const bar = document.createElement('div'); bar.className = 'spark-bar';
         bar.style.height = Math.max(4, Math.round((v/maxV)*36)) + 'px';
@@ -916,31 +1149,33 @@ function buildConnexions() {
     }).join('');
 }
 
-// ════════════════════════════════════════
-// CA CHART
-// ════════════════════════════════════════
 function buildCA() {
-    const ca   = document.getElementById('ca-chart'); ca.innerHTML = '';
+    const ca = document.getElementById('ca-chart'); ca.innerHTML = '';
+    const labels = document.getElementById('ca-labels'); if(labels) labels.innerHTML = '';
     const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-    // Calculer les valeurs depuis les licences réelles
     const licTotal = _licences.reduce((s, l) => {
-        const prices = { STANDARD:490, PROFESSIONAL:890, ENTERPRISE:1490 };
-        return s + (prices[l.type] || 0);
-    }, 0) / 12;  // mensuel
+        const t = (l.type||'').toLowerCase();
+        const p = t==='independant'?99:t==='starter'?199:t==='pro'?299:t==='entreprise'||t==='enterprise'?333:0;
+        return s + p;
+    }, 0);
     const now = new Date().getMonth();
     mois.forEach((m, i) => {
-        const val = i <= now ? (i === now ? licTotal : licTotal * (0.85 + Math.random()*0.3)) : 0;
-        const h   = val > 0 ? Math.max(8, Math.round((val / (licTotal * 1.3 || 100)) * 90)) : 8;
-        const wrap = document.createElement('div'); wrap.className = 'ca-bar-wrap';
-        wrap.innerHTML = `<div class="ca-bar${i===now?' highlight':''}" style="height:${h}px"></div>
-                          <div class="ca-month">${m}</div>`;
+        const val = i <= now ? (licTotal * (0.85 + Math.random()*0.3)) : 0;
+        const h = val > 0 ? Math.max(8, Math.round((val / (licTotal * 1.3 || 100)) * 70)) : 4;
+        const wrap = document.createElement('div');
+        wrap.className = 'mc-bar-wrap';
+        wrap.innerHTML = `<div class="mc-bar${i===now?' current':''}" style="height:${h}px"><div class="mc-tooltip">${m}: ${Math.round(val)} €</div></div>`;
         ca.appendChild(wrap);
+        if (labels) {
+            const lbl = document.createElement('div');
+            lbl.className = 'mc-bar-wrap';
+            lbl.innerHTML = `<div class="mc-month">${m}</div>`;
+            labels.appendChild(lbl);
+        }
     });
 }
 
-// ════════════════════════════════════════
-// EXPORT CSV
-// ════════════════════════════════════════
+// ── EXPORT CSV ─────────────────────────────────────────────
 function exportCSV() {
     const rows = [['Centre','Licence','Formateurs','Stagiaires','Sessions','Statut']];
     document.querySelectorAll('#centres-table-full tr').forEach(tr => {
@@ -954,9 +1189,10 @@ function exportCSV() {
     a.click();
 }
 
-// ════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════
+// ── UTILS ──────────────────────────────────────────────────
+function set(id, val) { const e = document.getElementById(id); if (e) e.textContent = val; }
+
+// ── INIT ───────────────────────────────────────────────────
 loadAllData();
 buildConnexions();
 buildCA();
