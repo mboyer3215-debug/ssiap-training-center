@@ -181,31 +181,31 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
                   <input type="radio" name="plan" value="DEMO">
                   <div class="plan-name">DEMO</div>
                   <div class="plan-price free">Gratuit</div>
-                  <div class="plan-desc">7 jours · 1 formateur · 10 stagiaires</div>
+                  <div class="plan-desc">7 jours · 1 formateur · 5 stagiaires</div>
                 </label>
                 <label class="plan-card" onclick="selectPlan('independant',this)">
                   <input type="radio" name="plan" value="independant">
                   <div class="plan-name">INDÉPENDANT</div>
                   <div class="plan-price">99 €/mois</div>
-                  <div class="plan-desc">1 formateur · 30 stagiaires</div>
+                  <div class="plan-desc">1 formateur · 20 stagiaires</div>
                 </label>
                 <label class="plan-card" onclick="selectPlan('starter',this)">
                   <input type="radio" name="plan" value="starter">
                   <div class="plan-name">STARTER</div>
                   <div class="plan-price">199 €/mois</div>
-                  <div class="plan-desc">3 centres · 10 formateurs · 150 stagiaires</div>
+                  <div class="plan-desc">1 centre · 10 formateurs · 150 stagiaires · Quiz Battle</div>
                 </label>
                 <label class="plan-card" onclick="selectPlan('pro',this)">
                   <input type="radio" name="plan" value="pro">
                   <div class="plan-name">PRO</div>
                   <div class="plan-price">299 €/mois</div>
-                  <div class="plan-desc">10 centres · 30 formateurs · 500 stagiaires</div>
+                  <div class="plan-desc">20 formateurs · 300 stagiaires · Quiz Battle + SSI</div>
                 </label>
                 <label class="plan-card" onclick="selectPlan('entreprise',this)" style="grid-column:1/-1">
                   <input type="radio" name="plan" value="entreprise">
-                  <div class="plan-name">ENTREPRISE</div>
-                  <div class="plan-price">3 999 €/an</div>
-                  <div class="plan-desc">Illimité · Support prioritaire · Tous modules</div>
+                  <div class="plan-name">GROUPE / ENTREPRISE</div>
+                  <div class="plan-price">Sur devis</div>
+                  <div class="plan-desc">Illimité · Support prioritaire · Tous modules · Personnalisation</div>
                 </label>
               </div>
             </div>
@@ -250,8 +250,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
             <ul class="type-features">
               <li>7 jours d'accès</li>
               <li>1 formateur</li>
-              <li>10 stagiaires max</li>
-              <li>SSIAP 1, 2, 3</li>
+              <li>5 stagiaires max</li>
+              <li>Quiz SSIAP 1,2,3</li>
             </ul>
           </div>
           <div class="type-card">
@@ -259,7 +259,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
             <div class="type-price">99 €/mois</div>
             <ul class="type-features">
               <li>1 formateur</li>
-              <li>30 stagiaires max</li>
+              <li>20 stagiaires max</li>
               <li>Quiz SSIAP 1,2,3</li>
               <li>Sans engagement</li>
             </ul>
@@ -268,32 +268,34 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
             <div class="type-name">STARTER</div>
             <div class="type-price">199 €/mois</div>
             <ul class="type-features">
-              <li>3 centres</li>
+              <li>1 centre</li>
               <li>10 formateurs</li>
               <li>150 stagiaires max</li>
-              <li>Export résultats</li>
+              <li>Quiz Battle inclus</li>
+              <li>1 990 €/an (−2 mois)</li>
             </ul>
           </div>
           <div class="type-card">
             <div class="type-name">PRO</div>
             <div class="type-price">299 €/mois</div>
             <ul class="type-features">
-              <li>10 centres</li>
-              <li>30 formateurs</li>
-              <li>500 stagiaires max</li>
-              <li>Quiz Battle inclus</li>
+              <li>20 formateurs</li>
+              <li>300 stagiaires max</li>
+              <li>Quiz Battle + SSI</li>
+              <li>2 990 €/an (−2 mois)</li>
             </ul>
           </div>
         </div>
         <div class="type-card" style="margin-top:10px;border-color:var(--terra-mid)">
-          <div class="type-name">ENTREPRISE</div>
-          <div class="type-price">3 999 €/an</div>
+          <div class="type-name">GROUPE / ENTREPRISE</div>
+          <div class="type-price">Sur devis</div>
           <ul class="type-features">
             <li>Centres illimités</li>
             <li>Formateurs illimités</li>
             <li>Stagiaires illimités</li>
             <li>Support prioritaire</li>
             <li>Tous modules inclus</li>
+            <li>Personnalisation complète</li>
           </ul>
         </div>
       </div>
@@ -434,17 +436,15 @@ document.getElementById('form-generate').addEventListener('submit', async (e) =>
     if (data.success || data.licenceKey) {
       lastKey = data.licenceKey;
       const planLabels = {
-        DEMO: { label:'DEMO', maxF:1, maxS:10 },
-        independant: { label:'INDÉPENDANT', maxF:2, maxS:30 },
-        starter: { label:'STARTER', maxF:10, maxS:150 },
-        pro: { label:'PRO', maxF:30, maxS:500 },
-        entreprise: { label:'ENTREPRISE', maxF:'∞', maxS:'∞' }
+        DEMO:        { label:'DEMO',        maxF:1,   maxS:5,    days:7   },
+        independant: { label:'INDÉPENDANT', maxF:1,   maxS:20,   days:30  },
+        starter:     { label:'STARTER',     maxF:10,  maxS:150,  days:30  },
+        pro:         { label:'PRO',         maxF:20,  maxS:300,  days:30  },
+        entreprise:  { label:'GROUPE',      maxF:999, maxS:9999, days:365 }
       };
-      const pl = planLabels[planKey] || { label: planKey, maxF:'—', maxS:'—' };
+      const pl = planLabels[planKey] || { label: planKey, maxF:'—', maxS:'—', days:30 };
       const now = new Date();
-      const exp = planKey === 'entreprise'
-        ? new Date(now.getTime() + 365*86400000)
-        : new Date(now.getTime() + 30*86400000);
+      const exp = new Date(now.getTime() + pl.days*86400000);
 
       showResult({
         licenceKey: data.licenceKey,
@@ -611,8 +611,11 @@ function renderCenters(centers) {
     const licCreated = c.license?.createdAt || c.createdAt;
     const licExp = c.license?.expiresAt || c.license?.validUntil;
 
-    const dateDebut = licCreated ? new Date(licCreated).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
-    const dateFin = licExp ? new Date(licExp).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : 'Abonnement actif';
+    // Dates lisibles
+    const fmt = ts => ts ? new Date(ts).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : null;
+    const dateDebut = fmt(licCreated) || '—';
+    const isStripe = !licExp; // Stripe gère l'expiration → pas de date fixe
+    const dateFin = isStripe ? 'Stripe actif' : (fmt(licExp) || '—');
 
     const jours = licExp ? Math.ceil((new Date(licExp) - Date.now()) / 86400000) : null;
     const expired = jours !== null && jours < 0;
@@ -653,9 +656,11 @@ function renderCenters(centers) {
       </td>
       <td style="padding:12px 16px;text-align:center">
         <button onclick="openResetModal('${c.centerId}','${nom.replace(/'/g,"\\'")}','${email||''}')"
+          title="Réinitialise le mot de passe de connexion du centre (page center-login)"
           style="background:var(--terra-bg);border:1px solid rgba(194,90,58,.3);color:var(--terra);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">
           🔑 Reset pwd
         </button>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px">Mot de passe connexion</div>
       </td>
     </tr>`;
   }).join('');
