@@ -1,18 +1,8 @@
-// backend/routes/entrainement.routes-local.js
-// VERSION LOCALE - SANS FIREBASE
-
+// backend/routes/entrainement.routes.js
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-
-const DATA_DIR = path.join(__dirname, '..', 'data-local');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
 const { db } = require('../config/firebase');
-const { CENTER_DEFAULT, NOMBRE_QUESTIONS_OPTIONS } = require('../config/constants');
+const { CENTER_DEFAULT, STATUS, NOMBRE_QUESTIONS_OPTIONS, getPartiesByNiveau } = require('../config/constants');
 const constants = require('../config/constants');
 
 /**
@@ -30,7 +20,7 @@ router.get('/config/:niveau', (req, res) => {
       config: { niveau, parties, nombresQuestions: NOMBRE_QUESTIONS_OPTIONS }
     });
   } catch (error) {
-    console.error('Erreur config:', error);
+    console.error('Erreur config entraînement:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -44,39 +34,34 @@ router.post('/start', async (req, res) => {
     if (!userId || !niveau) {
       return res.status(400).json({ error: 'userId et niveau requis' });
     }
-
     const niveauInt = parseInt(niveau);
+    if (![1, 2, 3].includes(niveauInt)) {
+      return res.status(400).json({ error: 'Niveau doit être 1, 2 ou 3' });
+    }
     const nbQuestionsInt = parseInt(nbQuestions) || 30;
+    if (!NOMBRE_QUESTIONS_OPTIONS.includes(nbQuestionsInt)) {
+      return res.status(400).json({
+        error: `Nombre de questions invalide. Options: ${NOMBRE_QUESTIONS_OPTIONS.join(', ')}`
+      });
+    }
 
-    const snapshot = await db.ref(`questions/${niveauInt}`).once('value');
+    const snapshot = await db.ref(`centers/${CENTER_DEFAULT}/questions/${niveauInt}`).once('value');
     const allQuestions = snapshot.val() || {};
-    console.log(`   📊 Questions Firebase niveau ${niveauInt}:`, Object.keys(allQuestions).length);
-
-    let questionsArray = Object.entries(allQuestions).map(([id, data]) => ({
-      id,
-      question: data.question || '',
-      options: data.options || data.propositions || [],
-      correctAnswers: (data.correctAnswers || data.reponse_correcte || []).map(Number),
-      explanation: data.explanation || { complete: '', references: [] },
-      partie: data.partie || 'partie1'
-    }));
+    let questionsArray = Object.entries(allQuestions).map(([id, data]) => ({ id, ...data }));
 
     if (partieId && partieId !== 'toutes') {
-      const filtered = questionsArray.filter(q => q.partie === partieId);
-      if (filtered.length > 0) {
-        questionsArray = filtered;
-        console.log(`   ✅ Filtré par ${partieId}: ${filtered.length} questions`);
-      } else {
-        console.log(`   ⚠️  Aucune question avec partie=${partieId}, toutes utilisées`);
-      }
+      questionsArray = questionsArray.filter(q => q.partie === partieId);
+    }
+
+    if (questionsArray.length < nbQuestionsInt) {
+      console.warn(`⚠️ Seulement ${questionsArray.length} questions disponibles (demandé: ${nbQuestionsInt})`);
     }
 
     const shuffled = questionsArray.sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, Math.min(nbQuestionsInt, questionsArray.length));
-    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    const sessionRef = db.ref('sessions').push();
     const sessionData = {
-      sessionId,
       centerId: CENTER_DEFAULT,
       userId,
       niveau: niveauInt,
@@ -85,16 +70,15 @@ router.post('/start', async (req, res) => {
       questions: selected.map(q => q.id),
       answers: {},
       startedAt: Date.now(),
-      status: 'en_cours',
+      status: STATUS.EN_COURS,
       type: 'entrainement'
     };
-
-    fs.writeFileSync(path.join(DATA_DIR, `${sessionId}.json`), JSON.stringify(sessionData, null, 2));
-    console.log(`✅ Session créée LOCALEMENT: ${sessionId}`);
+    await sessionRef.set(sessionData);
+    await db.ref(`centers/${CENTER_DEFAULT}/stagiaires/${userId}`).update({ lastActivity: Date.now() });
 
     res.json({
       success: true,
-      sessionId,
+      sessionId: sessionRef.key,
       niveau: niveauInt,
       partieId: partieId || 'toutes',
       nbQuestions: selected.length,
@@ -102,7 +86,7 @@ router.post('/start', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erreur démarrage:', error);
+    console.error('Erreur démarrage entraînement:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -110,27 +94,17 @@ router.post('/start', async (req, res) => {
 /**
  * POST /api/entrainement/answer
  */
-router.post('/answer', (req, res) => {
+router.post('/answer', async (req, res) => {
   try {
     const { sessionId, questionId, answers } = req.body;
-    const sessionFile = path.join(DATA_DIR, `${sessionId}.json`);
-
-    if (!fs.existsSync(sessionFile)) {
-      return res.status(404).json({ error: 'Session introuvable' });
+    if (!sessionId || !questionId || !Array.isArray(answers)) {
+      return res.status(400).json({ error: 'sessionId, questionId et answers (array) requis' });
     }
-
-    const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
-    if (!session.answers) session.answers = {};
-
-    // Stocker toujours comme nombres
-    session.answers[questionId] = {
-      selected: (answers || []).map(Number),
+    await db.ref(`sessions/${sessionId}/answers/${questionId}`).set({
+      selected: answers,
       timestamp: Date.now()
-    };
-
-    fs.writeFileSync(sessionFile, JSON.stringify(session, null, 2));
-    res.json({ success: true });
-
+    });
+    res.json({ success: true, message: 'Réponse enregistrée' });
   } catch (error) {
     console.error('Erreur sauvegarde réponse:', error);
     res.status(500).json({ error: error.message });
@@ -143,16 +117,15 @@ router.post('/answer', (req, res) => {
 router.post('/finish', async (req, res) => {
   try {
     const { sessionId } = req.body;
-    const sessionFile = path.join(DATA_DIR, `${sessionId}.json`);
+    if (!sessionId) return res.status(400).json({ error: 'sessionId requis' });
 
-    if (!fs.existsSync(sessionFile)) {
-      return res.status(404).json({ error: 'Session introuvable' });
-    }
+    const sessionSnapshot = await db.ref(`sessions/${sessionId}`).once('value');
+    const session = sessionSnapshot.val();
+    if (!session) return res.status(404).json({ error: 'Session introuvable' });
 
-    const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
-    const { niveau, questions: questionIds, answers } = session;
+    const { centerId, niveau, questions: questionIds, answers, userId } = session;
 
-    const questionsSnapshot = await db.ref(`questions/${niveau}`).once('value');
+    const questionsSnapshot = await db.ref(`centers/${centerId}/questions/${niveau}`).once('value');
     const allQuestions = questionsSnapshot.val();
 
     let score = 0;
@@ -161,70 +134,120 @@ router.post('/finish', async (req, res) => {
 
     for (const questionId of questionIds) {
       const question = allQuestions[questionId];
-      if (!question) continue;
-
-      // ── Normaliser en nombres ──
-      const userAnswer = (answers[questionId]?.selected || []).map(Number);
-      const correctAnswers = (question.correctAnswers || question.reponse_correcte || []).map(Number);
-
-      // ── Comparaison STRICTE : mêmes éléments, même quantité (ordre indépendant) ──
-      const userSorted    = [...userAnswer].sort((a, b) => a - b);
-      const correctSorted = [...correctAnswers].sort((a, b) => a - b);
-      const isCorrect = userSorted.length === correctSorted.length &&
-                        userSorted.every((v, i) => v === correctSorted[i]);
-
+      const userAnswer = answers[questionId]?.selected || [];
+      const correctAnswers = question.correctAnswers || [];
+      const isCorrect = userAnswer.length === correctAnswers.length &&
+                       userAnswer.every(ans => correctAnswers.includes(ans));
       if (isCorrect) score++;
-
-      const options = question.options || question.propositions || [];
-      const userAnswerLabels   = userAnswer.map(idx => options[idx]).filter(Boolean);
-      const correctAnswerLabels = correctAnswers.map(idx => options[idx]).filter(Boolean);
-
-      // Nettoyer l'explication
-      let explanation = '';
-      if (question.explanation) {
-        explanation = typeof question.explanation === 'string'
-          ? question.explanation
-          : (question.explanation.complete || question.explanation.complexe ||
-             question.explanation.moyenne  || question.explanation.simple || '');
-      } else if (question.explications) {
-        const e = question.explications;
-        explanation = e.complete || e.complexe || e.moyenne || e.simple || '';
-      }
-
-      details.push({
-        questionId,
-        question: question.question,
-        options,
-        userAnswer,
-        userAnswerLabels,
-        correctAnswers,
-        correctAnswerLabels,
-        isCorrect,
-        explanation: explanation.trim()
-      });
+      details.push({ questionId, question: question.question, userAnswer, correctAnswers, isCorrect, explanation: question.explanation });
     }
 
     const percentage = ((score / total) * 100).toFixed(1);
 
-    const results = {
-      sessionId, type: 'entrainement', niveau,
+    await db.ref(`results/${centerId}/${userId}/${sessionId}`).set({
+      type: 'entrainement',
+      niveau,
       partieId: session.partieId,
-      score, total, percentage, details,
+      score,
+      total,
+      percentage,
+      details,
       temps: Date.now() - session.startedAt,
       completedAt: Date.now()
-    };
+    });
 
-    fs.writeFileSync(
-      path.join(DATA_DIR, `results_${sessionId}.json`),
-      JSON.stringify(results, null, 2)
-    );
+    await db.ref(`sessions/${sessionId}`).update({ status: STATUS.TERMINEE, score, completedAt: Date.now() });
 
-    console.log(`✅ Score STRICT: ${score}/${total} (${percentage}%)`);
+    const stagiairesService = require('../services/stagiaires.service');
+    await stagiairesService.updateProgression(centerId, userId, niveau, score, total);
 
     res.json({ success: true, results: { sessionId, score, total, percentage, details } });
 
   } catch (error) {
     console.error('Erreur fin entraînement:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+/**
+ * GET /api/entrainement/results/:centerId/:userId
+ * Récupère tous les résultats d'un stagiaire
+ * Structure Firebase : results/{centerId}/{userId}/{sessionId}
+ * Utilisé par le dashboard centre pour afficher scores et historique
+ */
+router.get('/results/:centerId/:userId', async (req, res) => {
+  try {
+    const { centerId, userId } = req.params;
+    if (!centerId || !userId) {
+      return res.status(400).json({ error: 'centerId et userId requis' });
+    }
+
+    const snapshot = await db.ref(`results/${centerId}/${userId}`).once('value');
+    if (!snapshot.exists()) {
+      return res.json({ success: true, results: [], total: 0, scoreMoyen: 0, meilleurScore: 0 });
+    }
+
+    const raw = snapshot.val();
+    const results = Object.entries(raw).map(([sessionId, data]) => ({
+      sessionId,
+      niveau:      data.niveau      ?? null,
+      partieId:    data.partieId    || 'toutes',
+      score:       data.score       || 0,
+      total:       data.total       || 0,
+      percentage:  parseFloat(data.percentage) || 0,
+      completedAt: data.completedAt || null,
+      temps:       data.temps       || null,
+      type:        data.type        || 'entrainement',
+    }));
+
+    // Trier par date décroissante
+    results.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+
+    const total = results.length;
+    const scoreMoyen = total
+      ? Math.round(results.reduce((s, r) => s + r.percentage, 0) / total)
+      : 0;
+    const meilleurScore = total
+      ? Math.round(Math.max(...results.map(r => r.percentage)))
+      : 0;
+
+    res.json({ success: true, results, total, scoreMoyen, meilleurScore });
+
+  } catch (error) {
+    console.error('Erreur results stagiaire:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/entrainement/stats/:centerId
+ * Stats globales d'un centre : nb quiz par niveau, taux de réussite
+ * Utilisé par le dashboard admin
+ */
+router.get('/stats/:centerId', async (req, res) => {
+  try {
+    const { centerId } = req.params;
+    const snapshot = await db.ref(`results/${centerId}`).once('value');
+
+    if (!snapshot.exists()) {
+      return res.json({ success: true, n1: 0, n2: 0, n3: 0, total: 0 });
+    }
+
+    let n1 = 0, n2 = 0, n3 = 0;
+    snapshot.forEach(userSnap => {
+      userSnap.forEach(sessionSnap => {
+        const d = sessionSnap.val();
+        if (d.niveau === 1) n1++;
+        else if (d.niveau === 2) n2++;
+        else if (d.niveau === 3) n3++;
+      });
+    });
+
+    res.json({ success: true, n1, n2, n3, total: n1 + n2 + n3 });
+
+  } catch (error) {
+    console.error('Erreur stats entrainement:', error);
     res.status(500).json({ error: error.message });
   }
 });
