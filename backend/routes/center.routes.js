@@ -229,6 +229,194 @@ router.get('/list', async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 // ROUTES PROTÉGÉES — JWT requis
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// ROUTES OTP — Réinitialisation mot de passe avec code email
+// À insérer AVANT router.use(verifyCenterToken) dans center.routes.js
+// ══════════════════════════════════════════════════════════════
+
+// ── Mailgun helper (réutilise les variables déjà en place) ──
+async function sendOtpEmail({ to, code, nomCentre }) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
+      <div style="background:#1a3a5c;padding:20px 24px;border-radius:10px 10px 0 0">
+        <h2 style="color:#fff;margin:0;font-size:20px">🔒 SSIAP Training</h2>
+        <p style="color:#90cdf4;margin:4px 0 0;font-size:13px">MIB PRÉVENTION</p>
+      </div>
+      <div style="background:#f8fafc;padding:28px 24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0;border-top:none">
+        <p style="font-size:15px;color:#1e1a17;margin-bottom:16px">Bonjour${nomCentre ? ' ' + nomCentre : ''},</p>
+        <p style="font-size:14px;color:#6b6760;margin-bottom:20px">Voici votre code de vérification pour réinitialiser votre mot de passe :</p>
+        <div style="background:#fff;border:2px solid #1a3a5c;border-radius:10px;padding:20px;text-align:center;margin-bottom:20px">
+          <div style="font-family:'Courier New',monospace;font-size:36px;font-weight:700;color:#c25a3a;letter-spacing:10px">${code}</div>
+        </div>
+        <p style="font-size:13px;color:#8c8078;margin-bottom:8px">⏱️ Ce code est valable <strong>10 minutes</strong>.</p>
+        <p style="font-size:13px;color:#8c8078;margin-bottom:8px">🔒 Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0">
+        <p style="font-size:12px;color:#9e9b96">MIB PRÉVENTION — <a href="mailto:contact@mib-prevention.fr" style="color:#c25a3a">contact@mib-prevention.fr</a></p>
+      </div>
+    </div>`;
+
+  const formData = new URLSearchParams();
+  formData.append('from', 'SSIAP Training <contact@mib-prevention.fr>');
+  formData.append('to', to);
+  formData.append('subject', `🔑 Votre code de vérification SSIAP : ${code}`);
+  formData.append('html', html);
+
+  const response = await fetch(
+    `https://api.eu.mailgun.net/v3/${process.env.MAILGUN_DOMAIN}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: 'Basic ' + Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    }
+  );
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Mailgun OTP error: ${err}`);
+  }
+}
+
+// ── ÉTAPE 1 : Demande de code OTP ──────────────────────────
+// POST /api/center/forgot-password-otp
+// Body : { email }
+router.post('/forgot-password-otp', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ success: false, error: 'Email requis' });
+
+  try {
+    const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
+
+    // Réponse identique que l'email existe ou non (anti-énumération)
+    if (!snapshot.exists()) {
+      return res.json({ success: true, message: 'Si cet email est enregistré, un code a été envoyé.' });
+    }
+
+    let centerId, centerData;
+    snapshot.forEach(c => { centerId = c.key; centerData = c.val(); });
+
+    // Générer code 6 chiffres cryptographiquement sûr
+    const code = String(parseInt(crypto.randomBytes(3).toString('hex'), 16) % 1000000).padStart(6, '0');
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Stocker le code hashé dans Firebase (jamais en clair)
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    await db.ref(`centers/${centerId}/auth`).update({
+      otpHash:     codeHash,
+      otpExpires:  expiresAt,
+      otpAttempts: 0,
+    });
+
+    // Envoyer l'email
+    await sendOtpEmail({
+      to:         email,
+      code,
+      nomCentre:  centerData.info?.nom || '',
+    });
+
+    console.log(`📧 OTP envoyé à ${email} pour ${centerId}`);
+    res.json({ success: true, message: 'Code envoyé.' });
+
+  } catch (err) {
+    console.error('OTP send error:', err.message);
+    res.status(500).json({ success: false, error: 'Erreur lors de l\'envoi du code' });
+  }
+});
+
+// ── ÉTAPE 2 : Vérification du code OTP ─────────────────────
+// POST /api/center/verify-otp
+// Body : { email, code }
+router.post('/verify-otp', async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ success: false, error: 'Paramètres manquants' });
+  if (!/^\d{6}$/.test(code)) return res.status(400).json({ success: false, error: 'Code invalide' });
+
+  try {
+    const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
+    if (!snapshot.exists()) return res.status(400).json({ success: false, error: 'Email inconnu' });
+
+    let centerId, centerData;
+    snapshot.forEach(c => { centerId = c.key; centerData = c.val(); });
+
+    const auth = centerData.auth || {};
+
+    // Vérifier expiration
+    if (!auth.otpHash || !auth.otpExpires || Date.now() > auth.otpExpires) {
+      return res.status(400).json({ success: false, error: 'Code expiré. Demandez un nouveau code.' });
+    }
+
+    // Vérifier tentatives (max 5)
+    const attempts = auth.otpAttempts || 0;
+    if (attempts >= 5) {
+      await db.ref(`centers/${centerId}/auth`).update({ otpHash: null, otpExpires: null });
+      return res.status(429).json({ success: false, error: 'Trop de tentatives. Demandez un nouveau code.' });
+    }
+
+    // Vérifier le code (comparaison hash)
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    if (codeHash !== auth.otpHash) {
+      await db.ref(`centers/${centerId}/auth/otpAttempts`).set(attempts + 1);
+      const remaining = 5 - (attempts + 1);
+      return res.status(400).json({ success: false, error: `Code incorrect. ${remaining} tentative(s) restante(s).` });
+    }
+
+    // ✅ Code valide — générer un token de reset à usage unique (valable 15 min)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = Date.now() + 15 * 60 * 1000;
+
+    await db.ref(`centers/${centerId}/auth`).update({
+      otpHash:        null,
+      otpExpires:     null,
+      otpAttempts:    0,
+      resetToken,
+      resetTokenExpires: resetExpires,
+    });
+
+    res.json({ success: true, resetToken, centerId });
+
+  } catch (err) {
+    console.error('OTP verify error:', err.message);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
+// ── ÉTAPE 3 : Nouveau mot de passe ─────────────────────────
+// POST /api/center/reset-password-otp
+// Body : { centerId, resetToken, newPassword }
+router.post('/reset-password-otp', async (req, res) => {
+  const { centerId, resetToken, newPassword } = req.body;
+  if (!centerId || !resetToken || !newPassword)
+    return res.status(400).json({ success: false, error: 'Paramètres manquants' });
+  if (newPassword.length < 8)
+    return res.status(400).json({ success: false, error: 'Minimum 8 caractères' });
+
+  try {
+    const snap = await db.ref(`centers/${centerId}/auth`).once('value');
+    const auth = snap.val();
+
+    if (!auth || auth.resetToken !== resetToken)
+      return res.status(400).json({ success: false, error: 'Lien invalide ou déjà utilisé' });
+    if (!auth.resetTokenExpires || Date.now() > auth.resetTokenExpires)
+      return res.status(400).json({ success: false, error: 'Lien expiré. Recommencez la procédure.' });
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await db.ref(`centers/${centerId}/auth`).update({
+      passwordHash,
+      resetToken:        null,
+      resetTokenExpires: null,
+      passwordChangedAt: Date.now(),
+    });
+
+    console.log(`✅ Mot de passe réinitialisé via OTP pour ${centerId}`);
+    res.json({ success: true, message: 'Mot de passe modifié avec succès' });
+
+  } catch (err) {
+    console.error('Reset password OTP error:', err.message);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
 router.use(verifyCenterToken);
 
 router.get('/dashboard/:centerId', async (req, res) => {
