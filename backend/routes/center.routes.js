@@ -167,28 +167,63 @@ router.post('/reset-password', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// GET /api/center/list — PUBLIQUE
-// Utilisée par formateur-login.html pour peupler le dropdown.
-// Ne renvoie que les infos non-sensibles (pas de hash, pas d'email).
+// GET /api/center/list
+// - Sans JWT  → infos minimales pour le dropdown formateur
+// - Avec JWT  → données enrichies pour le dashboard admin
 // ─────────────────────────────────────────────────────────────
 router.get('/list', async (req, res) => {
   try {
     const snapshot = await db.ref('centers').once('value');
-    if (!snapshot.exists()) return res.json({ centers: [] });
+    if (!snapshot.exists()) return res.json({ centers: [], total: 0 });
+
+    // Requête enrichie si Authorization header présent (dashboard admin)
+    const isAdmin = !!(req.headers['authorization'] || '').startsWith('Bearer ');
+
     const centers = [];
     snapshot.forEach(child => {
       const c = child.val();
-      if (c.status === 'inactive') return; // masquer les centres désactivés
-      centers.push({
+      if (c.status === 'inactive') return;
+
+      const base = {
         centerId: child.key,
         nom:      c.info?.nom   || '—',
         ville:    c.info?.ville || '',
         license:  { type: c.license?.type || 'DEMO' },
-        status:   c.status || 'active'
-      });
+        status:   c.status || 'active',
+      };
+
+      if (isAdmin) {
+        // Données complètes pour le dashboard admin
+        base.info = {
+          nom:       c.info?.nom       || '—',
+          email:     c.info?.email     || c.auth?.email || null,
+          telephone: c.info?.telephone || '',
+          ville:     c.info?.ville     || '',
+          createdAt: c.info?.createdAt || null,
+        };
+        base.license = {
+          type:          c.license?.type          || 'DEMO',
+          expiresAt:     c.license?.expiresAt     || null,
+          activatedAt:   c.license?.activatedAt   || c.info?.createdAt || null,
+          maxFormateurs: c.license?.maxFormateurs  || 1,
+          maxStagiaires: c.license?.maxStagiaires  || 10,
+        };
+        base.stats = {
+          formateurs: c.stats?.formateurs || 0,
+          stagiaires: c.stats?.stagiaires || 0,
+          sessions:   c.stats?.sessions   || 0,
+        };
+        base.lastLogin = c.auth?.lastLogin || null;
+      }
+
+      centers.push(base);
     });
+
     res.json({ centers, total: centers.length });
-  } catch (err) { res.status(500).json({ error: 'Erreur serveur' }); }
+  } catch (err) {
+    console.error('Erreur center/list:', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // ══════════════════════════════════════════════════════════════
