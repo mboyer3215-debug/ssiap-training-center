@@ -981,56 +981,26 @@ async function openDetailSession(sessionId) {
         const d = await r.json();
         let stags = d.stagiaires || d || [];
 
-        // 2. Enrichir chaque stagiaire avec ses scores
+        // 2. Enrichir chaque stagiaire avec ses résultats depuis results/{centerId}/{userId}
         stags = await Promise.all(stags.map(async st => {
             const sid = st.stagiaireId || st.id || st.qrCode;
             if (!sid) return st;
-
-            // Tentative 1 : historique entraînements
             try {
                 const re = await fetch(
-                    `${API_URL}/entrainement/historique/${sid}?centerId=${centerData.centerId}&sessionId=${sessionId}`,
-                    { signal: AbortSignal.timeout(4000) }
+                    `${API_URL}/entrainement/results/${centerData.centerId}/${sid}`,
+                    { signal: AbortSignal.timeout(5000) }
                 );
                 if (re.ok) {
                     const de = await re.json();
-                    const hist = de.historique || de.entrainements || de.results || [];
-                    if (hist.length > 0) {
-                        const scores = hist.map(h => h.score || h.tauxReussite || h.pourcentage || 0);
+                    const results = de.results || [];
+                    if (results.length > 0) {
+                        const scores = results.map(r => parseFloat(r.percentage) || 0);
                         st.tauxReussite = Math.round(scores.reduce((a,b)=>a+b,0) / scores.length);
-                        st.nbQuiz = hist.length;
-                        return st;
+                        st.nbQuiz = results.length;
+                        st.meilleurScore = Math.max(...scores);
                     }
                 }
-            } catch {}
-
-            // Tentative 2 : stats stagiaire direct
-            try {
-                const rs = await fetch(
-                    `${API_URL}/stagiaire/stats/${sid}?sessionId=${sessionId}`,
-                    { signal: AbortSignal.timeout(3000) }
-                );
-                if (rs.ok) {
-                    const ds = await rs.json();
-                    if (ds.tauxReussite != null) st.tauxReussite = ds.tauxReussite;
-                    else if (ds.scoreMoyen != null) st.tauxReussite = ds.scoreMoyen;
-                    if (ds.nbQuiz != null) st.nbQuiz = ds.nbQuiz;
-                }
-            } catch {}
-
-            // Tentative 3 : score dans l'objet session Firebase
-            try {
-                const rf = await fetch(
-                    `${API_URL}/session/${sessionId}/stagiaire/${sid}/score`,
-                    { signal: AbortSignal.timeout(3000) }
-                );
-                if (rf.ok) {
-                    const df = await rf.json();
-                    if (df.score != null) st.tauxReussite = df.score;
-                    if (df.nbQuiz != null) st.nbQuiz = df.nbQuiz;
-                }
-            } catch {}
-
+            } catch(e) { console.warn('scores stagiaire:', e.message); }
             return st;
         }));
 
@@ -1130,7 +1100,7 @@ async function loadAllStagiaires() {
                 ...st,
                 sessionId:  s.sessionId || s.id,
                 sessionNom: s.nom || s.sessionNom || '—',
-                niveau:     s.niveau || s.niveauSsiap || '—',
+                niveau:     normNiveau(s.niveau || s.niveauSsiap) || '—',
             }));
             _stagiaires.push(...stags);
         } catch {}
@@ -1173,7 +1143,7 @@ function renderStagiaires() {
                     <div style="font-weight:600">${nom}</div>
                 </div></td>
                 <td style="font-size:11px;color:var(--muted)">${st.sessionNom}</td>
-                <td><span class="badge badge-blue">SSIAP ${st.niveau}</span></td>
+                <td><span class="badge badge-blue">${niveauLabel(st.niveau)}</span></td>
                 <td><div class="score-bar">
                     <div class="score-track"><div class="score-fill" style="width:${score}%;background:${reussi?'var(--green)':'var(--rouge)'}"></div></div>
                     <span class="score-val">${score}%</span>
@@ -1194,20 +1164,21 @@ async function openDetailStagiaire(stagId, sessionId) {
     set('detail-stag-title', `📊 ${nom}`);
     openDetail('stagiaire');
 
-    const score = st.tauxReussite || st.score || 0;
-    const reussi = score >= 70;
+    const score = st.tauxReussite ?? null;
+    const hasScore = score != null && score > 0;
+    const reussi = hasScore && score >= 70;
     set('detail-stag-stats', `
-        <div class="stat-pill"><span class="stat-pill-val" style="color:${reussi?'var(--green)':'var(--rouge)'}">${score}%</span><span class="stat-pill-lbl">Score moyen</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="color:${reussi?'var(--green)':hasScore?'var(--rouge)':'var(--muted)'}">${hasScore?score+'%':'—'}</span><span class="stat-pill-lbl">Score moyen</span></div>
         <div class="stat-pill"><span class="stat-pill-val">${st.nbQuiz||'—'}</span><span class="stat-pill-lbl">Quiz complétés</span></div>
-        <div class="stat-pill"><span class="stat-pill-val">SSIAP ${st.niveau}</span><span class="stat-pill-lbl">Niveau</span></div>
-        <div class="stat-pill"><span class="stat-pill-val" style="color:${reussi?'var(--green)':'var(--rouge)'}">${reussi?'Réussi':'En difficulté'}</span><span class="stat-pill-lbl">Résultat</span></div>
+        <div class="stat-pill"><span class="stat-pill-val">${st.meilleurScore!=null?st.meilleurScore+'%':'—'}</span><span class="stat-pill-lbl">Meilleur score</span></div>
+        <div class="stat-pill"><span class="stat-pill-val">${niveauLabel(st.niveau)}</span><span class="stat-pill-lbl">Niveau</span></div>
     `);
 
-    // Historique des entraînements
+    // Historique des entraînements depuis results/{centerId}/{userId}
     try {
-        const r = await fetch(`${API_URL}/entrainement/historique/${stagId}?centerId=${centerData.centerId}`);
+        const r = await fetch(`${API_URL}/entrainement/results/${centerData.centerId}/${stagId}`);
         const d = await r.json();
-        const hist = d.historique || d.entrainements || [];
+        const hist = d.results || [];
 
         if (!hist.length) {
             set('detail-stag-history', '<p style="color:var(--muted);font-size:12px;padding:8px 0">Aucun historique disponible.</p>');
@@ -1215,18 +1186,22 @@ async function openDetailStagiaire(stagId, sessionId) {
         }
 
         document.getElementById('detail-stag-history').innerHTML = hist.slice(0,10).map(h => {
-            const sc = h.score || h.tauxReussite || 0;
-            const date = fmtDate(h.createdAt || h.date);
+            // Structure Firebase : results/{centerId}/{userId}/{sessionId}
+            // { percentage, score, total, niveau, partieId, completedAt, temps }
+            const sc    = Math.round(parseFloat(h.percentage) || 0);
+            const date  = fmtDate(h.completedAt || h.date);
+            const niv   = niveauLabel(h.niveau);
+            const partie = h.partieId && h.partieId !== 'toutes' ? ` · ${h.partieId}` : '';
             return `<div class="stag-session-item">
                 <div class="stag-session-header">
-                    <span class="stag-session-title">SSIAP ${h.niveau||'—'} — ${date}</span>
-                    <span class="badge ${sc>=70?'badge-green':'badge-red'}">${sc}%</span>
+                    <span class="stag-session-title">${niv}${partie} — ${date}</span>
+                    <span class="badge ${sc>=70?'badge-green':'badge-red'}">${h.score}/${h.total} (${sc}%)</span>
                 </div>
                 <div class="score-bar">
                     <div class="score-track"><div class="score-fill" style="width:${sc}%;background:${sc>=70?'var(--green)':'var(--rouge)'}"></div></div>
                     <span class="score-val">${sc}%</span>
                 </div>
-                ${h.pointsFaibles?.length ? `<div class="stag-weak">⚠️ Points faibles : ${h.pointsFaibles.slice(0,3).join(', ')}</div>` : ''}
+                ${h.temps ? `<div class="stag-weak" style="color:var(--muted)">⏱️ Durée : ${Math.round(h.temps/60000)} min</div>` : ''}
             </div>`;
         }).join('');
     } catch {
