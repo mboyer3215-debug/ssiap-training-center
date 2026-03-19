@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vérification — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--terra:#c25a3a;--terra-d:#a34a2e;--terra-bg:#fdf0eb;--bg:#f7f4f0;--surface:#fff;--border:#e8e2db;--border2:#d4ccc4;--text:#1e1a17;--muted:#8c8078;--subtle:#f0ece7;--green:#2e7d52;--green-bg:#e8f5ee;--red:#c0392b;--red-bg:#fdecea;--blue:#2e5c8a;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:44px;max-width:440px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.07)}
+.logo{text-align:center;font-size:44px;margin-bottom:8px}
+.title{font-family:'Lora',serif;font-size:24px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px}
+.sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;margin-bottom:28px}
+.email-highlight{font-family:'DM Mono',monospace;color:var(--terra);font-weight:700}
+
+/* CODE OTP */
+.otp-wrap{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.otp-input{width:52px;height:62px;border:2px solid var(--border);border-radius:10px;text-align:center;font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:var(--text);outline:none;transition:.15s;background:var(--subtle)}
+.otp-input:focus{border-color:var(--terra);background:var(--terra-bg);box-shadow:0 0 0 3px var(--terra-bg)}
+.otp-input.filled{border-color:var(--border2);background:var(--surface)}
+.otp-input.error{border-color:var(--red);background:var(--red-bg);animation:shake .35s}
+.otp-input.success{border-color:var(--green);background:var(--green-bg)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+
+/* TIMER */
+.timer-wrap{text-align:center;margin-bottom:20px}
+.timer{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)}
+.timer.urgent{color:var(--red);font-weight:700}
+.resend-btn{background:none;border:none;color:var(--terra);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline;display:none}
+.resend-btn.show{display:inline}
+.resend-btn:disabled{color:var(--muted);cursor:not-allowed;text-decoration:none}
+
+.btn{width:100%;padding:13px;background:var(--terra);color:#fff;border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{background:var(--terra-d)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.back-link{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.back-link a{color:var(--terra);font-weight:600;text-decoration:none}
+.alert{padding:12px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;border:1px solid}
+.alert.show{display:block}
+.alert.error{background:var(--red-bg);border-color:rgba(192,57,43,.25);color:var(--red)}
+.alert.success{background:var(--green-bg);border-color:rgba(46,125,82,.25);color:var(--green)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📧</div>
+  <div class="title">Vérification</div>
+  <div class="sub">
+    Saisissez le code à 6 chiffres envoyé à<br>
+    <span class="email-highlight" id="email-display">votre adresse email</span>
+  </div>
+
+  <div class="alert" id="alert"></div>
+
+  <!-- CHAMPS OTP -->
+  <div class="otp-wrap" id="otp-wrap">
+    <input class="otp-input" id="o0" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-input" id="o1" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-input" id="o2" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-input" id="o3" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-input" id="o4" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-input" id="o5" maxlength="1" inputmode="numeric" pattern="[0-9]">
+  </div>
+
+  <!-- TIMER -->
+  <div class="timer-wrap">
+    <span class="timer" id="timer-label">Code valide pendant <strong id="timer-val">10:00</strong></span>
+    <button class="resend-btn" id="resend-btn" onclick="resend()">Renvoyer le code</button>
+  </div>
+
+  <div class="alert" id="alert2"></div>
+
+  <button class="btn" id="btn-verify" onclick="verify()" disabled>
+    ✅ Vérifier le code
+  </button>
+
+  <div class="back-link">
+    <a href="center-forgot-password.html">← Modifier l'email</a>
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:10000/api'
+  : 'https://ssiap-training-center.onrender.com/api';
+
+const email = sessionStorage.getItem('otp_email') || '';
+if (!email) window.location.href = 'center-forgot-password.html';
+document.getElementById('email-display').textContent = email;
+
+// ── OTP INPUTS ────────────────────────────────────────────────
+const inputs = Array.from({length:6}, (_,i) => document.getElementById('o'+i));
+
+inputs.forEach((inp, idx) => {
+  inp.addEventListener('input', e => {
+    const val = e.data || inp.value;
+    if (!/[0-9]/.test(val)) { inp.value = ''; return; }
+    inp.value = val.slice(-1);
+    inp.classList.add('filled');
+    if (idx < 5) inputs[idx+1].focus();
+    checkFull();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace') {
+      if (!inp.value && idx > 0) { inputs[idx-1].focus(); inputs[idx-1].value = ''; inputs[idx-1].classList.remove('filled'); }
+      else { inp.value = ''; inp.classList.remove('filled'); }
+      checkFull();
+    }
+    if (e.key === 'Enter' && getCode().length === 6) verify();
+  });
+  inp.addEventListener('paste', e => {
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+    paste.split('').forEach((c, i) => {
+      if (inputs[i]) { inputs[i].value = c; inputs[i].classList.add('filled'); }
+    });
+    if (inputs[Math.min(paste.length, 5)]) inputs[Math.min(paste.length, 5)].focus();
+    checkFull();
+  });
+});
+
+inputs[0].focus();
+
+function getCode() { return inputs.map(i => i.value).join(''); }
+
+function checkFull() {
+  const full = getCode().length === 6;
+  document.getElementById('btn-verify').disabled = !full;
+}
+
+// ── TIMER 10 min ─────────────────────────────────────────────
+let seconds = 10 * 60;
+const timerVal = document.getElementById('timer-val');
+const timerLabel = document.getElementById('timer-label');
+const resendBtn = document.getElementById('resend-btn');
+
+const timerInterval = setInterval(() => {
+  seconds--;
+  if (seconds <= 0) {
+    clearInterval(timerInterval);
+    timerLabel.innerHTML = '⏱️ Code expiré.';
+    timerLabel.className = 'timer urgent';
+    resendBtn.classList.add('show');
+    document.getElementById('btn-verify').disabled = true;
+    inputs.forEach(i => { i.disabled = true; i.classList.add('error'); });
+    return;
+  }
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  timerVal.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  if (seconds < 60) { timerLabel.className = 'timer urgent'; }
+}, 1000);
+
+// ── VÉRIFIER ─────────────────────────────────────────────────
+async function verify() {
+  const code = getCode();
+  if (code.length !== 6) return;
+
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Vérification…';
+
+  try {
+    const r = await fetch(`${API}/center/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code })
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      inputs.forEach(i => i.classList.add('success'));
+      clearInterval(timerInterval);
+      showAlert('success', '✅ Code validé ! Redirection…');
+      sessionStorage.setItem('otp_reset_token', d.resetToken);
+      sessionStorage.setItem('otp_center_id', d.centerId);
+      setTimeout(() => { window.location.href = 'center-reset-password.html'; }, 1200);
+    } else {
+      inputs.forEach(i => { i.classList.add('error'); i.classList.remove('filled'); });
+      setTimeout(() => {
+        inputs.forEach(i => { i.classList.remove('error'); i.value = ''; });
+        inputs[0].focus();
+        checkFull();
+      }, 800);
+      showAlert('error', '❌ ' + (d.error || 'Code incorrect. Réessayez.'));
+      btn.disabled = false;
+      btn.innerHTML = '✅ Vérifier le code';
+    }
+  } catch(e) {
+    showAlert('error', '⚠️ Erreur réseau.');
+    btn.disabled = false;
+    btn.innerHTML = '✅ Vérifier le code';
+  }
+}
+
+// ── RENVOYER ─────────────────────────────────────────────────
+async function resend() {
+  const btn = document.getElementById('resend-btn');
+  btn.disabled = true;
+  btn.textContent = 'Envoi…';
+
+  try {
+    await fetch(`${API}/center/forgot-password-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    showAlert2('success', '✅ Nouveau code envoyé. Vérifiez votre boîte mail.');
+    // Relancer timer
+    seconds = 10 * 60;
+    inputs.forEach(i => { i.disabled = false; i.value = ''; i.classList.remove('error','filled'); });
+    inputs[0].focus();
+    resendBtn.classList.remove('show');
+    timerLabel.className = 'timer';
+    document.getElementById('btn-verify').disabled = true;
+  } catch(e) {
+    showAlert2('error', '⚠️ Erreur lors du renvoi.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Renvoyer le code';
+  }
+}
+
+function showAlert(type, msg) {
+  const el = document.getElementById('alert');
+  el.textContent = msg; el.className = `alert ${type} show`;
+}
+function showAlert2(type, msg) {
+  const el = document.getElementById('alert2');
+  el.textContent = msg; el.className = `alert ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+</script>
+</body>
+</html>
