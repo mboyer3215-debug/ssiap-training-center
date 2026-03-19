@@ -555,9 +555,10 @@ async function loadDashboard() {
 
         // KPIs
         const lic = d.license || centerData.license || {};
-        set('kpi-formateurs', d.stats?.formateurs ?? '—');
-        set('kpi-sessions',   d.stats?.sessions   ?? '—');
-        set('kpi-stagiaires', d.stats?.stagiaires ?? '—');
+        // KPIs — utiliser stats Firebase si > 0, sinon charger en temps réel
+        set('kpi-formateurs', d.stats?.formateurs || '—');
+        // Sessions et stagiaires : toujours charger en temps réel pour être exact
+        loadKpiCounts();
         if (lic.maxFormateurs) set('usage-formateurs', `/ ${lic.maxFormateurs} autorisés`);
         if (lic.maxStagiaires) set('usage-stagiaires', `/ ${lic.maxStagiaires} max`);
 
@@ -581,6 +582,50 @@ async function loadDashboard() {
         await Promise.all([loadAvisOverview(), loadChartsData()]);
     } catch(e) { console.error(e); }
     hideLoader();
+}
+
+// ── KPI COUNTS (temps réel) ──────────────────────────────────
+async function loadKpiCounts() {
+    try {
+        // Formateurs
+        const rf = await authFetch(`${API_URL}/formateur/list/${centerData.centerId}`);
+        if (rf && rf.ok) {
+            const df = await rf.json();
+            const formateurs = df.formateurs || df.data || [];
+            set('kpi-formateurs', formateurs.length);
+        }
+    } catch(e) {}
+
+    try {
+        // Sessions
+        const rs = await fetch(`${API_URL}/session/list/${centerData.centerId}`);
+        if (rs.ok) {
+            const ds = await rs.json();
+            const sessions = ds.sessions || [];
+            set('kpi-sessions', sessions.length);
+
+            // Stagiaires : agréger depuis toutes les sessions
+            let totalStag = 0;
+            await Promise.all(sessions.map(async s => {
+                try {
+                    const rst = await fetch(`${API_URL}/stagiaire/list/${centerData.centerId}?sessionId=${s.sessionId||s.id}`);
+                    if (rst.ok) {
+                        const dst = await rst.json();
+                        totalStag += (dst.stagiaires || dst || []).length;
+                    }
+                } catch {}
+            }));
+            set('kpi-stagiaires', totalStag);
+
+            // Mettre à jour les stats Firebase en arrière-plan
+            if (sessions.length > 0) {
+                authFetch(`${API_URL}/center/update-stats/${centerData.centerId}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ sessions: sessions.length, stagiaires: totalStag })
+                }).catch(() => {});
+            }
+        }
+    } catch(e) { console.warn('kpiCounts:', e); }
 }
 
 // ── GRAPHIQUES ────────────────────────────────────────────────
@@ -735,7 +780,7 @@ function renderFormateurs() {
         if (search && !nom.includes(search)) return false;
         if (statut === 'actif'   && f.actif === false) return false;
         if (statut === 'inactif' && f.actif !== false) return false;
-        if (niveau && !(f.niveaux || []).includes(parseInt(niveau))) return false;
+        if (niveau && !(f.niveaux || []).some(n => normNiveau(n) === niveau)) return false;
         return true;
     });
 
@@ -749,7 +794,7 @@ function renderFormateurs() {
         <tbody>${list.map(f => {
             const nom = `${f.prenom||''} ${f.nom||''}`.trim() || '—';
             const init = (f.prenom?.[0]||'?').toUpperCase();
-            const niveaux = (f.niveaux||[]).map(n => `<span class="badge badge-blue" style="margin-right:3px">S${n}</span>`).join('');
+            const niveaux = (f.niveaux||[]).map(n => `<span class="badge badge-blue" style="margin-right:3px">${niveauLabel(n)}</span>`).join('');
             const actif = f.actif !== false;
             const nbSess = _sessions.filter(s => s.formateurId === (f.formateurId||f.id)).length;
             return `<tr class="clickable" onclick="openDetailFormateur('${f.formateurId||f.id}')">
@@ -789,7 +834,7 @@ async function openDetailFormateur(id) {
             <thead><tr><th>Session</th><th>Niveau</th><th>Début</th><th>Fin</th></tr></thead>
             <tbody>${sessions.map(s => `<tr>
                 <td>${s.nom||s.sessionNom||'—'}</td>
-                <td><span class="badge badge-blue">SSIAP ${s.niveau||s.niveauSsiap||'—'}</span></td>
+                <td><span class="badge badge-blue">${niveauLabel(s.niveau||s.niveauSsiap)}</span></td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px">${fmtDate(s.dateDebut)}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px">${fmtDate(s.dateFin)}</td>
             </tr>`).join('')}</tbody>
@@ -877,7 +922,7 @@ function renderSessions() {
         const formNom = (_formateurs.find(f => (f.formateurId||f.id) === s.formateurId) || {});
         const fnStr = `${formNom.prenom||''} ${formNom.nom||''}`.toLowerCase();
         if (search && !nom.includes(search) && !fnStr.includes(search)) return false;
-        if (niveau && String(s.niveau||s.niveauSsiap) !== niveau) return false;
+        if (niveau && normNiveau(s.niveau||s.niveauSsiap) !== niveau) return false;
         if (formateurId && s.formateurId !== formateurId) return false;
         if (periode) {
             const deb = new Date(s.dateDebut).getTime();
@@ -907,7 +952,7 @@ function renderSessions() {
             const taux   = s.tauxReussite != null ? Math.round(s.tauxReussite) + '%' : '—';
             return `<tr class="clickable" onclick="openDetailSession('${s.sessionId||s.id}')">
                 <td><div style="font-weight:600;font-size:13px">${s.nom||s.sessionNom||'—'}</div></td>
-                <td><span class="badge badge-blue">SSIAP ${niv}</span></td>
+                <td><span class="badge badge-blue">${niveauLabel(niv)}</span></td>
                 <td style="font-size:12px">${formNom}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fmtDate(s.dateDebut)}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fmtDate(s.dateFin)}</td>
@@ -1036,7 +1081,7 @@ function renderStagiaires() {
         const score = st.tauxReussite || st.score || 0;
         if (search && !nom.includes(search)) return false;
         if (sessionId && st.sessionId !== sessionId) return false;
-        if (niveau && String(st.niveau) !== niveau) return false;
+        if (niveau && normNiveau(st.niveau) !== niveau) return false;
         if (resultat === 'reussi' && score < 70) return false;
         if (resultat === 'echec' && score >= 70) return false;
         return true;
@@ -1310,6 +1355,17 @@ function showAddFormateurModal() {
 // ── HELPERS ───────────────────────────────────────────────────
 function set(id, val) { const e=document.getElementById(id); if(e) e.innerHTML=val; }
 function starsStr(n) { let s=''; for(let i=1;i<=5;i++) s+=i<=n?'★':'☆'; return s; }
+// Normalise n'importe quel format niveau → "1","2","3"
+// Gère : 1, "1", "SSIAP1", "SSIAP 1", "ssiap1"
+function normNiveau(n) {
+    if (n == null) return null;
+    const m = String(n).match(/\d+/);
+    return m ? m[0] : String(n);
+}
+function niveauLabel(n) {
+    const num = normNiveau(n);
+    return num ? 'SSIAP ' + num : '—';
+}
 function fmtDate(ts) {
     if (!ts) return '—';
     const d = new Date(ts);
