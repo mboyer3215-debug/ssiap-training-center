@@ -249,15 +249,32 @@ router.get('/dashboard/:centerId', async (req, res) => {
 router.put('/update/:centerId', async (req, res) => {
   const { centerId } = req.params;
   if (req.center.centerId !== centerId) return res.status(403).json({ error: 'Accès refusé.' });
-  const { nom, telephone, ville } = req.body;
+  const { nom, telephone, ville, site, adresse, email } = req.body;
   try {
     const updates = {};
-    if (nom)       updates['info/nom']       = nom;
-    if (telephone) updates['info/telephone'] = telephone;
-    if (ville)     updates['info/ville']     = ville;
+    if (nom)      updates['info/nom']       = nom;
+    if (telephone !== undefined) updates['info/telephone'] = telephone;
+    if (ville     !== undefined) updates['info/ville']     = ville;
+    if (site      !== undefined) updates['info/site']      = site;
+    if (adresse   !== undefined) updates['info/adresse']   = adresse;
+    if (email     !== undefined) updates['info/email']     = email;
+    updates['info/updatedAt'] = Date.now();
     await db.ref(`centers/${centerId}`).update(updates);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: 'Erreur serveur' }); }
+});
+
+// ── Changement mot de passe par le centre lui-même ──
+router.post('/change-password', async (req, res) => {
+  const { centerId, newPassword } = req.body;
+  if (!centerId || !newPassword) return res.status(400).json({ success: false, error: 'Paramètres manquants' });
+  if (req.center.centerId !== centerId) return res.status(403).json({ error: 'Accès refusé.' });
+  if (newPassword.length < 8) return res.status(400).json({ success: false, error: 'Minimum 8 caractères' });
+  try {
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await db.ref(`centers/${centerId}/auth`).update({ passwordHash, passwordChangedAt: Date.now() });
+    res.json({ success: true, message: 'Mot de passe modifié' });
+  } catch (err) { res.status(500).json({ success: false, error: 'Erreur serveur' }); }
 });
 
 router.post('/admin-reset-password', async (req, res) => {
