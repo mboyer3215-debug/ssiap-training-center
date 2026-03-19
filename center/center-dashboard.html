@@ -972,46 +972,116 @@ async function openDetailSession(sessionId) {
 
     const nom = s.nom || s.sessionNom || sessionId;
     set('detail-sess-title', `🎓 Stagiaires — ${nom}`);
+    set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px;padding:8px 0">Chargement des scores…</p>');
     openDetail('session');
 
-    // Charger les stagiaires de la session
     try {
+        // 1. Récupérer la liste des stagiaires
         const r = await fetch(`${API_URL}/stagiaire/list/${centerData.centerId}?sessionId=${sessionId}`);
         const d = await r.json();
-        const stags = d.stagiaires || d || [];
+        let stags = d.stagiaires || d || [];
 
-        const total = stags.length;
-        const reussis = stags.filter(st => (st.tauxReussite||st.score||0) >= 70).length;
-        const moy = total ? Math.round(stags.reduce((a,st) => a + (st.tauxReussite||st.score||0), 0) / total) : 0;
+        // 2. Enrichir chaque stagiaire avec ses scores
+        stags = await Promise.all(stags.map(async st => {
+            const sid = st.stagiaireId || st.id || st.qrCode;
+            if (!sid) return st;
+
+            // Tentative 1 : historique entraînements
+            try {
+                const re = await fetch(
+                    `${API_URL}/entrainement/historique/${sid}?centerId=${centerData.centerId}&sessionId=${sessionId}`,
+                    { signal: AbortSignal.timeout(4000) }
+                );
+                if (re.ok) {
+                    const de = await re.json();
+                    const hist = de.historique || de.entrainements || de.results || [];
+                    if (hist.length > 0) {
+                        const scores = hist.map(h => h.score || h.tauxReussite || h.pourcentage || 0);
+                        st.tauxReussite = Math.round(scores.reduce((a,b)=>a+b,0) / scores.length);
+                        st.nbQuiz = hist.length;
+                        return st;
+                    }
+                }
+            } catch {}
+
+            // Tentative 2 : stats stagiaire direct
+            try {
+                const rs = await fetch(
+                    `${API_URL}/stagiaire/stats/${sid}?sessionId=${sessionId}`,
+                    { signal: AbortSignal.timeout(3000) }
+                );
+                if (rs.ok) {
+                    const ds = await rs.json();
+                    if (ds.tauxReussite != null) st.tauxReussite = ds.tauxReussite;
+                    else if (ds.scoreMoyen != null) st.tauxReussite = ds.scoreMoyen;
+                    if (ds.nbQuiz != null) st.nbQuiz = ds.nbQuiz;
+                }
+            } catch {}
+
+            // Tentative 3 : score dans l'objet session Firebase
+            try {
+                const rf = await fetch(
+                    `${API_URL}/session/${sessionId}/stagiaire/${sid}/score`,
+                    { signal: AbortSignal.timeout(3000) }
+                );
+                if (rf.ok) {
+                    const df = await rf.json();
+                    if (df.score != null) st.tauxReussite = df.score;
+                    if (df.nbQuiz != null) st.nbQuiz = df.nbQuiz;
+                }
+            } catch {}
+
+            return st;
+        }));
+
+        // 3. Calculer les stats
+        const total    = stags.length;
+        const avecScore = stags.filter(st => st.tauxReussite != null && st.tauxReussite > 0);
+        const reussis  = avecScore.filter(st => st.tauxReussite >= 70).length;
+        const moy      = avecScore.length
+            ? Math.round(avecScore.reduce((a,st) => a + st.tauxReussite, 0) / avecScore.length)
+            : 0;
 
         set('detail-sess-stats', `
             <div class="stat-pill"><span class="stat-pill-val">${total}</span><span class="stat-pill-lbl">Stagiaires</span></div>
-            <div class="stat-pill"><span class="stat-pill-val" style="color:var(--green)">${reussis}</span><span class="stat-pill-lbl">Réussis</span></div>
-            <div class="stat-pill"><span class="stat-pill-val" style="color:var(--rouge)">${total-reussis}</span><span class="stat-pill-lbl">En difficulté</span></div>
-            <div class="stat-pill"><span class="stat-pill-val">${moy}%</span><span class="stat-pill-lbl">Moy. réussite</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" style="color:var(--green)">${reussis}</span><span class="stat-pill-lbl">Réussis ≥70%</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" style="color:var(--rouge)">${avecScore.length - reussis}</span><span class="stat-pill-lbl">En difficulté</span></div>
+            <div class="stat-pill"><span class="stat-pill-val">${avecScore.length ? moy+'%' : '—'}</span><span class="stat-pill-lbl">Moy. réussite</span></div>
+            <div class="stat-pill"><span class="stat-pill-val">${total - avecScore.length}</span><span class="stat-pill-lbl">Sans quiz</span></div>
         `);
 
-        if (!stags.length) { set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px;padding:8px 0">Aucun stagiaire inscrit.</p>'); return; }
+        if (!stags.length) {
+            set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px;padding:8px 0">Aucun stagiaire inscrit.</p>');
+            return;
+        }
 
         document.getElementById('detail-sess-stagiaires').innerHTML = `
             <table class="data-table" style="margin-top:8px">
                 <thead><tr><th>Stagiaire</th><th>Score moyen</th><th>Quiz complétés</th><th>Résultat</th></tr></thead>
                 <tbody>${stags.map(st => {
                     const nom = `${st.prenom||''} ${st.nom||''}`.trim() || '—';
-                    const score = st.tauxReussite || st.score || 0;
-                    const reussi = score >= 70;
+                    const score = st.tauxReussite;
+                    const hasScore = score != null && score > 0;
+                    const reussi  = hasScore && score >= 70;
                     return `<tr>
-                        <td>${nom}</td>
+                        <td style="font-weight:600">${nom}</td>
                         <td><div class="score-bar">
-                            <div class="score-track"><div class="score-fill" style="width:${score}%;background:${reussi?'var(--green)':'var(--rouge)'}"></div></div>
-                            <span class="score-val">${score}%</span>
+                            <div class="score-track"><div class="score-fill" style="width:${hasScore?score:0}%;background:${reussi?'var(--green)':hasScore?'var(--rouge)':'var(--border)'}"></div></div>
+                            <span class="score-val" style="color:${reussi?'var(--green)':hasScore?'var(--rouge)':'var(--muted)'}">${hasScore?score+'%':'—'}</span>
                         </div></td>
                         <td style="text-align:center;font-family:'DM Mono',monospace">${st.nbQuiz||'—'}</td>
-                        <td><span class="badge ${reussi?'badge-green':'badge-red'}">${reussi?'Réussi':'En difficulté'}</span></td>
+                        <td>${hasScore
+                            ? `<span class="badge ${reussi?'badge-green':'badge-red'}">${reussi?'Réussi':'En difficulté'}</span>`
+                            : '<span class="badge badge-gray">Pas de quiz</span>'
+                        }</td>
                     </tr>`;
                 }).join('')}</tbody>
             </table>`;
-    } catch { set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px">Erreur chargement stagiaires</p>'); }
+
+    } catch(e) {
+        console.error('openDetailSession:', e);
+        set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px">Erreur chargement stagiaires</p>');
+    }
 }
 
 async function saveSession() {
