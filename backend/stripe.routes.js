@@ -16,14 +16,14 @@ const PLANS = {
     label: 'INDÉPENDANT',
     prix: '99 €/mois',
     maxCentres: 1,
-    maxFormateurs: 2,
-    maxStagiaires: 30,
+    maxFormateurs: 1,
+    maxStagiaires: 20,
   },
   starter: {
     priceId: 'price_1TBC015V2d1nGQ17Cg4cuxqj',
     label: 'STARTER',
     prix: '199 €/mois',
-    maxCentres: 3,
+    maxCentres: 1,
     maxFormateurs: 10,
     maxStagiaires: 150,
   },
@@ -31,18 +31,28 @@ const PLANS = {
     priceId: 'price_1TBC015V2d1nGQ17AyCaD0ST',
     label: 'PRO',
     prix: '299 €/mois',
-    maxCentres: 10,
-    maxFormateurs: 30,
-    maxStagiaires: 500,
+    maxCentres: 1,
+    maxFormateurs: 20,
+    maxStagiaires: 300,
   },
   entreprise: {
     priceId: 'price_1TBC015V2d1nGQ17zkqn8GHu',
-    label: 'ENTREPRISE',
-    prix: '3 999 €/an',
+    label: 'GROUPE / ENTREPRISE',
+    prix: 'Sur devis',
     maxCentres: 999,
     maxFormateurs: 999,
     maxStagiaires: 9999,
   },
+};
+
+// Plan DEMO — essai gratuit 7 jours (activation manuelle uniquement)
+const PLAN_DEMO = {
+  label: 'DEMO',
+  prix: 'Gratuit',
+  maxCentres: 1,
+  maxFormateurs: 1,
+  maxStagiaires: 5,
+  days: 7,
 };
 
 // ─── MAILER via Mailgun API (mêmes variables que gestion_ets) ──────────────
@@ -189,7 +199,14 @@ router.post('/activate-manual', async (req, res) => {
     if (adminKey !== process.env.ADMIN_SECRET_KEY) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
-    const plan = PLANS[planKey];
+
+    // Résoudre le plan (DEMO ou plans Stripe)
+    let plan;
+    if (planKey === 'DEMO' || planKey === 'demo') {
+      plan = PLAN_DEMO;
+    } else {
+      plan = PLANS[planKey];
+    }
     if (!plan) return res.status(400).json({ error: 'Plan inconnu' });
 
     console.log(`🔧 Activation manuelle : ${planKey} pour ${email}`);
@@ -255,9 +272,11 @@ async function createLicenceInFirebase({ planKey, nomCentre, email, plan, source
     maxFormateurs: plan.maxFormateurs,
     maxStagiaires: plan.maxStagiaires,
     createdAt: now,
-    expiresAt: planKey === 'entreprise'
-      ? new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString()
-      : null, // null = géré par Stripe subscription
+    expiresAt: plan.days
+      ? new Date(Date.now() + plan.days * 24 * 3600 * 1000).toISOString()  // DEMO = 7j
+      : planKey === 'entreprise'
+        ? new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString()
+        : null, // null = géré par Stripe subscription
   });
 
   return licenceKey;
