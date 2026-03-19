@@ -232,7 +232,7 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(-
       </div>
       <div style="margin-top:16px;padding:14px;background:var(--subtle);border-radius:10px;font-size:12px;color:var(--muted);line-height:1.7">
         Pour modifier votre licence ou passer à un plan supérieur, contactez :<br>
-        <a href="mailto:contact@mib-prevention.fr" style="color:var(--terra);font-weight:600">contact@mib-prevention.fr</a>
+        <a href="/cdn-cgi/l/email-protection#88ebe7e6fce9ebfcc8e5e1eaa5f8faedfeede6fce1e7e6a6eefa" style="color:var(--terra);font-weight:600"><span class="__cf_email__" data-cfemail="33505c5d47525047735e5a511e43415645565d475a5c5d1d5541">[email&#160;protected]</span></a>
         ou visitez <a href="https://formation.mib-prevention.fr" target="_blank" style="color:var(--terra);font-weight:600">formation.mib-prevention.fr</a>
       </div>
     </div>
@@ -264,13 +264,13 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(-
 
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const API = window.location.hostname === 'localhost'
   ? 'http://localhost:10000/api'
   : 'https://ssiap-training-center.onrender.com/api';
 
 // ── AUTH ──────────────────────────────────────────────────────
-function getToken() { return sessionStorage.getItem('ssiap_center_token') || localStorage.getItem('ssiap_center_token') || ''; }
+function getToken() { return sessionStorage.getItem('ssiap_jwt') || localStorage.getItem('ssiap_jwt') || ''; }
 function getCenterData() {
   try { return JSON.parse(sessionStorage.getItem('ssiap_center') || localStorage.getItem('ssiap_center') || '{}'); }
   catch { return {}; }
@@ -278,7 +278,7 @@ function getCenterData() {
 function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }; }
 
 function logout() {
-  sessionStorage.clear(); localStorage.removeItem('ssiap_center_token'); localStorage.removeItem('ssiap_center');
+  sessionStorage.clear(); localStorage.removeItem('ssiap_jwt'); localStorage.removeItem('ssiap_center');
   window.location.href = 'center-login.html';
 }
 
@@ -500,12 +500,4 @@ function checkStrength() {
 function copyId() {
   const val = document.getElementById('f-center-id').value;
   navigator.clipboard.writeText(val).then(() => {
-    showAlert('global-alert', 'info', '📋 ID centre copié dans le presse-papier');
-  });
-}
-
-// ── LANCEMENT ─────────────────────────────────────────────────
-init();
-</script>
-</body>
-</html>
+    showAlert('global-alert', 'info', '�
