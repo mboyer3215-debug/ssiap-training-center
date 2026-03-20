@@ -637,7 +637,10 @@ async function loadAllData() {
     const icon = document.getElementById('refresh-icon');
     icon.style.animation = 'spin .6s linear infinite';
     try {
-        await Promise.allSettled([loadCentres(), loadLicences(), loadDemandes()]);
+        // loadCentres EN PREMIER — son résultat (_centres) est nécessaire
+        // comme fallback dans loadLicences et loadEntrainementsStats
+        await loadCentres();
+        await Promise.allSettled([loadLicences(), loadDemandes()]);
     } finally {
         icon.style.animation = '';
     }
@@ -788,7 +791,8 @@ async function loadEntrainementsStats(centres) {
                 const sessions = ds.sessions || [];
                 for (const s of sessions.slice(0, 10)) {
                     const sid = s.sessionId || s.id;
-                    const niv = parseInt(s.niveau || s.niveauSsiap || 0);
+                    // Niveau de la session comme fallback si absent dans les résultats
+                    const sessionNiv = parseInt(s.niveau || s.niveauSsiap || 1) || 1;
                     try {
                         const rst = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 3000).catch(() => null);
                         if (!rst || !rst.ok) continue;
@@ -803,16 +807,48 @@ async function loadEntrainementsStats(centres) {
                                 const de = await re.json();
                                 const results = de.results || [];
                                 results.forEach(res => {
-                                    const rNiv = parseInt(res.niveau || niv || 1);
+                                    // Chercher le niveau dans plusieurs champs possibles
+                                    // Firebase stocke parfois "niveau":"1", "ssiap":"1", ou rien
+                                    const rawNiv = res.niveau || res.ssiap || res.niveauSsiap || res.level || sessionNiv;
+                                    const rNiv = parseInt(String(rawNiv).replace(/[^0-9]/g, '') || sessionNiv) || 1;
                                     if (rNiv === 1) n1++;
                                     else if (rNiv === 2) n2++;
                                     else if (rNiv === 3) n3++;
+                                    else n1++; // défaut SSIAP 1
                                 });
                             } catch {}
                         }
                     } catch {}
                 }
                 if (n1 + n2 + n3 > 0) { source = 'résultats'; break; }
+            } catch {}
+        }
+    }
+
+    // ── Dernier fallback : compter via le champ entr. de chaque stagiaire ──
+    // (utilise les stats déjà chargées dans _centres.stats si disponibles)
+    if (n1 + n2 + n3 === 0) {
+        for (const c of centres) {
+            const cid = c.centerId;
+            if (!cid) continue;
+            try {
+                // Essayer l'endpoint /entrainement/list/{centerId}
+                const r = await fetchTimeout(`${API}/entrainement/list/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
+                if (r && r.ok) {
+                    const d = await r.json();
+                    const items = d.entrainements || d.results || d || [];
+                    if (Array.isArray(items)) {
+                        items.forEach(e => {
+                            const rawNiv = e.niveau || e.ssiap || e.niveauSsiap || 1;
+                            const eNiv = parseInt(String(rawNiv).replace(/[^0-9]/g, '') || '1') || 1;
+                            if (eNiv === 1) n1++;
+                            else if (eNiv === 2) n2++;
+                            else if (eNiv === 3) n3++;
+                            else n1++;
+                        });
+                        if (n1 + n2 + n3 > 0) source = 'liste';
+                    }
+                }
             } catch {}
         }
     }
@@ -1389,16 +1425,18 @@ function renderLicences(lics) {
 }
 
 function updateLicenceStats(lics) {
-    const counts = { DEMO:0, independant:0, starter:0, pro:0, entreprise:0 };
+    const counts = { demo:0, independant:0, starter:0, pro:0, entreprise:0 };
     lics.forEach(l => {
-        const t = (l.type||'DEMO').toLowerCase();
-        if (counts[t] !== undefined) counts[t]++;
-        else if (t === 'standard') counts.starter++;
-        else if (t === 'professional') counts.pro++;
-        else if (t === 'business' || t === 'enterprise') counts.entreprise++;
+        const t = (l.type || 'demo').toLowerCase();
+        if      (t === 'demo')                           counts.demo++;
+        else if (t === 'independant' || t === 'independent') counts.independant++;
+        else if (t === 'starter'  || t === 'standard')   counts.starter++;
+        else if (t === 'pro'      || t === 'professional') counts.pro++;
+        else if (t === 'entreprise'|| t === 'enterprise' || t === 'business') counts.entreprise++;
+        else counts.demo++; // fallback DEMO
     });
 
-    set('nb-demo', counts.DEMO);
+    set('nb-demo', counts.demo);
     set('nb-ind',  counts.independant);
     set('nb-std',  counts.starter);
     set('nb-pro',  counts.pro);
@@ -1406,7 +1444,7 @@ function updateLicenceStats(lics) {
 
     const totalMensuel = counts.independant*99 + counts.starter*199 + counts.pro*299 + counts.entreprise*333;
     const totalAnnuel  = totalMensuel * 12;
-    const active = lics.filter(l => l.active || l.actif).length;
+    const active = lics.filter(l => l.active !== false && l.actif !== false).length;
 
     set('total-ind', counts.independant * 99 + ' €');
     set('total-std', counts.starter * 199 + ' €');
@@ -1421,23 +1459,47 @@ function updateLicenceStats(lics) {
     set('kpi-ca',        totalMensuel > 0 ? totalMensuel.toLocaleString('fr-FR') + ' €' : '0 €');
     set('kpi-ca-trend',  totalMensuel > 0 ? active + ' licence(s) actives' : 'Aucun abonnement actif');
 
-    const circ = 2 * Math.PI * 35;
-    const tot  = lics.length || 1;
-    setTimeout(() => {
-        const pDemo = counts.DEMO / tot;
-        const pStd  = (counts.starter + counts.independant) / tot;
-        const pRest = (counts.pro + counts.entreprise) / tot;
-        document.getElementById('donut-1').setAttribute('stroke-dasharray', `${pDemo*circ} ${circ}`);
-        document.getElementById('donut-2').style.strokeDashoffset = `-${pDemo*circ}`;
-        document.getElementById('donut-2').setAttribute('stroke-dasharray', `${pStd*circ} ${circ}`);
-        document.getElementById('donut-3').style.strokeDashoffset = `-${(pDemo+pStd)*circ}`;
-        document.getElementById('donut-3').setAttribute('stroke-dasharray', `${pRest*circ} ${circ}`);
-        document.getElementById('donut-total').textContent = lics.length;
-    }, 300);
-
-    set('leg-demo', counts.DEMO);
+    // Légende : groupes lisibles
+    set('leg-demo', counts.demo);
     set('leg-std',  counts.starter + counts.independant);
     set('leg-prem', counts.pro + counts.entreprise);
+
+    // Donut
+    const circ  = 2 * Math.PI * 35;
+    const total = lics.length;
+    set('donut-total', total);
+
+    setTimeout(() => {
+        if (total === 0) {
+            // Donut vide — trait gris
+            document.getElementById('donut-1').setAttribute('stroke-dasharray', `0 ${circ}`);
+            document.getElementById('donut-2').setAttribute('stroke-dasharray', `0 ${circ}`);
+            document.getElementById('donut-3').setAttribute('stroke-dasharray', `0 ${circ}`);
+            return;
+        }
+        // Calcul des arcs (DEMO terra, STARTER+IND blue, PRO+ENT green)
+        const pDemo = counts.demo / total;
+        const pStd  = (counts.starter + counts.independant) / total;
+        const pPrem = (counts.pro + counts.entreprise) / total;
+
+        // Arc 1 : DEMO (commence à -90°, offset 0)
+        const arcDemo = pDemo * circ;
+        const arcStd  = pStd  * circ;
+        const arcPrem = pPrem * circ;
+
+        const d1 = document.getElementById('donut-1');
+        const d2 = document.getElementById('donut-2');
+        const d3 = document.getElementById('donut-3');
+
+        d1.setAttribute('stroke-dasharray',  `${arcDemo} ${circ}`);
+        d1.style.strokeDashoffset = '0';
+
+        d2.setAttribute('stroke-dasharray',  `${arcStd} ${circ}`);
+        d2.style.strokeDashoffset = `-${arcDemo}`;
+
+        d3.setAttribute('stroke-dasharray',  `${arcPrem} ${circ}`);
+        d3.style.strokeDashoffset = `-${arcDemo + arcStd}`;
+    }, 300);
 }
 
 // ── GRAPHIQUES STATIQUES ────────────────────────────────────
