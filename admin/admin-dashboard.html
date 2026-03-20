@@ -776,26 +776,61 @@ async function loadEntrainementsStats(centres) {
         }
     }
 
+    // ── Fallback : agréger depuis results/{centerId}/{userId} via sessions ──
+    if (n1 + n2 + n3 === 0) {
+        for (const c of centres) {
+            const cid = c.centerId;
+            if (!cid) continue;
+            try {
+                const rs = await fetchTimeout(`${API}/session/list/${cid}`, {}, 4000).catch(() => null);
+                if (!rs || !rs.ok) continue;
+                const ds = await rs.json();
+                const sessions = ds.sessions || [];
+                for (const s of sessions.slice(0, 10)) {
+                    const sid = s.sessionId || s.id;
+                    const niv = parseInt(s.niveau || s.niveauSsiap || 0);
+                    try {
+                        const rst = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 3000).catch(() => null);
+                        if (!rst || !rst.ok) continue;
+                        const dst = await rst.json();
+                        const stags = dst.stagiaires || dst || [];
+                        for (const st of stags) {
+                            const uid = st.stagiaireId || st.id || st.qrCode;
+                            if (!uid) continue;
+                            try {
+                                const re = await fetchTimeout(`${API}/entrainement/results/${cid}/${uid}`, {}, 3000).catch(() => null);
+                                if (!re || !re.ok) continue;
+                                const de = await re.json();
+                                const results = de.results || [];
+                                results.forEach(res => {
+                                    const rNiv = parseInt(res.niveau || niv || 1);
+                                    if (rNiv === 1) n1++;
+                                    else if (rNiv === 2) n2++;
+                                    else if (rNiv === 3) n3++;
+                                });
+                            } catch {}
+                        }
+                    } catch {}
+                }
+                if (n1 + n2 + n3 > 0) { source = 'résultats'; break; }
+            } catch {}
+        }
+    }
+
     const total = n1 + n2 + n3;
-    set('total-entr', total > 0 ? total : '—');
+    // Toujours afficher 0 au lieu de "—" — les données sont réelles (aucun entraînement)
+    set('total-entr', total);
     set('entr-source', source);
 
-    if (total > 0) {
-        const pct = n => Math.round(n / total * 100);
-        set('count-n1', n1); set('pct-n1', ' ' + pct(n1) + '%');
-        set('count-n2', n2); set('pct-n2', ' ' + pct(n2) + '%');
-        set('count-n3', n3); set('pct-n3', ' ' + pct(n3) + '%');
-        setTimeout(() => {
-            document.getElementById('bar-n1').style.width = pct(n1) + '%';
-            document.getElementById('bar-n2').style.width = pct(n2) + '%';
-            document.getElementById('bar-n3').style.width = pct(n3) + '%';
-        }, 100);
-    } else {
-        ['n1','n2','n3'].forEach(n => {
-            set('count-'+n, '—'); set('pct-'+n, '');
-            document.getElementById('bar-'+n).style.width = '0%';
-        });
-    }
+    const pct = n => total > 0 ? Math.round(n / total * 100) : 0;
+    set('count-n1', n1); set('pct-n1', total > 0 ? ' ' + pct(n1) + '%' : ' 0%');
+    set('count-n2', n2); set('pct-n2', total > 0 ? ' ' + pct(n2) + '%' : ' 0%');
+    set('count-n3', n3); set('pct-n3', total > 0 ? ' ' + pct(n3) + '%' : ' 0%');
+    setTimeout(() => {
+        document.getElementById('bar-n1').style.width = pct(n1) + '%';
+        document.getElementById('bar-n2').style.width = pct(n2) + '%';
+        document.getElementById('bar-n3').style.width = pct(n3) + '%';
+    }, 100);
 }
 
 // ── GRAPHIQUE MENSUEL GLOBAL ────────────────────────────────
@@ -803,7 +838,9 @@ async function loadMonthlyStats(centres) {
     const monthly = new Array(12).fill(0);
     const now = new Date();
     let hasData = false;
+    let sourceLabel = 'Tous centres confondus';
 
+    // 1. Essayer l'historique des entraînements
     for (const c of centres) {
         const cid = c.centerId;
         if (!cid) continue;
@@ -824,6 +861,7 @@ async function loadMonthlyStats(centres) {
         } catch(e) {}
     }
 
+    // 2. Essayer l'endpoint global admin
     if (!hasData) {
         try {
             const r = await fetchTimeout(`${API}/admin/stats/monthly`, { headers: authHeaders() }, 5000).catch(() => null);
@@ -834,16 +872,43 @@ async function loadMonthlyStats(centres) {
         } catch(e) {}
     }
 
+    // 3. Fallback : utiliser les dates de création des sessions comme proxy
+    if (!hasData) {
+        for (const c of centres) {
+            const cid = c.centerId;
+            if (!cid) continue;
+            try {
+                const r = await fetchTimeout(`${API}/session/list/${cid}`, {}, 4000).catch(() => null);
+                if (r && r.ok) {
+                    const d = await r.json();
+                    const sessions = d.sessions || [];
+                    sessions.forEach(s => {
+                        const date = new Date(s.dateDebut || s.createdAt || 0);
+                        if (!date.getTime()) return;
+                        const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+                        if (monthDiff >= 0 && monthDiff < 12) {
+                            monthly[11 - monthDiff]++;
+                            hasData = true;
+                        }
+                    });
+                }
+            } catch {}
+        }
+        if (hasData) sourceLabel = 'Sessions (proxy activité)';
+    }
+
     _monthlyData = monthly;
     buildMonthlyChart('monthly-chart', 'monthly-labels', monthly, now);
 
-    const total = monthly.reduce((a,b) => a+b, 0);
+    const total   = monthly.reduce((a,b) => a+b, 0);
     const current = monthly[11];
-    const avg = Math.round(total / 12);
-    set('monthly-total',   hasData ? total   : '—');
-    set('monthly-current', hasData ? current : '—');
-    set('monthly-avg',     hasData ? avg     : '—');
-    set('monthly-total-label', hasData ? 'Tous centres confondus' : 'Données non disponibles');
+    const avg     = Math.round(total / 12);
+
+    // Toujours afficher les chiffres (0 si pas de données), jamais "—"
+    set('monthly-total',   total);
+    set('monthly-current', current);
+    set('monthly-avg',     avg);
+    set('monthly-total-label', hasData ? sourceLabel : 'Aucun entraînement enregistré');
 }
 
 function buildMonthlyChart(chartId, labelsId, data, refDate) {
@@ -1272,15 +1337,32 @@ document.getElementById('modal-reponse').addEventListener('click', e => {
 async function loadLicences() {
     try {
         const r = await fetchTimeout(API + '/license/list', { headers: authHeaders() }).catch(() => null);
-        if (!r || !r.ok) throw new Error();
+        if (!r || !r.ok) throw new Error('HTTP ' + (r?.status || 'err'));
         const data = await r.json();
         _licences = data.licenses || [];
-        renderLicences(_licences);
-        updateLicenceStats(_licences);
     } catch(e) {
         console.warn('loadLicences:', e.message);
-        updateLicenceStats([]);
+        _licences = [];
     }
+
+    // ── Fallback : construire les licences depuis _centres si l'endpoint renvoie vide ──
+    if (_licences.length === 0 && _centres.length > 0) {
+        console.info('licences: fallback depuis _centres');
+        _licences = _centres
+            .filter(c => c.license?.type)
+            .map(c => ({
+                type:      c.license.type,
+                active:    c.status !== 'inactive',
+                actif:     c.status !== 'inactive',
+                centerId:  c.centerId,
+                createdAt: c.license.createdAt || null,
+                expiresAt: c.license.expiresAt || null,
+                key:       null,   // clé non disponible via cet endpoint
+            }));
+    }
+
+    renderLicences(_licences);
+    updateLicenceStats(_licences);
 }
 
 function renderLicences(lics) {
