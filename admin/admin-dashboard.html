@@ -188,6 +188,13 @@ tr:hover td{background:var(--subtle)}
 .centre-kpi-val{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--terra)}
 .centre-kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
 
+/* MODAL RÉPONSE DEMANDE */
+.modal-reponse{background:var(--surface);border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 80px rgba(0,0,0,.2)}
+.form-group{margin-bottom:14px}
+.form-label{display:block;margin-bottom:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text)}
+.form-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--surface);outline:none;resize:vertical;min-height:100px;transition:.15s}
+.form-textarea:focus{border-color:var(--terra)}
+
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
@@ -209,7 +216,7 @@ tr:hover td{background:var(--subtle)}
       <div class="nav-item" onclick="showTab('centres')"><span class="icon">🏢</span> Centres <span class="nav-badge" id="badge-centres">—</span></div>
       <div class="nav-section">Activité</div>
       <div class="nav-item" onclick="showTab('connexions')"><span class="icon">📡</span> Connexions</div>
-      <div class="nav-item" onclick="showTab('demandes')"><span class="icon">📨</span> Demandes <span class="nav-badge" id="badge-demandes">3</span></div>
+      <div class="nav-item" onclick="showTab('demandes')"><span class="icon">📨</span> Demandes <span class="nav-badge" id="badge-demandes">—</span></div>
       <div class="nav-section">Qualité</div>
       <div class="nav-item" onclick="window.location='admin-avis.html'"><span class="icon">⭐</span> Avis & Retours</div>
       <div class="nav-section">Finance</div>
@@ -288,8 +295,7 @@ tr:hover td{background:var(--subtle)}
               <span class="card-action" onclick="markAllRead()">Tout marquer lu</span>
             </div>
             <div class="alert-list" id="alerts-list">
-              <div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>
-              <div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Avis & Retours</strong>Consultez les retours des centres</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>
+              <div class="alert-item info"><span class="alert-icon">⏳</span><div class="alert-text"><strong>Chargement…</strong>Récupération des données</div></div>
             </div>
           </div>
         </div>
@@ -375,7 +381,7 @@ tr:hover td{background:var(--subtle)}
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="dot"></span>Activité récente</div></div>
             <div class="timeline" id="timeline-recent">
-              <div class="tl-item"><div class="tl-dot new">🔄</div><div class="tl-body"><div class="tl-title">Données en cours de chargement</div><div class="tl-sub">Connexion à l'API…</div></div><div class="tl-time">—</div></div>
+              <div class="tl-item"><div class="tl-dot new">🔄</div><div class="tl-body"><div class="tl-title">Chargement…</div><div class="tl-sub">Connexion à l'API…</div></div><div class="tl-time">—</div></div>
             </div>
           </div>
         </div>
@@ -428,21 +434,21 @@ tr:hover td{background:var(--subtle)}
       <div id="tab-demandes" class="tab-content">
         <div class="two-col">
           <div class="card">
-            <div class="card-header"><div class="card-title"><span class="dot"></span>Demandes en attente</div><span class="badge terra">3 nouvelles</span></div>
-            <div>
-              <div class="demande-item"><div class="demande-priority" style="background:var(--red)"></div><div class="demande-body"><div class="demande-title">Inscription nouveau centre — Centre SSIAP Nantes</div><div class="demande-meta">📧 contact@nantes.fr · 27/02/2026 08:42 · PREMIUM</div><div class="demande-actions"><button class="btn-sm primary">Valider</button><button class="btn-sm">Refuser</button></div></div></div>
-              <div class="demande-item"><div class="demande-priority" style="background:var(--gold)"></div><div class="demande-body"><div class="demande-title">Renouvellement licence — Centre Bordeaux</div><div class="demande-meta">🔑 STANDARD → ENTERPRISE · 26/02/2026 17:15</div><div class="demande-actions"><button class="btn-sm primary">Traiter</button><button class="btn-sm">Différer</button></div></div></div>
-              <div class="demande-item"><div class="demande-priority" style="background:var(--blue)"></div><div class="demande-body"><div class="demande-title">Question technique — Intégration API</div><div class="demande-meta">💬 Centre Toulouse · 25/02/2026 11:30</div><div class="demande-actions"><button class="btn-sm primary">Répondre</button><button class="btn-sm">Clore</button></div></div></div>
+            <div class="card-header">
+              <div class="card-title"><span class="dot"></span>Demandes en attente</div>
+              <span class="badge terra" id="badge-pending-count"><span class="loading"></span></span>
+            </div>
+            <!-- Conteneur dynamique — rempli par renderDemandesTab() -->
+            <div id="demandes-pending">
+              <div style="color:var(--muted);font-size:11px;text-align:center;padding:20px"><span class="loading"></span> Chargement…</div>
             </div>
           </div>
           <div class="card">
             <div class="card-header"><div class="card-title"><span class="dot"></span>Historique demandes</div></div>
             <table>
               <thead><tr><th>Centre</th><th>Type</th><th>Date</th><th>Statut</th></tr></thead>
-              <tbody>
-                <tr><td>SSIAP Paris</td><td style="font-size:11px">Renouvellement</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">20/02</td><td><span class="badge green">Traité</span></td></tr>
-                <tr><td>SSIAP Lyon</td><td style="font-size:11px">Support</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">18/02</td><td><span class="badge green">Traité</span></td></tr>
-                <tr><td>SSIAP Marseille</td><td style="font-size:11px">Inscription</td><td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">15/02</td><td><span class="badge green">Traité</span></td></tr>
+              <tbody id="demandes-history">
+                <tr><td colspan="4" style="color:var(--muted);font-size:11px;text-align:center;padding:16px"><span class="loading"></span> Chargement…</td></tr>
               </tbody>
             </table>
           </div>
@@ -511,16 +517,13 @@ tr:hover td{background:var(--subtle)}
       <button class="modal-close-btn" onclick="closeCentreModal()">✕</button>
     </div>
     <div class="modal-body">
-      <!-- KPIs centre -->
       <div class="centre-kpi-row">
         <div class="centre-kpi"><div class="centre-kpi-val" id="mc-stagiaires">—</div><div class="centre-kpi-lbl">Stagiaires</div></div>
         <div class="centre-kpi"><div class="centre-kpi-val" id="mc-formateurs" style="color:var(--blue)">—</div><div class="centre-kpi-lbl">Formateurs</div></div>
         <div class="centre-kpi"><div class="centre-kpi-val" id="mc-sessions" style="color:var(--green)">—</div><div class="centre-kpi-lbl">Sessions</div></div>
         <div class="centre-kpi"><div class="centre-kpi-val" id="mc-taux" style="color:var(--gold)">—</div><div class="centre-kpi-lbl">Taux réussite</div></div>
       </div>
-
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-        <!-- Licence -->
         <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px">
           <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">🔑 Licence</div>
           <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
@@ -530,44 +533,47 @@ tr:hover td{background:var(--subtle)}
             <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Restant</span><span id="mc-lic-reste" style="font-family:'DM Mono',monospace;color:var(--terra)">—</span></div>
           </div>
         </div>
-
-        <!-- Entraînements par niveau -->
         <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px">
           <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">📊 Entraînements par niveau</div>
           <div style="display:flex;flex-direction:column;gap:10px">
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
-                <span>SSIAP 1</span><span id="mc-n1" style="font-family:'DM Mono',monospace;color:var(--green)">—</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill" id="mc-bar-n1" style="background:var(--green);width:0%"></div></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
-                <span>SSIAP 2</span><span id="mc-n2" style="font-family:'DM Mono',monospace;color:var(--blue)">—</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill" id="mc-bar-n2" style="background:var(--blue);width:0%"></div></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
-                <span>SSIAP 3</span><span id="mc-n3" style="font-family:'DM Mono',monospace;color:var(--gold)">—</span>
-              </div>
-              <div class="progress-bar"><div class="progress-fill" id="mc-bar-n3" style="background:var(--gold);width:0%"></div></div>
-            </div>
+            <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>SSIAP 1</span><span id="mc-n1" style="font-family:'DM Mono',monospace;color:var(--green)">—</span></div><div class="progress-bar"><div class="progress-fill" id="mc-bar-n1" style="background:var(--green);width:0%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>SSIAP 2</span><span id="mc-n2" style="font-family:'DM Mono',monospace;color:var(--blue)">—</span></div><div class="progress-bar"><div class="progress-fill" id="mc-bar-n2" style="background:var(--blue);width:0%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span>SSIAP 3</span><span id="mc-n3" style="font-family:'DM Mono',monospace;color:var(--gold)">—</span></div><div class="progress-bar"><div class="progress-fill" id="mc-bar-n3" style="background:var(--gold);width:0%"></div></div></div>
           </div>
         </div>
       </div>
-
-      <!-- Activité 6 mois pour ce centre -->
       <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
         <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">📈 Activité — 6 derniers mois</div>
         <div class="monthly-chart" id="mc-monthly-chart" style="height:60px"></div>
         <div id="mc-monthly-labels" style="display:flex;gap:6px;margin-top:4px"></div>
       </div>
-
-      <!-- Formateurs -->
       <div style="background:var(--subtle);border:1px solid var(--border);border-radius:10px;padding:16px">
         <div style="font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:12px">👨‍🏫 Formateurs actifs</div>
         <div id="mc-formateurs-list" style="font-size:12px;color:var(--muted);text-align:center;padding:8px">Chargement…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL RÉPONSE DEMANDE ═══ -->
+<div class="modal-overlay" id="modal-reponse">
+  <div class="modal-reponse">
+    <div style="padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:'Lora',serif;font-size:18px;font-weight:700" id="modal-rep-titre">Répondre</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="modal-rep-sub">—</div>
+      </div>
+      <button class="modal-close-btn" onclick="closeReponseModal()">✕</button>
+    </div>
+    <div style="padding:20px 28px 24px">
+      <div class="form-group">
+        <label class="form-label">Message de réponse</label>
+        <textarea class="form-textarea" id="rep-message" placeholder="Votre réponse…"></textarea>
+      </div>
+      <input type="hidden" id="rep-demande-id">
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn-sm" onclick="closeReponseModal()">Annuler</button>
+        <button class="btn-sm primary" onclick="envoyerReponse()">📨 Envoyer la réponse</button>
       </div>
     </div>
   </div>
@@ -595,9 +601,10 @@ const API = 'https://ssiap-training-center.onrender.com/api';
 function getAdminToken() { return sessionStorage.getItem('adminToken') || ''; }
 function authHeaders()   { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getAdminToken() }; }
 
-let _centres = [];
+let _centres  = [];
 let _licences = [];
-let _monthlyData = new Array(12).fill(0); // quiz par mois
+let _demandes = [];
+let _monthlyData = new Array(12).fill(0);
 
 document.getElementById('current-date').textContent =
     new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -613,6 +620,7 @@ function showTab(id) {
     document.querySelectorAll('.nav-item').forEach(n => { if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active'); });
     if (id === 'connexions') buildConnexions();
     if (id === 'ca')         buildCA();
+    if (id === 'demandes')   loadDemandes();
 }
 
 function goQuestions() { window.location = 'admin-questions.html'; }
@@ -629,7 +637,7 @@ async function loadAllData() {
     const icon = document.getElementById('refresh-icon');
     icon.style.animation = 'spin .6s linear infinite';
     try {
-        await Promise.allSettled([loadCentres(), loadLicences()]);
+        await Promise.allSettled([loadCentres(), loadLicences(), loadDemandes()]);
     } finally {
         icon.style.animation = '';
     }
@@ -642,6 +650,8 @@ async function loadCentres() {
         if (!r || !r.ok) throw new Error();
         const data = await r.json();
         let centres = data.centers || [];
+
+        // Enrichir en parallèle (formateurs + sessions + stagiaires)
         centres = await Promise.all(centres.map(c => enrichCentreStats(c)));
         _centres = centres;
 
@@ -649,16 +659,17 @@ async function loadCentres() {
         renderCentresFull(centres);
 
         const totalStagiaires = centres.reduce((s, c) => s + (c.stats?.stagiaires || 0), 0);
-        const totalSessions   = centres.reduce((s, c) => s + (c.stats?.sessions || 0), 0);
+        const totalSessions   = centres.reduce((s, c) => s + (c.stats?.sessions   || 0), 0);
 
-        set('kpi-centres', centres.length);
+        set('kpi-centres',       centres.length);
         set('kpi-centres-trend', centres.length + ' centre(s) enregistré(s)');
-        set('badge-centres', centres.length);
-        set('centres-count', centres.length + ' centre(s)');
-        set('kpi-stagiaires', totalStagiaires || '—');
-        set('kpi-sessions', totalSessions || '—');
+        set('badge-centres',     centres.length);
+        set('centres-count',     centres.length + ' centre(s)');
+
+        set('kpi-stagiaires', totalStagiaires > 0 ? totalStagiaires : '0');
+        set('kpi-sessions',   totalSessions   > 0 ? totalSessions   : '0');
         set('kpi-stag-trend', totalStagiaires > 0 ? totalStagiaires + ' au total' : 'Aucun stagiaire');
-        set('kpi-sess-trend', totalSessions > 0 ? totalSessions + ' sessions' : 'Aucune session');
+        set('kpi-sess-trend', totalSessions   > 0 ? totalSessions   + ' sessions' : 'Aucune session');
 
         await loadEntrainementsStats(centres);
         await loadMonthlyStats(centres);
@@ -671,25 +682,56 @@ async function loadCentres() {
     }
 }
 
+// ── ENRICH : formateurs + sessions + stagiaires ────────────
 async function enrichCentreStats(c) {
     if (!c.stats) c.stats = {};
     const cid = c.centerId || c.id;
     if (!cid) return c;
+
+    // Formateurs
     try {
         const r = await fetchTimeout(`${API}/formateur/list/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
-        if (r && r.ok) { const d = await r.json(); c.stats.formateurs = (d.formateurs || d || []).length; }
+        if (r && r.ok) {
+            const d = await r.json();
+            c.stats.formateurs = (d.formateurs || d || []).length;
+        }
     } catch(e) {}
+
+    // Sessions + Stagiaires (agrégation réelle)
+    try {
+        const r = await fetchTimeout(`${API}/session/list/${cid}`, {}, 4000).catch(() => null);
+        if (r && r.ok) {
+            const d = await r.json();
+            const sessions = d.sessions || [];
+            c.stats.sessions = sessions.length;
+
+            // Compter les stagiaires de chaque session (max 15 sessions pour perf)
+            let totalStag = 0;
+            await Promise.all(sessions.slice(0, 15).map(async s => {
+                try {
+                    const sid = s.sessionId || s.id;
+                    const rs = await fetchTimeout(
+                        `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 3000
+                    ).catch(() => null);
+                    if (rs && rs.ok) {
+                        const ds = await rs.json();
+                        totalStag += (ds.stagiaires || ds || []).length;
+                    }
+                } catch {}
+            }));
+            c.stats.stagiaires = totalStag;
+        }
+    } catch(e) {}
+
     return c;
 }
 
 // ── ENTRAÎNEMENTS PAR NIVEAU ────────────────────────────────
-// Aggrège depuis Firebase via l'API dashboard
 async function loadEntrainementsStats(centres) {
     let n1=0, n2=0, n3=0;
     let source = 'agrégé';
 
     try {
-        // Tenter l'endpoint admin stats
         const r = await fetchTimeout(`${API}/admin/stats/entrainements`, { headers: authHeaders() }, 5000).catch(() => null);
         if (r && r.ok) {
             const d = await r.json();
@@ -700,7 +742,6 @@ async function loadEntrainementsStats(centres) {
         }
     } catch(e) {}
 
-    // Fallback : agréger depuis dashboard de chaque centre
     if (n1 + n2 + n3 === 0) {
         for (const c of centres) {
             const cid = c.centerId;
@@ -718,7 +759,6 @@ async function loadEntrainementsStats(centres) {
         }
     }
 
-    // Fallback : agréger depuis entrainements
     if (n1 + n2 + n3 === 0) {
         for (const c of centres) {
             const cid = c.centerId;
@@ -784,7 +824,6 @@ async function loadMonthlyStats(centres) {
         } catch(e) {}
     }
 
-    // Si pas de données, essayer stats globales
     if (!hasData) {
         try {
             const r = await fetchTimeout(`${API}/admin/stats/monthly`, { headers: authHeaders() }, 5000).catch(() => null);
@@ -801,9 +840,9 @@ async function loadMonthlyStats(centres) {
     const total = monthly.reduce((a,b) => a+b, 0);
     const current = monthly[11];
     const avg = Math.round(total / 12);
-    set('monthly-total', hasData ? total : '—');
+    set('monthly-total',   hasData ? total   : '—');
     set('monthly-current', hasData ? current : '—');
-    set('monthly-avg', hasData ? avg : '—');
+    set('monthly-avg',     hasData ? avg     : '—');
     set('monthly-total-label', hasData ? 'Tous centres confondus' : 'Données non disponibles');
 }
 
@@ -817,13 +856,10 @@ function buildMonthlyChart(chartId, labelsId, data, refDate) {
     const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
     const maxVal = Math.max(...data, 1);
     const now = refDate || new Date();
-    const currentMonthIdx = 11; // dernier = mois en cours
 
     data.forEach((val, i) => {
         const h = Math.max(4, Math.round((val / maxVal) * (chart.style.height ? parseInt(chart.style.height) - 20 : 60)));
-        const isCurrent = i === currentMonthIdx;
-
-        // Calculer le mois correspondant
+        const isCurrent = i === 11;
         const monthOffset = 11 - i;
         const d = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
         const mLabel = mois[d.getMonth()];
@@ -844,6 +880,201 @@ function buildMonthlyChart(chartId, labelsId, data, refDate) {
     });
 }
 
+// ── DEMANDES (réelles depuis l'API) ────────────────────────
+async function loadDemandes() {
+    try {
+        // Essayer plusieurs endpoints possibles
+        let r = await fetchTimeout(`${API}/admin/demandes`, { headers: authHeaders() }, 6000).catch(() => null);
+        if (!r || !r.ok) {
+            r = await fetchTimeout(`${API}/demandes/list`, { headers: authHeaders() }, 6000).catch(() => null);
+        }
+        if (!r || !r.ok) {
+            r = await fetchTimeout(`${API}/demandes`, { headers: authHeaders() }, 6000).catch(() => null);
+        }
+
+        if (r && r.ok) {
+            const data = await r.json();
+            _demandes = data.demandes || data.requests || data || [];
+            if (!Array.isArray(_demandes)) _demandes = [];
+        } else {
+            _demandes = [];
+        }
+    } catch(e) {
+        console.warn('loadDemandes:', e.message);
+        _demandes = [];
+    }
+
+    renderDemandesTab(_demandes);
+
+    // Mise à jour des badges
+    const pending = _demandes.filter(d => {
+        const s = (d.statut || d.status || '').toLowerCase();
+        return !s || s === 'pending' || s === 'en_attente' || s === 'nouveau';
+    }).length;
+    set('badge-demandes', pending > 0 ? pending : _demandes.length > 0 ? '0' : '—');
+
+    // Mettre à jour l'alerte dans le dashboard
+    updateDemandesAlert(pending);
+}
+
+function renderDemandesTab(demandes) {
+    const pending = demandes.filter(d => {
+        const s = (d.statut || d.status || '').toLowerCase();
+        return !s || s === 'pending' || s === 'en_attente' || s === 'nouveau';
+    });
+    const done = demandes.filter(d => {
+        const s = (d.statut || d.status || '').toLowerCase();
+        return s === 'traite' || s === 'traité' || s === 'done' || s === 'closed' || s === 'refuse' || s === 'refusé';
+    });
+
+    // Mettre à jour le badge dans le header de la carte
+    const badgePending = document.getElementById('badge-pending-count');
+    if (badgePending) badgePending.textContent = pending.length > 0 ? pending.length + ' nouvelle(s)' : '0 en attente';
+
+    // ── PENDING ──────────────────────────────────────────────
+    const pendingContainer = document.getElementById('demandes-pending');
+    if (pendingContainer) {
+        if (!pending.length) {
+            pendingContainer.innerHTML = `
+                <div style="text-align:center;padding:30px;color:var(--muted)">
+                    <div style="font-size:28px;margin-bottom:8px">✅</div>
+                    <div style="font-size:12px;font-weight:600">Aucune demande en attente</div>
+                </div>`;
+        } else {
+            pendingContainer.innerHTML = pending.map(d => {
+                const id      = d.id || d.demandeId || d._id || '';
+                const type    = d.type || d.sujet || d.objet || 'Demande';
+                const centre  = d.nom || d.centreName || d.nomCentre || d.centerId || '—';
+                const email   = d.email || '';
+                const plan    = d.plan || d.licence || d.licenceType || '';
+                const date    = d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+                const message = d.message || d.description || d.commentaire || '';
+                const prio    = (d.priorite || d.priority || 'medium').toLowerCase();
+                const color   = prio === 'high' || prio === 'urgent' ? 'var(--red)' : prio === 'low' ? 'var(--blue)' : 'var(--gold)';
+                const planBadge = plan ? `<span style="font-family:'DM Mono',monospace;font-size:9px;background:var(--terra-bg);color:var(--terra);padding:1px 6px;border-radius:4px;margin-left:4px">${plan.toUpperCase()}</span>` : '';
+                return `<div class="demande-item">
+                    <div class="demande-priority" style="background:${color}"></div>
+                    <div class="demande-body">
+                        <div class="demande-title">${type} — ${centre}${planBadge}</div>
+                        <div class="demande-meta">${email ? '📧 ' + email + ' · ' : ''}${date}</div>
+                        ${message ? `<div style="font-size:11px;color:var(--text2);margin-top:5px;line-height:1.4;font-style:italic">"${message.slice(0,120)}${message.length>120?'…':''}"</div>` : ''}
+                        <div class="demande-actions">
+                            <button class="btn-sm primary" onclick="traiteDemande('${id}','traite')">✓ Traiter</button>
+                            <button class="btn-sm" onclick="ouvrirReponse('${id}','${(centre+'').replace(/'/g,"\\'")}')">💬 Répondre</button>
+                            <button class="btn-sm" onclick="traiteDemande('${id}','refuse')" style="color:var(--red);border-color:var(--red)">✕ Refuser</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // ── HISTORY ───────────────────────────────────────────────
+    const histContainer = document.getElementById('demandes-history');
+    if (histContainer) {
+        if (!done.length) {
+            histContainer.innerHTML = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:20px;font-size:11px">Aucun historique disponible</td></tr>';
+        } else {
+            histContainer.innerHTML = done.slice(0, 15).map(d => {
+                const centre = d.nom || d.centreName || d.nomCentre || d.centerId || '—';
+                const type   = d.type || d.sujet || 'Demande';
+                const ts     = d.updatedAt || d.treatedAt || d.createdAt;
+                const date   = ts ? new Date(ts).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit'}) : '—';
+                const s      = (d.statut || d.status || '').toLowerCase();
+                const refused = s === 'refuse' || s === 'refusé';
+                return `<tr>
+                    <td>${centre}</td>
+                    <td style="font-size:11px">${type}</td>
+                    <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${date}</td>
+                    <td><span class="badge ${refused ? 'red' : 'green'}">${refused ? 'Refusé' : 'Traité'}</span></td>
+                </tr>`;
+            }).join('');
+        }
+    }
+}
+
+async function traiteDemande(id, statut) {
+    if (!id) return;
+    try {
+        // Essayer PUT /admin/demandes/:id
+        let r = await fetchTimeout(`${API}/admin/demandes/${id}`, {
+            method: 'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({ statut })
+        }, 5000).catch(() => null);
+
+        if (!r || !r.ok) {
+            // Essayer PATCH
+            r = await fetchTimeout(`${API}/demandes/${id}`, {
+                method: 'PATCH',
+                headers: authHeaders(),
+                body: JSON.stringify({ statut })
+            }, 5000).catch(() => null);
+        }
+
+        // Mise à jour optimiste locale même si l'API ne répond pas
+        const idx = _demandes.findIndex(d => (d.id || d.demandeId || d._id) === id);
+        if (idx !== -1) {
+            _demandes[idx].statut = statut;
+            renderDemandesTab(_demandes);
+            const pending = _demandes.filter(d => {
+                const s = (d.statut || d.status || '').toLowerCase();
+                return !s || s === 'pending' || s === 'en_attente' || s === 'nouveau';
+            }).length;
+            set('badge-demandes', pending > 0 ? pending : '0');
+            updateDemandesAlert(pending);
+        } else {
+            // Recharger si l'ID n'est pas trouvé localement
+            await loadDemandes();
+        }
+    } catch(e) {
+        console.warn('traiteDemande:', e.message);
+    }
+}
+
+function ouvrirReponse(id, centre) {
+    document.getElementById('rep-demande-id').value = id;
+    document.getElementById('modal-rep-titre').textContent = 'Répondre à la demande';
+    document.getElementById('modal-rep-sub').textContent   = centre;
+    document.getElementById('rep-message').value = '';
+    document.getElementById('modal-reponse').classList.add('open');
+}
+
+function closeReponseModal() {
+    document.getElementById('modal-reponse').classList.remove('open');
+}
+
+async function envoyerReponse() {
+    const id  = document.getElementById('rep-demande-id').value;
+    const msg = document.getElementById('rep-message').value.trim();
+    if (!msg) return;
+    try {
+        await fetchTimeout(`${API}/admin/demandes/${id}/repondre`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ message: msg })
+        }, 5000).catch(() => null);
+    } catch(e) {}
+    // Marquer comme traité
+    await traiteDemande(id, 'traite');
+    closeReponseModal();
+}
+
+function updateDemandesAlert(pending) {
+    const container = document.getElementById('alerts-list');
+    if (!container) return;
+    // Mettre à jour uniquement l'alerte demandes si elle existe
+    const existingAlerts = container.querySelectorAll('[data-alert="demandes"]');
+    existingAlerts.forEach(el => el.remove());
+    if (pending > 0) {
+        const alertEl = document.createElement('div');
+        alertEl.className = 'alert-item warning';
+        alertEl.setAttribute('data-alert', 'demandes');
+        alertEl.innerHTML = `<span class="alert-icon">🕐</span><div class="alert-text"><strong>${pending} demande(s) en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span>`;
+        container.prepend(alertEl);
+    }
+}
+
 // ── ALERTES DYNAMIQUES ─────────────────────────────────────
 function buildDynamicAlerts(centres) {
     const container = document.getElementById('alerts-list');
@@ -862,9 +1093,15 @@ function buildDynamicAlerts(centres) {
             <span class="alert-action" style="color:${j<=7?'var(--red)':'var(--gold)'}">Relancer</span>
         </div>`;
     });
-    html += `<div class="alert-item warning"><span class="alert-icon">🕐</span><div class="alert-text"><strong>3 demandes en attente</strong>Nouvelles inscriptions non traitées</div><span class="alert-action" style="color:var(--gold)" onclick="showTab('demandes')">Traiter</span></div>`;
     html += `<div class="alert-item info"><span class="alert-icon">⭐</span><div class="alert-text"><strong>Avis & Retours</strong>Consultez les retours des centres</div><span class="alert-action" style="color:var(--blue)" onclick="window.location='admin-avis.html'">Lire</span></div>`;
     container.innerHTML = html;
+
+    // Ajouter l'alerte demandes si déjà chargée
+    const pending = _demandes.filter(d => {
+        const s = (d.statut || d.status || '').toLowerCase();
+        return !s || s === 'pending' || s === 'en_attente' || s === 'nouveau';
+    }).length;
+    if (pending > 0) updateDemandesAlert(pending);
 }
 
 function buildTimeline(centres) {
@@ -892,8 +1129,8 @@ function renderCentresMini(centres) {
     const tbody = document.getElementById('centres-table-mini');
     if (!centres.length) { tbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-size:11px">Aucun centre</td></tr>'; return; }
     tbody.innerHTML = centres.slice(0,5).map(c => {
-        const nom = c.nom || c.info?.nom || c.centerId?.slice(0,12) || '—';
-        const lic = c.license?.type || 'DEMO';
+        const nom  = c.nom || c.info?.nom || c.centerId?.slice(0,12) || '—';
+        const lic  = c.license?.type || 'DEMO';
         const stag = c.stats?.stagiaires ?? '—';
         const active = c.status !== 'inactive';
         const licClass = lic==='ENTERPRISE'||lic==='entreprise'?'green':lic==='PRO'||lic==='pro'?'gold':lic==='STARTER'||lic==='starter'?'blue':'gray';
@@ -911,12 +1148,12 @@ function renderCentresFull(centres) {
     const tbody = document.getElementById('centres-table-full');
     if (!centres.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Aucun centre</td></tr>'; return; }
     tbody.innerHTML = centres.map(c => {
-        const nom   = c.nom || c.info?.nom || c.centerId?.slice(0,16) || '—';
-        const lic   = c.license?.type || 'DEMO';
-        const form  = c.stats?.formateurs ?? '—';
-        const stag  = c.stats?.stagiaires ?? '—';
-        const sess  = c.stats?.sessions ?? '—';
-        const exp   = c.license?.expiresAt ? new Date(c.license.expiresAt).toLocaleDateString('fr-FR') : '—';
+        const nom  = c.nom || c.info?.nom || c.centerId?.slice(0,16) || '—';
+        const lic  = c.license?.type || 'DEMO';
+        const form = c.stats?.formateurs ?? '—';
+        const stag = c.stats?.stagiaires ?? '—';
+        const sess = c.stats?.sessions   ?? '—';
+        const exp  = c.license?.expiresAt ? new Date(c.license.expiresAt).toLocaleDateString('fr-FR') : '—';
         const jours = c.license?.expiresAt ? Math.ceil((c.license.expiresAt - Date.now()) / 86400000) : null;
         const urgence = jours !== null && jours < 30;
         const licClass = lic==='ENTERPRISE'||lic==='entreprise'?'green':lic==='PRO'||lic==='pro'?'gold':lic==='STARTER'||lic==='starter'?'blue':'gray';
@@ -945,18 +1182,16 @@ async function openCentreModal(centreId) {
     set('modal-centre-id', centreId);
     set('mc-stagiaires', c.stats?.stagiaires ?? '—');
     set('mc-formateurs', c.stats?.formateurs ?? '—');
-    set('mc-sessions', c.stats?.sessions ?? '—');
+    set('mc-sessions',   c.stats?.sessions   ?? '—');
     set('mc-taux', '—');
 
-    // Licence
     const lic = c.license || {};
-    set('mc-lic-type', (lic.type || 'DEMO').toUpperCase());
+    set('mc-lic-type',  (lic.type || 'DEMO').toUpperCase());
     set('mc-lic-debut', lic.createdAt ? new Date(lic.createdAt).toLocaleDateString('fr-FR') : '—');
-    set('mc-lic-fin', lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : 'Abonnement Stripe');
+    set('mc-lic-fin',   lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : 'Abonnement Stripe');
     const jours = lic.expiresAt ? Math.ceil((lic.expiresAt - Date.now()) / 86400000) : null;
     set('mc-lic-reste', jours !== null ? jours + ' jours' : 'En cours');
 
-    // Reset graphique + stats niveau
     ['mc-bar-n1','mc-bar-n2','mc-bar-n3'].forEach(id => document.getElementById(id).style.width = '0%');
     ['mc-n1','mc-n2','mc-n3'].forEach(id => set(id, '…'));
     set('mc-formateurs-list', 'Chargement…');
@@ -965,9 +1200,7 @@ async function openCentreModal(centreId) {
     document.getElementById('modal-centre').classList.add('open');
     document.body.style.overflow = 'hidden';
 
-    // Charger les stats détaillées
     try {
-        // Entraînements par niveau pour ce centre
         const re = await fetchTimeout(`${API}/entrainement/stats/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
         if (re && re.ok) {
             const d = await re.json();
@@ -986,7 +1219,6 @@ async function openCentreModal(centreId) {
             } else { ['mc-n1','mc-n2','mc-n3'].forEach(id => set(id, '0')); }
         }
 
-        // Activité 6 derniers mois
         const rh = await fetchTimeout(`${API}/entrainement/history/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
         if (rh && rh.ok) {
             const d = await rh.json();
@@ -1000,11 +1232,9 @@ async function openCentreModal(centreId) {
             });
             buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', monthly6, now);
         } else {
-            // Mini graphique vide
             buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', new Array(6).fill(0), new Date());
         }
 
-        // Formateurs
         const rf = await fetchTimeout(`${API}/formateur/list/${centreId}`, { headers: authHeaders() }, 4000).catch(() => null);
         if (rf && rf.ok) {
             const d = await rf.json();
@@ -1033,6 +1263,9 @@ function closeCentreModal() {
 }
 document.getElementById('modal-centre').addEventListener('click', e => {
     if (e.target === document.getElementById('modal-centre')) closeCentreModal();
+});
+document.getElementById('modal-reponse').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-reponse')) closeReponseModal();
 });
 
 // ── LICENCES ───────────────────────────────────────────────
@@ -1074,7 +1307,6 @@ function renderLicences(lics) {
 }
 
 function updateLicenceStats(lics) {
-    // Compter par type (nouveaux noms Stripe)
     const counts = { DEMO:0, independant:0, starter:0, pro:0, entreprise:0 };
     lics.forEach(l => {
         const t = (l.type||'DEMO').toLowerCase();
@@ -1090,8 +1322,6 @@ function updateLicenceStats(lics) {
     set('nb-pro',  counts.pro);
     set('nb-ent',  counts.entreprise);
 
-    // Prix mensuels Stripe
-    const prices = { independant:99, starter:199, pro:299, entreprise:333 };
     const totalMensuel = counts.independant*99 + counts.starter*199 + counts.pro*299 + counts.entreprise*333;
     const totalAnnuel  = totalMensuel * 12;
     const active = lics.filter(l => l.active || l.actif).length;
@@ -1109,7 +1339,6 @@ function updateLicenceStats(lics) {
     set('kpi-ca',        totalMensuel > 0 ? totalMensuel.toLocaleString('fr-FR') + ' €' : '0 €');
     set('kpi-ca-trend',  totalMensuel > 0 ? active + ' licence(s) actives' : 'Aucun abonnement actif');
 
-    // Donut
     const circ = 2 * Math.PI * 35;
     const tot  = lics.length || 1;
     setTimeout(() => {
