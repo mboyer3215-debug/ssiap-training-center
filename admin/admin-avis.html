@@ -281,7 +281,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
     <div class="stats-bar">
       <div class="stat-cell"><div class="stat-val" id="sv-total" style="color:var(--terra)">0</div><div class="stat-lbl">Total avis</div></div>
       <div class="stat-cell"><div class="stat-val" id="sv-note" style="color:var(--gold)">—</div><div class="stat-lbl">Note moy.</div></div>
-      <div class="stat-cell"><div class="stat-val" id="sv-nps" style="color:var(--green)">—</div><div class="stat-lbl">NPS</div></div>
+      <div class="stat-cell"><div class="stat-val" id="sv-nps" style="color:var(--green)">+0</div><div class="stat-lbl">NPS</div></div>
       <div class="stat-cell"><div class="stat-val" id="sv-sansr" style="color:var(--terra)">0</div><div class="stat-lbl">Sans réponse</div></div>
       <div class="stat-cell"><div class="stat-val" id="sv-centres" style="color:var(--blue)">0</div><div class="stat-lbl">Centres actifs</div></div>
     </div>
@@ -337,27 +337,41 @@ const API = 'https://ssiap-training-center.onrender.com/api';
 let allAvis = [], displayed = [], currentAvisId = null;
 let geoFilter = null, activeFilter = 'all', isGridView = true;
 
-// ── Chargement ──
+// ── Helpers ──────────────────────────────────────────────────
+// Normalise noteGlobale en float (l'API peut renvoyer string ou number)
+function toFloat(v) { return parseFloat(v) || 0; }
+function starsStr(n) { let s = ''; for (let i = 1; i <= 5; i++) s += i <= n ? '★' : '☆'; return s; }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('fr-FR'); }
+
+// ── Chargement ────────────────────────────────────────────────
 async function loadAvis() {
   try {
     const r = await fetch(`${API}/avis/list?limit=200`);
-    if (!r.ok) throw new Error();
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
-    allAvis = d.avis || [];
-  } catch {
-    // Données démo si API inaccessible
-    allAvis = [
-      {id:'a1',role:'formateur',prenom:'Marie',nom:'Dupont',centreNom:'Centre SSIAP Paris',centreVille:'Paris',centreRegion:'Île-de-France',centreDept:'75',niveau:'2',noteGlobale:4.6,ratings:{questions:5,explications:5,interface:4,progression:4,rolespecific:5},positifs:['Questions pertinentes','Explications détaillées','Dashboard formateur'],negatifs:['Export PDF résultats'],nps:9,commentaire:'Excellent outil, mes stagiaires progressent nettement plus vite.',adminReplies:[],createdAt:Date.now()-86400000*2},
-      {id:'a2',role:'stagiaire',prenom:'Thomas',nom:'Martin',centreNom:'Centre SSIAP Lyon',centreVille:'Lyon',centreRegion:'Auvergne-Rhône-Alpes',centreDept:'69',niveau:'1',noteGlobale:4.2,ratings:{questions:4,explications:4,interface:5,progression:4,rolespecific:4},positifs:['Interface intuitive','Accessible partout'],negatifs:['Mode hors-ligne'],nps:8,commentaire:'Très pratique pour réviser dans le métro.',adminReplies:[],createdAt:Date.now()-86400000*4},
-      {id:'a3',role:'stagiaire',prenom:'Lucie',nom:'Bernard',centreNom:'Centre SSIAP Paris',centreVille:'Paris',centreRegion:'Île-de-France',centreDept:'75',niveau:'1',noteGlobale:5,ratings:{questions:5,explications:5,interface:5,progression:5,rolespecific:5},positifs:['Questions pertinentes','Prépare bien l\'examen'],negatifs:[],nps:10,commentaire:"J'ai eu 18/20 à mon examen SSIAP 1 !",adminReplies:[{texte:'Félicitations Lucie ! Votre réussite nous rend fiers 🎉',timestamp:Date.now()-86400000*5}],createdAt:Date.now()-86400000*6},
-      {id:'a4',role:'formateur',prenom:'Jean-Pierre',nom:'Lebrun',centreNom:'Centre SSIAP Lyon',centreVille:'Lyon',centreRegion:'Auvergne-Rhône-Alpes',centreDept:'69',niveau:'3',noteGlobale:3.8,ratings:{questions:4,explications:4,interface:3,progression:4,rolespecific:3},positifs:['Questions pertinentes'],negatifs:['Temps de chargement','App mobile'],nps:7,commentaire:'Bon outil, manque quelques fonctionnalités SSIAP 3.',adminReplies:[],createdAt:Date.now()-86400000*10},
-      {id:'a5',role:'stagiaire',prenom:'Sophie',nom:'Renard',centreNom:'Centre SSIAP Bordeaux',centreVille:'Bordeaux',centreRegion:'Nouvelle-Aquitaine',centreDept:'33',niveau:'2',noteGlobale:4.8,ratings:{questions:5,explications:5,interface:5,progression:4,rolespecific:5},positifs:['Questions pertinentes','Interface intuitive'],negatifs:['Notifications'],nps:10,commentaire:"Vraiment bien fait. Les questions sont dures mais c'est exactement ce qu'il faut.",adminReplies:[],createdAt:Date.now()-86400000*12},
-    ];
+    allAvis = (d.avis || []).map(normalizeAvis);
+  } catch(e) {
+    console.warn('loadAvis:', e.message);
+    allAvis = [];
   }
-  buildGeoTree(); updateCounts(); applyFilter();
+  buildGeoTree();
+  updateCounts();
+  applyFilter();
 }
 
-// ── Geo tree ──
+// Normalise un avis pour s'assurer que noteGlobale est un nombre
+function normalizeAvis(a) {
+  return {
+    ...a,
+    noteGlobale:  toFloat(a.noteGlobale),
+    nps:          a.nps != null ? parseInt(a.nps) : null,
+    adminReplies: a.adminReplies || [],
+    createdAt:    a.createdAt || Date.now(),
+    niveau:       a.niveau != null ? String(a.niveau) : null,
+  };
+}
+
+// ── Geo tree ──────────────────────────────────────────────────
 function buildGeoTree() {
   const regions = {};
   allAvis.forEach(a => {
@@ -382,7 +396,7 @@ function buildGeoTree() {
   document.getElementById('cnt-national').textContent = allAvis.length;
 }
 
-// ── Filtres ──
+// ── Filtres ───────────────────────────────────────────────────
 function setFilter(f, el) {
   activeFilter = f; geoFilter = null;
   document.querySelectorAll('.fi,.geo-child').forEach(i => i.classList.remove('active'));
@@ -419,7 +433,9 @@ function applyFilter() {
     if (activeFilter === 'note3')      list = list.filter(a => Math.round(a.noteGlobale) === 3);
     if (activeFilter === 'noteminus' || activeFilter === 'low') list = list.filter(a => a.noteGlobale < 3);
   }
-  displayed = list; updateStatsBar(list); renderAvis(list);
+  displayed = list;
+  updateStatsBar(list);
+  renderAvis(list);
 }
 
 function searchAvis(q) {
@@ -444,61 +460,77 @@ function sortAvis(val) {
   displayed = list; renderAvis(list);
 }
 
-// ── Stats ──
+// ── Stats — FIX NaN : parseFloat sur toutes les notes ────────
 function updateCounts() {
   const c = {
-    all: allAvis.length,
-    replied: allAvis.filter(a => (a.adminReplies || []).length > 0).length,
-    noreplied: allAvis.filter(a => !(a.adminReplies || []).length).length,
-    form: allAvis.filter(a => a.role === 'formateur').length,
-    stag: allAvis.filter(a => a.role === 'stagiaire').length,
-    n1: allAvis.filter(a => a.niveau === '1').length,
-    n2: allAvis.filter(a => a.niveau === '2').length,
-    n3: allAvis.filter(a => a.niveau === '3').length,
-    5: allAvis.filter(a => Math.round(a.noteGlobale) === 5).length,
-    4: allAvis.filter(a => Math.round(a.noteGlobale) === 4).length,
-    3: allAvis.filter(a => Math.round(a.noteGlobale) === 3).length,
-    low: allAvis.filter(a => a.noteGlobale < 3).length
+    all:      allAvis.length,
+    replied:  allAvis.filter(a => (a.adminReplies || []).length > 0).length,
+    noreplied:allAvis.filter(a => !(a.adminReplies || []).length).length,
+    form:     allAvis.filter(a => a.role === 'formateur').length,
+    stag:     allAvis.filter(a => a.role === 'stagiaire').length,
+    n1:       allAvis.filter(a => a.niveau === '1').length,
+    n2:       allAvis.filter(a => a.niveau === '2').length,
+    n3:       allAvis.filter(a => a.niveau === '3').length,
+    5:        allAvis.filter(a => Math.round(a.noteGlobale) === 5).length,
+    4:        allAvis.filter(a => Math.round(a.noteGlobale) === 4).length,
+    3:        allAvis.filter(a => Math.round(a.noteGlobale) === 3).length,
+    low:      allAvis.filter(a => a.noteGlobale < 3).length,
   };
   Object.entries(c).forEach(([k, v]) => { const el = document.getElementById('cnt-' + k); if (el) el.textContent = v; });
-  const moy = allAvis.length ? (allAvis.reduce((s, a) => s + (parseFloat(a.noteGlobale)||0), 0) / allAvis.length).toFixed(1) : '—';
+
+  // FIX NaN : noteGlobale est déjà normalisé en float via normalizeAvis
+  const validAvis = allAvis.filter(a => a.noteGlobale > 0);
+  const moy = validAvis.length
+    ? (validAvis.reduce((s, a) => s + a.noteGlobale, 0) / validAvis.length).toFixed(1)
+    : '—';
+
   const withNps = allAvis.filter(a => a.nps != null);
-  const nps = withNps.length ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100) : null;
+  const nps = withNps.length
+    ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100)
+    : null;
+
   document.getElementById('sb-note').textContent = moy;
   document.getElementById('sb-stars').textContent = starsStr(parseFloat(moy) || 0);
-  document.getElementById('sb-from').textContent = allAvis.length + ' avis';
-  document.getElementById('sb-nps').textContent = nps !== null ? (nps >= 0 ? '+' : '') + nps : '—';
+  document.getElementById('sb-from').textContent  = allAvis.length + ' avis';
+  document.getElementById('sb-nps').textContent   = nps !== null ? (nps >= 0 ? '+' : '') + nps : '—';
 }
 
 function updateStatsBar(list) {
-  const moy = list.length ? (list.reduce((s, a) => s + a.noteGlobale, 0) / list.length).toFixed(1) : '—';
+  // FIX NaN : ne calculer la moyenne que sur les avis avec une note > 0
+  const validList = list.filter(a => a.noteGlobale > 0);
+  const moy = validList.length
+    ? (validList.reduce((s, a) => s + a.noteGlobale, 0) / validList.length).toFixed(1)
+    : '—';
+
   const withNps = list.filter(a => a.nps != null);
-  const nps = withNps.length ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100) : null;
-  document.getElementById('sv-total').textContent = list.length;
-  document.getElementById('sv-note').textContent = moy;
-  document.getElementById('sv-nps').textContent = nps !== null ? (nps >= 0 ? '+' : '') + nps : '—';
-  document.getElementById('sv-sansr').textContent = list.filter(a => !(a.adminReplies || []).length).length;
+  const nps = withNps.length
+    ? Math.round(((withNps.filter(a => a.nps >= 9).length - withNps.filter(a => a.nps < 7).length) / withNps.length) * 100)
+    : null;
+
+  document.getElementById('sv-total').textContent  = list.length;
+  document.getElementById('sv-note').textContent   = moy;
+  document.getElementById('sv-nps').textContent    = nps !== null ? (nps >= 0 ? '+' : '') + nps : '—';
+  document.getElementById('sv-sansr').textContent  = list.filter(a => !(a.adminReplies || []).length).length;
   document.getElementById('sv-centres').textContent = [...new Set(list.map(a => a.centreNom || a.centerId).filter(Boolean))].length;
 }
 
-function starsStr(n) { let s = ''; for (let i = 1; i <= 5; i++) s += i <= n ? '★' : '☆'; return s; }
-
-// ── Rendu cards ──
+// ── Rendu cards ───────────────────────────────────────────────
 function renderAvis(list) {
   const c = document.getElementById('avis-container');
-  if (!list.length) { c.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>Aucun avis correspondant</div></div>'; return; }
+  if (!list.length) {
+    c.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>Aucun avis correspondant</div></div>';
+    return;
+  }
   c.innerHTML = list.map(a => buildCard(a)).join('');
 }
 
 function buildCard(a) {
-  // FIX : utiliser a.id || a.avisId pour supporter les deux formats
   const avisId = a.id || a.avisId;
-  const note = parseFloat(a.noteGlobale || 0).toFixed(1);
-  const nom = [a.prenom, a.nom].filter(Boolean).join(' ') || (a.role === 'formateur' ? 'Formateur' : 'Stagiaire') + ' anonyme';
+  const note = a.noteGlobale.toFixed(1);
+  const nom  = [a.prenom, a.nom].filter(Boolean).join(' ') || (a.role === 'formateur' ? 'Formateur' : 'Stagiaire') + ' anonyme';
   const init = (a.prenom?.[0] || a.role?.[0] || '?').toUpperCase();
   const hasR = (a.adminReplies || []).length > 0;
-  const npsC = a.nps >= 9 ? 'p' : a.nps >= 7 ? 'n' : 'd';
-  const date = new Date(a.createdAt).toLocaleDateString('fr-FR');
+  const npsC = a.nps != null ? (a.nps >= 9 ? 'p' : a.nps >= 7 ? 'n' : 'd') : null;
   const posT = (a.positifs || []).slice(0, 2).map(t => `<span class="tag pos">${t}</span>`).join('');
   const negT = (a.negatifs || []).slice(0, 1).map(t => `<span class="tag neg">${t}</span>`).join('');
   const nivT = a.niveau ? `<span class="tag niv">SSIAP ${a.niveau}</span>` : '';
@@ -509,7 +541,7 @@ function buildCard(a) {
           <div class="avatar ${a.role === 'formateur' ? 'f' : 's'}">${init}</div>
           <div><div class="who-name">${nom}</div><div class="who-meta">${a.role === 'formateur' ? '👨‍🏫 Formateur' : '🎓 Stagiaire'}</div></div>
         </div>
-        <div class="who-right"><div class="card-note">${note}</div><div class="card-stars">${starsStr(parseFloat(note))}</div></div>
+        <div class="who-right"><div class="card-note">${note}</div><div class="card-stars">${starsStr(a.noteGlobale)}</div></div>
       </div>
       <div class="card-centre">
         <span class="centre-tag">🏢 ${(a.centreNom || '—').slice(0, 20)}</span>
@@ -520,8 +552,8 @@ function buildCard(a) {
     </div>
     <div class="card-footer">
       <div class="card-footer-left">
-        ${a.nps != null ? `<div class="nps-bubble ${npsC}" title="NPS: ${a.nps}/10">${a.nps}</div>` : ''}
-        <span class="card-date">${date}</span>
+        ${npsC ? `<div class="nps-bubble ${npsC}" title="NPS: ${a.nps}/10">${a.nps}</div>` : ''}
+        <span class="card-date">${fmtDate(a.createdAt)}</span>
         ${hasR ? `<span class="reply-badge replied">✓ Répondu</span>` : `<span class="reply-badge pending">⏳ À traiter</span>`}
       </div>
       <button class="btn-reply ${hasR ? 'replied' : ''}" onclick="openPanel('${avisId}',event)">${hasR ? '✉ Voir' : '✉ Répondre'}</button>
@@ -529,38 +561,37 @@ function buildCard(a) {
   </div>`;
 }
 
-// ── Panel ──
+// ── Panel ─────────────────────────────────────────────────────
 function openPanel(id, evt) {
   if (evt) evt.stopPropagation();
   currentAvisId = id;
-  // FIX : chercher par id OU avisId
   const a = allAvis.find(x => (x.id || x.avisId) === id);
   if (!a) { showToast('⚠️ Avis introuvable'); return; }
 
-  const note = parseFloat(a.noteGlobale || 0).toFixed(1);
-  const nom = [a.prenom, a.nom].filter(Boolean).join(' ') || 'Anonyme';
-  const labels = { questions: 'Questions', explications: 'Explications', interface: 'Interface', progression: 'Progression', rolespecific: 'Outil rôle' };
+  const note = a.noteGlobale.toFixed(1);
+  const nom  = [a.prenom, a.nom].filter(Boolean).join(' ') || 'Anonyme';
+  const labels = { questions:'Questions', explications:'Explications', interface:'Interface', progression:'Progression', rolespecific:'Outil rôle' };
 
   document.getElementById('panel-body').innerHTML = `
     <div style="text-align:center;margin-bottom:20px">
-      <div style="width:52px;height:52px;border-radius:50%;background:${a.role === 'formateur' ? 'var(--blue-bg)' : 'var(--green-bg)'};color:${a.role === 'formateur' ? 'var(--blue)' : 'var(--green)'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;margin:0 auto 8px">${(a.prenom?.[0] || '?').toUpperCase()}</div>
+      <div style="width:52px;height:52px;border-radius:50%;background:${a.role==='formateur'?'var(--blue-bg)':'var(--green-bg)'};color:${a.role==='formateur'?'var(--blue)':'var(--green)'};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;margin:0 auto 8px">${(a.prenom?.[0]||'?').toUpperCase()}</div>
       <div style="font-family:'Lora',serif;font-size:18px;font-weight:600">${nom}</div>
-      <div style="font-size:11px;color:var(--muted)">${a.role === 'formateur' ? '👨‍🏫 Formateur' : '🎓 Stagiaire'}${a.niveau ? ' · SSIAP ' + a.niveau : ''}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px">🏢 ${a.centreNom || '—'}${a.centreVille ? ' · 📍 ' + a.centreVille : ''}</div>
+      <div style="font-size:11px;color:var(--muted)">${a.role==='formateur'?'👨‍🏫 Formateur':'🎓 Stagiaire'}${a.niveau?' · SSIAP '+a.niveau:''}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">🏢 ${a.centreNom||'—'}${a.centreVille?' · 📍 '+a.centreVille:''}</div>
     </div>
     <div class="big-note">${note}/5</div>
-    <div class="big-stars">${starsStr(parseFloat(note))}</div>
-    ${a.ratings ? `<div class="ps-block"><div class="ps-label">Notes par critère</div>${Object.entries(a.ratings).filter(([, v]) => v > 0).map(([k, v]) => `<div class="crit-row"><span class="crit-lbl">${labels[k] || k}</span><div class="crit-prog"><div class="crit-fill" style="width:${v / 5 * 100}%"></div></div><span class="crit-val">${v}/5</span></div>`).join('')}</div>` : ''}
+    <div class="big-stars">${starsStr(a.noteGlobale)}</div>
+    ${a.ratings ? `<div class="ps-block"><div class="ps-label">Notes par critère</div>${Object.entries(a.ratings).filter(([,v])=>v>0).map(([k,v])=>`<div class="crit-row"><span class="crit-lbl">${labels[k]||k}</span><div class="crit-prog"><div class="crit-fill" style="width:${toFloat(v)/5*100}%"></div></div><span class="crit-val">${v}/5</span></div>`).join('')}</div>` : ''}
     ${a.commentaire ? `<div class="ps-block"><div class="ps-label">Commentaire</div><div class="comment-bubble">${a.commentaire}</div></div>` : ''}
-    ${(a.positifs || []).length ? `<div class="ps-block"><div class="ps-label">Points appréciés</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.positifs.map(p => `<span class="tag pos">${p}</span>`).join('')}</div></div>` : ''}
-    ${(a.negatifs || []).length ? `<div class="ps-block"><div class="ps-label">À améliorer</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.negatifs.map(n => `<span class="tag neg">${n}</span>`).join('')}</div></div>` : ''}
-    ${a.nps != null ? `<div class="ps-block"><div class="ps-label">NPS</div><div style="display:flex;align-items:center;gap:10px"><div class="nps-bubble ${a.nps >= 9 ? 'p' : a.nps >= 7 ? 'n' : 'd'}" style="width:36px;height:36px;font-size:14px">${a.nps}</div><div style="font-size:12px;color:var(--muted)">${a.nps >= 9 ? 'Promoteur 🟢' : a.nps >= 7 ? 'Passif 🟡' : 'Détracteur 🔴'} · ${a.nps}/10</div></div></div>` : ''}
-    <div style="font-size:10px;color:var(--muted);margin-top:8px">Soumis le ${new Date(a.createdAt).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}</div>
+    ${(a.positifs||[]).length ? `<div class="ps-block"><div class="ps-label">Points appréciés</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.positifs.map(p=>`<span class="tag pos">${p}</span>`).join('')}</div></div>` : ''}
+    ${(a.negatifs||[]).length ? `<div class="ps-block"><div class="ps-label">À améliorer</div><div style="display:flex;flex-wrap:wrap;gap:5px">${a.negatifs.map(n=>`<span class="tag neg">${n}</span>`).join('')}</div></div>` : ''}
+    ${a.nps!=null ? `<div class="ps-block"><div class="ps-label">NPS</div><div style="display:flex;align-items:center;gap:10px"><div class="nps-bubble ${a.nps>=9?'p':a.nps>=7?'n':'d'}" style="width:36px;height:36px;font-size:14px">${a.nps}</div><div style="font-size:12px;color:var(--muted)">${a.nps>=9?'Promoteur 🟢':a.nps>=7?'Passif 🟡':'Détracteur 🔴'} · ${a.nps}/10</div></div></div>` : ''}
+    <div style="font-size:10px;color:var(--muted);margin-top:8px">Soumis le ${new Date(a.createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
   `;
 
   const replies = a.adminReplies || [];
   document.getElementById('reply-thread').innerHTML = replies.length
-    ? replies.map(r => `<div class="rm"><div class="rm-av admin">A</div><div class="rm-body"><div class="rm-name">Admin SSIAP · ${new Date(r.timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div><div class="rm-bubble admin-bubble">${r.texte}</div>${r.sentEmail ? `<div style="font-size:9px;color:var(--muted);margin-top:2px">✉ Email envoyé</div>` : ''}</div></div>`).join('')
+    ? replies.map(r => `<div class="rm"><div class="rm-av admin">A</div><div class="rm-body"><div class="rm-name">Admin SSIAP · ${new Date(r.timestamp).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div><div class="rm-bubble admin-bubble">${r.texte}</div>${r.sentEmail?`<div style="font-size:9px;color:var(--muted);margin-top:2px">✉ Email envoyé</div>`:''}</div></div>`).join('')
     : `<div style="font-size:11px;color:var(--muted);text-align:center;padding:8px">Aucune réponse pour le moment</div>`;
 
   document.getElementById('reply-input').value = '';
@@ -569,7 +600,7 @@ function openPanel(id, evt) {
 
 function closePanel() { document.getElementById('panel').classList.remove('open'); currentAvisId = null; }
 
-// ── Envoi réponse — FIX PRINCIPAL ──
+// ── Envoi réponse ─────────────────────────────────────────────
 async function sendReply() {
   const texte = document.getElementById('reply-input').value.trim();
   if (!texte) { showToast('⚠️ Écrivez une réponse'); return; }
@@ -578,15 +609,14 @@ async function sendReply() {
   const notifDashboard = document.getElementById('notify-dashboard').checked;
 
   const avis = allAvis.find(a => (a.id || a.avisId) === currentAvisId);
-  if (!avis) { showToast('⚠️ Avis introuvable (id: ' + currentAvisId + ')'); return; }
+  if (!avis) { showToast('⚠️ Avis introuvable'); return; }
 
   const btn = document.getElementById('btn-send');
   btn.disabled = true;
   btn.textContent = '⏳ Envoi…';
 
-  // Timeout 8s pour ne pas attendre le SMTP indéfiniment
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout    = setTimeout(() => controller.abort(), 8000);
 
   try {
     const r = await fetch(`${API}/avis/reply/${currentAvisId}`, {
@@ -597,16 +627,14 @@ async function sendReply() {
     });
     clearTimeout(timeout);
     const d = await r.json();
-    // FIX double : une seule push depuis la réponse serveur
     avis.adminReplies = avis.adminReplies || [];
     avis.adminReplies.push(d.reply || { texte, timestamp: Date.now(), sentEmail: false });
     const emailOk = d.reply?.sentEmail;
     showToast('✅ Réponse enregistrée' + (notifEmail ? (emailOk ? ' · ✉ email envoyé' : ' · ⚠️ SMTP') : ''));
   } catch(e) {
     clearTimeout(timeout);
-    // Timeout ou erreur réseau - on pousse localement
     avis.adminReplies = avis.adminReplies || [];
-    avis.adminReplies.push({ texte, timestamp: Date.now(), sentEmail: false, sentDashboard: false });
+    avis.adminReplies.push({ texte, timestamp: Date.now(), sentEmail: false });
     showToast('✅ Réponse enregistrée (' + (e.name === 'AbortError' ? 'timeout email' : e.message) + ')');
   } finally {
     btn.disabled = false;
@@ -617,7 +645,8 @@ async function sendReply() {
     applyFilter();
   }
 }
-// ── Vue / Export ──
+
+// ── Vue / Export ──────────────────────────────────────────────
 function toggleView() {
   isGridView = !isGridView;
   document.getElementById('avis-container').className = isGridView ? 'view-grid' : 'view-list';
@@ -625,19 +654,19 @@ function toggleView() {
 }
 
 function exportCSV() {
-  const rows = [['Prénom', 'Nom', 'Rôle', 'Centre', 'Ville', 'Niveau', 'Note', 'NPS', 'Commentaire', 'Répondu', 'Date']];
+  const rows = [['Prénom','Nom','Rôle','Centre','Ville','Niveau','Note','NPS','Commentaire','Répondu','Date']];
   displayed.forEach(a => rows.push([
-    a.prenom || '', a.nom || '', a.role, a.centreNom || '', a.centreVille || '',
-    a.niveau || '', a.noteGlobale, a.nps ?? '',
-    (a.commentaire || '').replace(/"/g, "''"),
-    (a.adminReplies || []).length > 0 ? 'Oui' : 'Non',
-    new Date(a.createdAt).toLocaleDateString('fr-FR')
+    a.prenom||'', a.nom||'', a.role, a.centreNom||'', a.centreVille||'',
+    a.niveau||'', a.noteGlobale, a.nps??'',
+    (a.commentaire||'').replace(/"/g,"''"),
+    (a.adminReplies||[]).length>0 ? 'Oui' : 'Non',
+    fmtDate(a.createdAt)
   ]));
   const csv = rows.map(r => r.map(c => `"${c}"`).join(';')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
-  a.download = `avis_ssiap_${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
+  const el = document.createElement('a');
+  el.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+  el.download = `avis_ssiap_${new Date().toISOString().slice(0,10)}.csv`;
+  el.click();
   showToast('Export CSV téléchargé');
 }
 
