@@ -753,8 +753,60 @@ async function loadEntrainementsStats(centres) {
         }
     } catch {}
 
-    // ── Méthode 2 : agréger via sessions + résultats stagiaires ─
-    // Fiable car on connaît le niveau de chaque session
+    if (n1 + n2 + n3 > 0) { renderEntrStats(n1, n2, n3, source); return; }
+
+    // ── Méthode 2 : agréger depuis sessions + stagiaires ─────
+    // Utilise le champ entr/nbEntrainements des stagiaires
+    // ET le niveau de la session — pas besoin d'aller chercher les résultats
+    try {
+        const allSessions = [];
+        // Charger toutes les sessions de tous les centres en parallèle
+        await Promise.all(centres.map(async c => {
+            const cid = c.centerId;
+            if (!cid) return;
+            try {
+                const rs = await fetchTimeout(`${API}/session/list/${cid}`, {}, 6000).catch(() => null);
+                if (!rs || !rs.ok) return;
+                const ds = await rs.json();
+                (ds.sessions || []).forEach(s => allSessions.push({ ...s, _cid: cid }));
+            } catch {}
+        }));
+
+        // Pour chaque session, charger ses stagiaires et sommer leurs entraînements
+        await Promise.all(allSessions.map(async s => {
+            const cid = s._cid;
+            const sid = s.sessionId || s.id;
+            const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
+            try {
+                const rst = await fetchTimeout(
+                    `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 5000
+                ).catch(() => null);
+                if (!rst || !rst.ok) return;
+                const dst = await rst.json();
+                const stags = dst.stagiaires || dst || [];
+                stags.forEach(st => {
+                    // nbEntrainements, entr, nbQuiz sont les champs possibles
+                    const nb = parseInt(st.nbEntrainements || st.entr || st.nbQuiz || st.quizCount || 0);
+                    if (nb > 0) {
+                        if (sesNiv === 1) n1 += nb;
+                        else if (sesNiv === 2) n2 += nb;
+                        else n3 += nb;
+                    } else {
+                        // Même sans compteur : compter le stagiaire comme 1 s'il a un score
+                        const hasScore = st.tauxReussite > 0 || st.score > 0 || st.scoreMoyen > 0;
+                        if (hasScore) {
+                            if (sesNiv === 1) n1++;
+                            else if (sesNiv === 2) n2++;
+                            else n3++;
+                        }
+                    }
+                });
+                if (n1 + n2 + n3 > 0) source = 'stagiaires';
+            } catch {}
+        }));
+    } catch {}
+
+    // ── Méthode 3 : résultats individuels (dernier recours) ──
     if (n1 + n2 + n3 === 0) {
         for (const c of centres) {
             const cid = c.centerId;
@@ -764,76 +816,44 @@ async function loadEntrainementsStats(centres) {
                 if (!rs || !rs.ok) continue;
                 const ds = await rs.json();
                 const sessions = ds.sessions || [];
-
                 for (const s of sessions) {
                     const sid = s.sessionId || s.id;
-                    // Niveau de la session — source fiable
                     const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
-
-                    try {
-                        const rst = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 4000).catch(() => null);
-                        if (!rst || !rst.ok) continue;
-                        const dst = await rst.json();
-                        const stags = dst.stagiaires || dst || [];
-
-                        for (const st of stags) {
-                            // Essayer plusieurs champs pour l'UID Firebase
-                            const uid = st.stagiaireId || st.qrCode || st.id;
-                            if (!uid) continue;
-                            try {
-                                const re = await fetchTimeout(
-                                    `${API}/entrainement/results/${cid}/${uid}`, {}, 4000
-                                ).catch(() => null);
-                                if (!re || !re.ok) continue;
-                                const de = await re.json();
-                                const results = de.results || [];
-                                // Compter chaque résultat selon le niveau de SA SESSION
-                                results.forEach(() => {
-                                    if (sesNiv === 1) n1++;
-                                    else if (sesNiv === 2) n2++;
-                                    else n3++;
-                                });
-                            } catch {}
-                        }
-                    } catch {}
+                    const rst = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 4000).catch(() => null);
+                    if (!rst || !rst.ok) continue;
+                    const dst = await rst.json();
+                    const stags = dst.stagiaires || dst || [];
+                    for (const st of stags) {
+                        const uid = st.stagiaireId || st.qrCode || st.id;
+                        if (!uid) continue;
+                        const re = await fetchTimeout(`${API}/entrainement/results/${cid}/${uid}`, {}, 4000).catch(() => null);
+                        if (!re || !re.ok) continue;
+                        const de = await re.json();
+                        const results = de.results || [];
+                        results.forEach(() => {
+                            if (sesNiv === 1) n1++;
+                            else if (sesNiv === 2) n2++;
+                            else n3++;
+                        });
+                    }
                 }
-                // Arrêter si on a trouvé des données
                 if (n1 + n2 + n3 > 0) { source = 'résultats'; break; }
             } catch {}
         }
     }
 
-    // ── Méthode 3 : endpoint /entrainement/list/{cid} ────────
-    if (n1 + n2 + n3 === 0) {
-        for (const c of centres) {
-            const cid = c.centerId;
-            if (!cid) continue;
-            try {
-                const r = await fetchTimeout(`${API}/entrainement/list/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
-                if (r && r.ok) {
-                    const d = await r.json();
-                    const items = d.entrainements || d.results || (Array.isArray(d) ? d : []);
-                    items.forEach(e => {
-                        const niv = parseInt(String(e.niveau || e.ssiap || e.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
-                        if (niv === 1) n1++;
-                        else if (niv === 2) n2++;
-                        else n3++;
-                    });
-                    if (n1 + n2 + n3 > 0) source = 'liste';
-                }
-            } catch {}
-        }
-    }
+    renderEntrStats(n1, n2, n3, source);
+}
 
+function renderEntrStats(n1, n2, n3, source) {
     const total = n1 + n2 + n3;
     set('total-entr', total);
     set('entr-source', total > 0 ? source : 'aucun quiz');
 
-    // Toujours afficher les chiffres, jamais "—"
     const pct = n => total > 0 ? ' (' + Math.round(n / total * 100) + '%)' : '';
-    set('count-n1', n1);  set('pct-n1', pct(n1));
-    set('count-n2', n2);  set('pct-n2', pct(n2));
-    set('count-n3', n3);  set('pct-n3', pct(n3));
+    set('count-n1', n1); set('pct-n1', pct(n1));
+    set('count-n2', n2); set('pct-n2', pct(n2));
+    set('count-n3', n3); set('pct-n3', pct(n3));
 
     setTimeout(() => {
         const pctW = n => total > 0 ? Math.round(n / total * 100) : 0;
