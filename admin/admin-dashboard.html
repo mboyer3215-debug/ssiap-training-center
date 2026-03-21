@@ -747,99 +747,70 @@ async function loadEntrainementsStats(centres) {
         if (r && r.ok) {
             const d = await r.json();
             if ((d.n1||0) + (d.n2||0) + (d.n3||0) > 0) {
-                n1 = d.n1||0; n2 = d.n2||0; n3 = d.n3||0;
-                source = 'stats admin';
+                n1=d.n1||0; n2=d.n2||0; n3=d.n3||0;
+                renderEntrStats(n1, n2, n3, 'stats admin'); return;
             }
         }
     } catch {}
 
-    if (n1 + n2 + n3 > 0) { renderEntrStats(n1, n2, n3, source); return; }
-
-    // ── Méthode 2 : agréger depuis sessions + stagiaires ─────
-    // Utilise le champ entr/nbEntrainements des stagiaires
-    // ET le niveau de la session — pas besoin d'aller chercher les résultats
+    // ── Méthode 2 : sessions → stagiaires → résultats (tout en parallèle) ──
     try {
-        const allSessions = [];
-        // Charger toutes les sessions de tous les centres en parallèle
-        await Promise.all(centres.map(async c => {
+        // 2a. Charger toutes les sessions de tous les centres en parallèle
+        const sessionsByCenter = await Promise.all(centres.map(async c => {
             const cid = c.centerId;
-            if (!cid) return;
+            if (!cid) return { cid, sessions: [] };
             try {
-                const rs = await fetchTimeout(`${API}/session/list/${cid}`, {}, 6000).catch(() => null);
-                if (!rs || !rs.ok) return;
-                const ds = await rs.json();
-                (ds.sessions || []).forEach(s => allSessions.push({ ...s, _cid: cid }));
-            } catch {}
+                const r = await fetchTimeout(`${API}/session/list/${cid}`, {}, 6000).catch(() => null);
+                if (!r || !r.ok) return { cid, sessions: [] };
+                const d = await r.json();
+                return { cid, sessions: d.sessions || [] };
+            } catch { return { cid, sessions: [] }; }
         }));
 
-        // Pour chaque session, charger ses stagiaires et sommer leurs entraînements
-        await Promise.all(allSessions.map(async s => {
-            const cid = s._cid;
-            const sid = s.sessionId || s.id;
-            const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
-            try {
-                const rst = await fetchTimeout(
-                    `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 5000
-                ).catch(() => null);
-                if (!rst || !rst.ok) return;
-                const dst = await rst.json();
-                const stags = dst.stagiaires || dst || [];
-                stags.forEach(st => {
-                    // nbEntrainements, entr, nbQuiz sont les champs possibles
-                    const nb = parseInt(st.nbEntrainements || st.entr || st.nbQuiz || st.quizCount || 0);
-                    if (nb > 0) {
-                        if (sesNiv === 1) n1 += nb;
-                        else if (sesNiv === 2) n2 += nb;
-                        else n3 += nb;
-                    } else {
-                        // Même sans compteur : compter le stagiaire comme 1 s'il a un score
-                        const hasScore = st.tauxReussite > 0 || st.score > 0 || st.scoreMoyen > 0;
-                        if (hasScore) {
-                            if (sesNiv === 1) n1++;
-                            else if (sesNiv === 2) n2++;
-                            else n3++;
-                        }
-                    }
-                });
-                if (n1 + n2 + n3 > 0) source = 'stagiaires';
-            } catch {}
-        }));
-    } catch {}
-
-    // ── Méthode 3 : résultats individuels (dernier recours) ──
-    if (n1 + n2 + n3 === 0) {
-        for (const c of centres) {
-            const cid = c.centerId;
-            if (!cid) continue;
-            try {
-                const rs = await fetchTimeout(`${API}/session/list/${cid}`, {}, 5000).catch(() => null);
-                if (!rs || !rs.ok) continue;
-                const ds = await rs.json();
-                const sessions = ds.sessions || [];
-                for (const s of sessions) {
-                    const sid = s.sessionId || s.id;
-                    const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
-                    const rst = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 4000).catch(() => null);
-                    if (!rst || !rst.ok) continue;
-                    const dst = await rst.json();
-                    const stags = dst.stagiaires || dst || [];
-                    for (const st of stags) {
+        // 2b. Construire la liste (cid, sessionId, niveau, uid) pour tous les stagiaires
+        const stagTasks = [];
+        await Promise.all(sessionsByCenter.map(async ({ cid, sessions }) => {
+            await Promise.all(sessions.map(async s => {
+                const sid = s.sessionId || s.id;
+                const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
+                try {
+                    const r = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 5000).catch(() => null);
+                    if (!r || !r.ok) return;
+                    const d = await r.json();
+                    const stags = d.stagiaires || d || [];
+                    stags.forEach(st => {
                         const uid = st.stagiaireId || st.qrCode || st.id;
-                        if (!uid) continue;
-                        const re = await fetchTimeout(`${API}/entrainement/results/${cid}/${uid}`, {}, 4000).catch(() => null);
-                        if (!re || !re.ok) continue;
-                        const de = await re.json();
-                        const results = de.results || [];
-                        results.forEach(() => {
-                            if (sesNiv === 1) n1++;
-                            else if (sesNiv === 2) n2++;
-                            else n3++;
-                        });
-                    }
-                }
-                if (n1 + n2 + n3 > 0) { source = 'résultats'; break; }
-            } catch {}
+                        if (uid) stagTasks.push({ cid, uid, sesNiv });
+                    });
+                } catch {}
+            }));
+        }));
+
+        if (stagTasks.length === 0) throw new Error('no stagiaires');
+
+        // 2c. Charger tous les résultats en parallèle (max 20 fetches simultanés)
+        const CHUNK = 20;
+        for (let i = 0; i < stagTasks.length; i += CHUNK) {
+            const chunk = stagTasks.slice(i, i + CHUNK);
+            const results = await Promise.all(chunk.map(async ({ cid, uid, sesNiv }) => {
+                try {
+                    const r = await fetchTimeout(`${API}/entrainement/results/${cid}/${uid}`, {}, 5000).catch(() => null);
+                    if (!r || !r.ok) return 0;
+                    const d = await r.json();
+                    const nb = (d.results || []).length;
+                    return { nb, sesNiv };
+                } catch { return { nb: 0, sesNiv }; }
+            }));
+            results.forEach(res => {
+                if (!res || !res.nb) return;
+                if (res.sesNiv === 1) n1 += res.nb;
+                else if (res.sesNiv === 2) n2 += res.nb;
+                else n3 += res.nb;
+            });
         }
+        if (n1 + n2 + n3 > 0) source = 'résultats';
+    } catch(e) {
+        console.warn('loadEntrStats méthode 2:', e.message);
     }
 
     renderEntrStats(n1, n2, n3, source);
