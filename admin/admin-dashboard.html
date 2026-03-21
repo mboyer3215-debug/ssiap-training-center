@@ -698,6 +698,15 @@ async function enrichCentreStats(c) {
     const cid = c.centerId || c.id;
     if (!cid) return c;
 
+    // ── Licence complète depuis /admin/center/:cid/license ──
+    try {
+        const rl = await fetchTimeout(`${API}/admin/center/${cid}/license`, { headers: authHeaders() }, 4000).catch(() => null);
+        if (rl && rl.ok) {
+            const dl = await rl.json();
+            if (dl.license) c.license = { ...c.license, ...dl.license };
+        }
+    } catch {}
+
     // Formateurs
     try {
         const r = await fetchTimeout(`${API}/formateur/list/${cid}`, { headers: authHeaders() }, 4000).catch(() => null);
@@ -714,7 +723,6 @@ async function enrichCentreStats(c) {
             const d = await r.json();
             const sessions = d.sessions || [];
             c.stats.sessions = sessions.length;
-            console.info(`[enrich] ${cid}: ${sessions.length} sessions`, sessions.slice(0,2).map(s=>({id:s.sessionId||s.id,niv:s.niveau})));
 
             c._sessionsData = [];
             let totalStag = 0;
@@ -729,20 +737,13 @@ async function enrichCentreStats(c) {
                         const ds = await rs.json();
                         const stags = ds.stagiaires || ds || [];
                         totalStag += stags.length;
-                        if (stags.length > 0) {
-                            console.info(`[enrich] session ${sid} → ${stags.length} stag, exemple:`, JSON.stringify(stags[0]).slice(0,200));
-                        }
                         c._sessionsData.push({ sid, sesNiv, stags });
-                    } else {
-                        console.warn(`[enrich] stagiaire/list ${cid}?sessionId=${sid} → ${rs?.status}`);
                     }
-                } catch(e) { console.warn('[enrich] stag error:', e.message); }
+                } catch(e) {}
             }));
             c.stats.stagiaires = totalStag;
-        } else {
-            console.warn(`[enrich] session/list ${cid} → ${r?.status}`);
         }
-    } catch(e) { console.warn('[enrich] sessions error:', e.message); }
+    } catch(e) {}
 
     return c;
 }
@@ -1241,58 +1242,112 @@ async function openCentreModal(centreId) {
     set('mc-stagiaires', c.stats?.stagiaires ?? '—');
     set('mc-formateurs', c.stats?.formateurs ?? '—');
     set('mc-sessions',   c.stats?.sessions   ?? '—');
-    set('mc-taux', '—');
 
-    const lic = c.license || {};
-    set('mc-lic-type',  (lic.type || 'DEMO').toUpperCase());
-    set('mc-lic-debut', lic.createdAt ? new Date(lic.createdAt).toLocaleDateString('fr-FR') : '—');
-    set('mc-lic-fin',   lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : 'Abonnement Stripe');
-    const jours = lic.expiresAt ? Math.ceil((lic.expiresAt - Date.now()) / 86400000) : null;
-    set('mc-lic-reste', jours !== null ? jours + ' jours' : 'En cours');
+    // ── Licence : chercher dans _licences d'abord, sinon center/dashboard ──
+    let lic = c.license || {};
 
-    ['mc-bar-n1','mc-bar-n2','mc-bar-n3'].forEach(id => document.getElementById(id).style.width = '0%');
-    ['mc-n1','mc-n2','mc-n3'].forEach(id => set(id, '…'));
-    set('mc-formateurs-list', 'Chargement…');
+    // Essayer de trouver la licence complète dans _licences (déjà chargé)
+    const licFromCache = _licences.find(l => l.centerId === centreId);
+    if (licFromCache) {
+        lic = { ...lic, ...licFromCache };
+    }
+
+    // Si pas de dates, appeler center/dashboard pour les récupérer
+    if (!lic.createdAt && !lic.expiresAt) {
+        try {
+            const rd = await fetchTimeout(`${API}/center/dashboard/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
+            if (rd && rd.ok) {
+                const dd = await rd.json();
+                if (dd.license) lic = { ...lic, ...dd.license };
+            }
+        } catch {}
+    }
+
+    set('mc-lic-type', (lic.type || 'DEMO').toUpperCase());
+
+    // Date début
+    const debut = lic.createdAt || lic.activatedAt || lic.startDate || null;
+    set('mc-lic-debut', debut ? new Date(debut).toLocaleDateString('fr-FR') : '—');
+
+    // Date fin
+    const fin = lic.expiresAt || lic.endDate || lic.expiry || null;
+    if (!fin) {
+        set('mc-lic-fin',   'Abonnement Stripe');
+        set('mc-lic-reste', 'En cours');
+    } else {
+        const jours = Math.ceil((fin - Date.now()) / 86400000);
+        set('mc-lic-fin', new Date(fin).toLocaleDateString('fr-FR'));
+        if (jours < 0) {
+            set('mc-lic-reste', `Expirée il y a ${Math.abs(jours)}j`);
+            document.getElementById('mc-lic-reste').style.color = 'var(--red)';
+        } else if (jours <= 30) {
+            set('mc-lic-reste', `⚠️ ${jours} jours`);
+            document.getElementById('mc-lic-reste').style.color = 'var(--gold)';
+        } else {
+            set('mc-lic-reste', `${jours} jours`);
+            document.getElementById('mc-lic-reste').style.color = 'var(--green)';
+        }
+    }
+
+    // ── Quiz par niveau depuis _sessionsData (déjà chargé, pas de fetch) ──
+    let mn1=0, mn2=0, mn3=0;
+    let totalScores=0, sumScores=0;
+    if (c._sessionsData) {
+        c._sessionsData.forEach(({ sesNiv, stags }) => {
+            stags.forEach(st => {
+                const hist = st.historique || st.history || st.entrainements || {};
+                const nb = typeof hist === 'object' && !Array.isArray(hist)
+                    ? Object.keys(hist).length
+                    : (Array.isArray(hist) ? hist.length : 0);
+                if (nb > 0) {
+                    if (sesNiv === 1) mn1 += nb;
+                    else if (sesNiv === 2) mn2 += nb;
+                    else mn3 += nb;
+                }
+                // Taux de réussite moyen
+                const score = parseFloat(st.tauxReussite || st.scoreMoyen || st.score || 0);
+                if (score > 0) { sumScores += score; totalScores++; }
+            });
+        });
+    }
+    const tauxMoyen = totalScores > 0 ? Math.round(sumScores / totalScores) + '%' : '—';
+    set('mc-taux', tauxMoyen);
+
+    const mcTotal = mn1 + mn2 + mn3;
+    const mcPct = n => mcTotal > 0 ? Math.round(n/mcTotal*100) : 0;
+    set('mc-n1', mn1); set('mc-n2', mn2); set('mc-n3', mn3);
+    setTimeout(() => {
+        document.getElementById('mc-bar-n1').style.width = mcPct(mn1) + '%';
+        document.getElementById('mc-bar-n2').style.width = mcPct(mn2) + '%';
+        document.getElementById('mc-bar-n3').style.width = mcPct(mn3) + '%';
+    }, 100);
+
+    // ── Activité 6 mois depuis les sessions déjà chargées ──
+    const monthly6 = new Array(6).fill(0);
+    const now = new Date();
+    if (c._sessionsData) {
+        c._sessionsData.forEach(({ stags }) => {
+            stags.forEach(st => {
+                const hist = st.historique || st.history || {};
+                Object.values(hist).forEach(h => {
+                    const ts = h.completedAt || h.createdAt || h.date || 0;
+                    if (!ts) return;
+                    const date = new Date(ts);
+                    const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+                    if (monthDiff >= 0 && monthDiff < 6) monthly6[5 - monthDiff]++;
+                });
+            });
+        });
+    }
     document.getElementById('mc-monthly-chart').innerHTML = '';
+    buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', monthly6, now);
 
+    set('mc-formateurs-list', 'Chargement…');
     document.getElementById('modal-centre').classList.add('open');
     document.body.style.overflow = 'hidden';
 
+    // ── Formateurs (seul fetch nécessaire) ───────────────────
     try {
-        const re = await fetchTimeout(`${API}/entrainement/stats/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
-        if (re && re.ok) {
-            const d = await re.json();
-            const n1 = d.n1 || d.niveau1 || 0;
-            const n2 = d.n2 || d.niveau2 || 0;
-            const n3 = d.n3 || d.niveau3 || 0;
-            const total = n1 + n2 + n3;
-            if (total > 0) {
-                const pct = n => Math.round(n/total*100);
-                set('mc-n1', n1); set('mc-n2', n2); set('mc-n3', n3);
-                setTimeout(() => {
-                    document.getElementById('mc-bar-n1').style.width = pct(n1) + '%';
-                    document.getElementById('mc-bar-n2').style.width = pct(n2) + '%';
-                    document.getElementById('mc-bar-n3').style.width = pct(n3) + '%';
-                }, 100);
-            } else { ['mc-n1','mc-n2','mc-n3'].forEach(id => set(id, '0')); }
-        }
-
-        const rh = await fetchTimeout(`${API}/entrainement/history/${centreId}`, { headers: authHeaders() }, 5000).catch(() => null);
-        if (rh && rh.ok) {
-            const d = await rh.json();
-            const history = d.history || d.entrainements || [];
-            const monthly6 = new Array(6).fill(0);
-            const now = new Date();
-            history.forEach(h => {
-                const date = new Date(h.createdAt || h.date);
-                const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
-                if (monthDiff >= 0 && monthDiff < 6) monthly6[5 - monthDiff]++;
-            });
-            buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', monthly6, now);
-        } else {
-            buildMonthlyChart('mc-monthly-chart', 'mc-monthly-labels', new Array(6).fill(0), new Date());
-        }
-
         const rf = await fetchTimeout(`${API}/formateur/list/${centreId}`, { headers: authHeaders() }, 4000).catch(() => null);
         if (rf && rf.ok) {
             const d = await rf.json();
@@ -1302,16 +1357,21 @@ async function openCentreModal(centreId) {
                 document.getElementById('mc-formateurs-list').innerHTML = formateurs.map(f =>
                     `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
                         <div style="width:28px;height:28px;border-radius:6px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">${(f.prenom||'?').slice(0,1)}${(f.nom||'?').slice(0,1)}</div>
-                        <span style="font-size:12px;font-weight:600">${f.prenom||''} ${f.nom||''}</span>
-                        <span class="badge ${f.actif!==false?'green':'gray'}" style="margin-left:auto">${f.actif!==false?'Actif':'Inactif'}</span>
+                        <div style="flex:1">
+                            <div style="font-size:12px;font-weight:600">${f.prenom||''} ${f.nom||''}</div>
+                            <div style="font-size:10px;color:var(--muted)">${f.email||''}</div>
+                        </div>
+                        <span class="badge ${f.actif!==false?'green':'gray'}">${f.actif!==false?'Actif':'Inactif'}</span>
                     </div>`
                 ).join('');
             } else {
                 set('mc-formateurs-list', '<div style="color:var(--muted);text-align:center;padding:12px">Aucun formateur</div>');
             }
+        } else {
+            set('mc-formateurs-list', '<div style="color:var(--muted);text-align:center;padding:12px">Impossible de charger</div>');
         }
     } catch(e) {
-        console.warn('modal centre stats:', e.message);
+        console.warn('modal formateurs:', e.message);
     }
 }
 
@@ -1329,18 +1389,29 @@ document.getElementById('modal-reponse').addEventListener('click', e => {
 // ── LICENCES ───────────────────────────────────────────────
 async function loadLicences() {
     try {
-        const r = await fetchTimeout(API + '/license/list', { headers: authHeaders() }).catch(() => null);
-        if (!r || !r.ok) throw new Error('HTTP ' + (r?.status || 'err'));
-        const data = await r.json();
-        _licences = data.licenses || [];
+        // Essayer le nouvel endpoint admin (lit Firebase directement, dates complètes)
+        let r = await fetchTimeout(API + '/admin/centers/licenses', { headers: authHeaders() }, 6000).catch(() => null);
+        if (r && r.ok) {
+            const data = await r.json();
+            if ((data.licenses || []).length > 0) {
+                _licences = data.licenses;
+            }
+        }
+        // Fallback ancien endpoint
+        if (!_licences.length) {
+            r = await fetchTimeout(API + '/license/list', { headers: authHeaders() }).catch(() => null);
+            if (r && r.ok) {
+                const data = await r.json();
+                _licences = data.licenses || [];
+            }
+        }
     } catch(e) {
         console.warn('loadLicences:', e.message);
         _licences = [];
     }
 
-    // ── Fallback : construire les licences depuis _centres si l'endpoint renvoie vide ──
+    // Dernier fallback : construire depuis _centres (avec les données enrichies)
     if (_licences.length === 0 && _centres.length > 0) {
-        console.info('licences: fallback depuis _centres');
         _licences = _centres
             .filter(c => c.license?.type)
             .map(c => ({
@@ -1348,9 +1419,10 @@ async function loadLicences() {
                 active:    c.status !== 'inactive',
                 actif:     c.status !== 'inactive',
                 centerId:  c.centerId,
+                nom:       c.nom || c.info?.nom || c.centerId,
                 createdAt: c.license.createdAt || null,
                 expiresAt: c.license.expiresAt || null,
-                key:       null,   // clé non disponible via cet endpoint
+                key:       null,
             }));
     }
 
