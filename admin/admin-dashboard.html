@@ -707,31 +707,42 @@ async function enrichCentreStats(c) {
         }
     } catch(e) {}
 
-    // Sessions + Stagiaires (agrégation réelle)
+    // Sessions + Stagiaires
     try {
         const r = await fetchTimeout(`${API}/session/list/${cid}`, {}, 4000).catch(() => null);
         if (r && r.ok) {
             const d = await r.json();
             const sessions = d.sessions || [];
             c.stats.sessions = sessions.length;
+            console.info(`[enrich] ${cid}: ${sessions.length} sessions`, sessions.slice(0,2).map(s=>({id:s.sessionId||s.id,niv:s.niveau})));
 
-            // Compter les stagiaires de chaque session (max 15 sessions pour perf)
+            c._sessionsData = [];
             let totalStag = 0;
             await Promise.all(sessions.slice(0, 15).map(async s => {
                 try {
                     const sid = s.sessionId || s.id;
+                    const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
                     const rs = await fetchTimeout(
-                        `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 3000
+                        `${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 5000
                     ).catch(() => null);
                     if (rs && rs.ok) {
                         const ds = await rs.json();
-                        totalStag += (ds.stagiaires || ds || []).length;
+                        const stags = ds.stagiaires || ds || [];
+                        totalStag += stags.length;
+                        if (stags.length > 0) {
+                            console.info(`[enrich] session ${sid} → ${stags.length} stag, exemple:`, JSON.stringify(stags[0]).slice(0,200));
+                        }
+                        c._sessionsData.push({ sid, sesNiv, stags });
+                    } else {
+                        console.warn(`[enrich] stagiaire/list ${cid}?sessionId=${sid} → ${rs?.status}`);
                     }
-                } catch {}
+                } catch(e) { console.warn('[enrich] stag error:', e.message); }
             }));
             c.stats.stagiaires = totalStag;
+        } else {
+            console.warn(`[enrich] session/list ${cid} → ${r?.status}`);
         }
-    } catch(e) {}
+    } catch(e) { console.warn('[enrich] sessions error:', e.message); }
 
     return c;
 }
@@ -739,87 +750,74 @@ async function enrichCentreStats(c) {
 // ── ENTRAÎNEMENTS PAR NIVEAU ────────────────────────────────
 async function loadEntrainementsStats(centres) {
     let n1=0, n2=0, n3=0;
-    let source = '—';
 
-    // ── Méthode 1 : endpoint admin dédié ─────────────────────
-    try {
-        const r = await fetchTimeout(`${API}/admin/stats/entrainements`, { headers: authHeaders() }, 5000).catch(() => null);
-        if (r && r.ok) {
-            const d = await r.json();
-            if ((d.n1||0) + (d.n2||0) + (d.n3||0) > 0) {
-                n1=d.n1||0; n2=d.n2||0; n3=d.n3||0;
-                renderEntrStats(n1, n2, n3, 'stats admin'); return;
-            }
-        }
-    } catch {}
-
-    // ── Méthode 2 : sessions → stagiaires → résultats (tout en parallèle) ──
-    try {
-        // 2a. Charger toutes les sessions de tous les centres en parallèle
-        const sessionsByCenter = await Promise.all(centres.map(async c => {
-            const cid = c.centerId;
-            if (!cid) return { cid, sessions: [] };
-            try {
-                const r = await fetchTimeout(`${API}/session/list/${cid}`, {}, 6000).catch(() => null);
-                if (!r || !r.ok) return { cid, sessions: [] };
-                const d = await r.json();
-                return { cid, sessions: d.sessions || [] };
-            } catch { return { cid, sessions: [] }; }
-        }));
-
-        // 2b. Construire la liste (cid, sessionId, niveau, uid) pour tous les stagiaires
-        const stagTasks = [];
-        await Promise.all(sessionsByCenter.map(async ({ cid, sessions }) => {
-            await Promise.all(sessions.map(async s => {
-                const sid = s.sessionId || s.id;
-                const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
-                try {
-                    const r = await fetchTimeout(`${API}/stagiaire/list/${cid}?sessionId=${sid}`, {}, 5000).catch(() => null);
-                    if (!r || !r.ok) return;
-                    const d = await r.json();
-                    const stags = d.stagiaires || d || [];
-                    stags.forEach(st => {
-                        const uid = st.stagiaireId || st.qrCode || st.id;
-                        if (uid) stagTasks.push({ cid, uid, sesNiv });
-                    });
-                } catch {}
-            }));
-        }));
-
-        if (stagTasks.length === 0) throw new Error('no stagiaires');
-
-        // 2c. Charger tous les résultats en parallèle (max 20 fetches simultanés)
-        const CHUNK = 20;
-        for (let i = 0; i < stagTasks.length; i += CHUNK) {
-            const chunk = stagTasks.slice(i, i + CHUNK);
-            const results = await Promise.all(chunk.map(async ({ cid, uid, sesNiv }) => {
-                try {
-                    const r = await fetchTimeout(`${API}/entrainement/results/${cid}/${uid}`, {}, 5000).catch(() => null);
-                    if (!r || !r.ok) return 0;
-                    const d = await r.json();
-                    const nb = (d.results || []).length;
-                    return { nb, sesNiv };
-                } catch { return { nb: 0, sesNiv }; }
-            }));
-            results.forEach(res => {
-                if (!res || !res.nb) return;
-                if (res.sesNiv === 1) n1 += res.nb;
-                else if (res.sesNiv === 2) n2 += res.nb;
-                else n3 += res.nb;
+    // Collecter tous les (cid, uid, sesNiv) depuis le cache _sessionsData
+    // déjà chargé par enrichCentreStats — pas de nouveaux appels sessions/stagiaires
+    const stagTasks = [];
+    centres.forEach(c => {
+        const cid = c.centerId;
+        if (!cid || !c._sessionsData) return;
+        c._sessionsData.forEach(({ sesNiv, stags }) => {
+            stags.forEach(st => {
+                const uid = st.stagiaireId || st.qrCode || st.id;
+                if (uid) stagTasks.push({ cid, uid, sesNiv });
             });
-        }
-        if (n1 + n2 + n3 > 0) source = 'résultats';
-    } catch(e) {
-        console.warn('loadEntrStats méthode 2:', e.message);
+        });
+    });
+
+    console.log(`[EntrStats] ${stagTasks.length} stagiaires trouvés dans le cache`, stagTasks.slice(0,3));
+
+    if (stagTasks.length === 0) {
+        renderEntrStats(0, 0, 0, 'aucun stagiaire');
+        return;
     }
 
-    renderEntrStats(n1, n2, n3, source);
+    // Charger tous les résultats en parallèle par chunks de 10
+    const CHUNK = 10;
+    for (let i = 0; i < stagTasks.length; i += CHUNK) {
+        const chunk = stagTasks.slice(i, i + CHUNK);
+        const results = await Promise.all(chunk.map(async ({ cid, uid, sesNiv }) => {
+            try {
+                const r = await fetchTimeout(
+                    `${API}/entrainement/results/${cid}/${uid}`,
+                    {}, // endpoint public, pas d'auth
+                    6000
+                ).catch(() => null);
+                if (!r || !r.ok) { console.warn(`[EntrStats] results/${cid}/${uid} → ${r?.status}`); return { nb: 0, sesNiv }; }
+                const d = await r.json();
+                console.info(`[EntrStats] results/${uid}:`, JSON.stringify(d).slice(0, 250));
+                // Firebase renvoie un OBJET keyed par sessionId, PAS un tableau
+                // ex: { "SES_abc": { percentage:80, score:8 }, "SES_def": {...} }
+                // d peut être { results: {...} } ou directement l'objet
+                const raw = d.results || d;
+                let nb = 0;
+                if (Array.isArray(raw)) {
+                    nb = raw.length;
+                } else if (raw && typeof raw === 'object') {
+                    // Filtrer les clés metadata éventuelles
+                    nb = Object.values(raw).filter(v => v && typeof v === 'object').length;
+                }
+                console.log(`[EntrStats] uid=${uid} nb=${nb} sesNiv=${sesNiv}`);
+                return { nb, sesNiv };
+            } catch(e) { console.warn('[EntrStats] fetch err:', e.message); return { nb: 0, sesNiv }; }
+        }));
+
+        results.forEach(res => {
+            if (!res || !res.nb) return;
+            if (res.sesNiv === 1) n1 += res.nb;
+            else if (res.sesNiv === 2) n2 += res.nb;
+            else n3 += res.nb;
+        });
+    }
+
+    console.log(`[EntrStats] résultats: SSIAP1=${n1} SSIAP2=${n2} SSIAP3=${n3}`);
+    renderEntrStats(n1, n2, n3, n1+n2+n3 > 0 ? 'résultats' : 'aucun quiz');
 }
 
 function renderEntrStats(n1, n2, n3, source) {
     const total = n1 + n2 + n3;
     set('total-entr', total);
-    set('entr-source', total > 0 ? source : 'aucun quiz');
+    set('entr-source', source);
 
     const pct = n => total > 0 ? ' (' + Math.round(n / total * 100) + '%)' : '';
     set('count-n1', n1); set('pct-n1', pct(n1));
