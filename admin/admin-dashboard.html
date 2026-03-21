@@ -751,20 +751,44 @@ async function enrichCentreStats(c) {
 async function loadEntrainementsStats(centres) {
     let n1=0, n2=0, n3=0;
 
-    // ── Méthode 1 : endpoint global /stats/all (le plus rapide, 1 seul appel) ──
+    // ── Méthode 1 : /stats/all (si déployé) ──────────────────
     try {
-        const r = await fetchTimeout(`${API}/entrainement/stats/all`, {}, 8000).catch(() => null);
+        const r = await fetchTimeout(`${API}/entrainement/stats/all`, {}, 5000).catch(() => null);
         if (r && r.ok) {
             const d = await r.json();
-            if (d.success && (d.n1||0) + (d.n2||0) + (d.n3||0) >= 0) {
+            if (d.success && (d.n1||0) + (d.n2||0) + (d.n3||0) > 0) {
                 renderEntrStats(d.n1||0, d.n2||0, d.n3||0, 'quiz complétés');
                 return;
             }
         }
     } catch {}
 
-    // ── Méthode 2 : /stats/:centerId pour chaque centre en parallèle ──
-    // (endpoint existant qui lit results/{centerId} dans Firebase)
+    // ── Méthode 2 : compter historique dans _sessionsData ────
+    // Le champ "historique" est déjà présent sur chaque stagiaire
+    // ex: { "TRAIN_abc": { completedAt, score, ... }, "TRAIN_def": {...} }
+    centres.forEach(c => {
+        if (!c._sessionsData) return;
+        c._sessionsData.forEach(({ sesNiv, stags }) => {
+            stags.forEach(st => {
+                const hist = st.historique || st.history || st.entrainements || {};
+                const nb = typeof hist === 'object' && !Array.isArray(hist)
+                    ? Object.keys(hist).length
+                    : (Array.isArray(hist) ? hist.length : 0);
+                if (nb > 0) {
+                    if (sesNiv === 1) n1 += nb;
+                    else if (sesNiv === 2) n2 += nb;
+                    else n3 += nb;
+                }
+            });
+        });
+    });
+
+    if (n1 + n2 + n3 > 0) {
+        renderEntrStats(n1, n2, n3, 'quiz complétés');
+        return;
+    }
+
+    // ── Méthode 3 : /stats/:centerId en parallèle ────────────
     try {
         const results = await Promise.all(centres.map(async c => {
             const cid = c.centerId;
@@ -779,7 +803,7 @@ async function loadEntrainementsStats(centres) {
         results.forEach(r => { n1 += r.n1; n2 += r.n2; n3 += r.n3; });
     } catch {}
 
-    renderEntrStats(n1, n2, n3, 'quiz complétés');
+    renderEntrStats(n1, n2, n3, n1+n2+n3 > 0 ? 'quiz complétés' : 'aucun quiz');
 }
 
 function renderEntrStats(n1, n2, n3, source) {
