@@ -341,7 +341,7 @@ tr:hover td{background:var(--subtle)}
           <!-- ENTRAÎNEMENTS PAR NIVEAU -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span>Stagiaires / Niveau SSIAP</div>
+              <div class="card-title"><span class="dot"></span>Quiz complétés / Niveau</div>
               <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)" id="entr-source">—</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:14px">
@@ -350,7 +350,7 @@ tr:hover td{background:var(--subtle)}
                   <span>SSIAP 1</span>
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n1" style="color:var(--green);font-weight:700">0</span>
-                    <span style="color:var(--muted);font-size:10px"> stag.</span>
+                    <span style="color:var(--muted);font-size:10px"> quiz</span>
                     <span id="pct-n1" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
                   </span>
                 </div>
@@ -361,7 +361,7 @@ tr:hover td{background:var(--subtle)}
                   <span>SSIAP 2</span>
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n2" style="color:var(--blue);font-weight:700">0</span>
-                    <span style="color:var(--muted);font-size:10px"> stag.</span>
+                    <span style="color:var(--muted);font-size:10px"> quiz</span>
                     <span id="pct-n2" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
                   </span>
                 </div>
@@ -372,7 +372,7 @@ tr:hover td{background:var(--subtle)}
                   <span>SSIAP 3</span>
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n3" style="color:var(--gold);font-weight:700">0</span>
-                    <span style="color:var(--muted);font-size:10px"> stag.</span>
+                    <span style="color:var(--muted);font-size:10px"> quiz</span>
                     <span id="pct-n3" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
                   </span>
                 </div>
@@ -380,7 +380,7 @@ tr:hover td{background:var(--subtle)}
               </div>
             </div>
             <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">
-              <span>Total stagiaires inscrits</span>
+              <span>Total quiz complétés</span>
               <span id="total-entr" style="color:var(--text);font-weight:700;font-size:13px">0</span>
             </div>
           </div>
@@ -749,23 +749,55 @@ async function enrichCentreStats(c) {
 
 // ── ENTRAÎNEMENTS PAR NIVEAU ────────────────────────────────
 async function loadEntrainementsStats(centres) {
-    // Les résultats Firebase nécessitent un token centre, pas admin.
-    // On utilise le nombre de stagiaires par niveau de session — donnée réelle disponible.
     let n1=0, n2=0, n3=0;
 
-    centres.forEach(c => {
-        if (!c._sessionsData) return;
-        c._sessionsData.forEach(({ sesNiv, stags }) => {
-            const nb = Array.isArray(stags) ? stags.length : 0;
-            if (sesNiv === 1) n1 += nb;
-            else if (sesNiv === 2) n2 += nb;
-            else n3 += nb;
-        });
-    });
+    // ── Méthode 1 : endpoint global /stats/all (le plus rapide, 1 seul appel) ──
+    try {
+        const r = await fetchTimeout(`${API}/entrainement/stats/all`, {}, 8000).catch(() => null);
+        if (r && r.ok) {
+            const d = await r.json();
+            if (d.success && (d.n1||0) + (d.n2||0) + (d.n3||0) >= 0) {
+                renderEntrStats(d.n1||0, d.n2||0, d.n3||0, 'quiz complétés');
+                return;
+            }
+        }
+    } catch {}
 
-    // Mettre à jour le titre de la carte
-    const titleEl = document.querySelector('#tab-overview .card-title + span[id="entr-source"]');
-    renderEntrStats(n1, n2, n3, 'stagiaires inscrits');
+    // ── Méthode 2 : /stats/:centerId pour chaque centre en parallèle ──
+    // (endpoint existant qui lit results/{centerId} dans Firebase)
+    try {
+        const results = await Promise.all(centres.map(async c => {
+            const cid = c.centerId;
+            if (!cid) return { n1:0, n2:0, n3:0 };
+            try {
+                const r = await fetchTimeout(`${API}/entrainement/stats/${cid}`, {}, 6000).catch(() => null);
+                if (!r || !r.ok) return { n1:0, n2:0, n3:0 };
+                const d = await r.json();
+                return { n1: d.n1||0, n2: d.n2||0, n3: d.n3||0 };
+            } catch { return { n1:0, n2:0, n3:0 }; }
+        }));
+        results.forEach(r => { n1 += r.n1; n2 += r.n2; n3 += r.n3; });
+    } catch {}
+
+    renderEntrStats(n1, n2, n3, 'quiz complétés');
+}
+
+function renderEntrStats(n1, n2, n3, source) {
+    const total = n1 + n2 + n3;
+    set('total-entr', total);
+    set('entr-source', total > 0 ? source : 'aucun quiz');
+
+    const pct = n => total > 0 ? ' (' + Math.round(n / total * 100) + '%)' : '';
+    set('count-n1', n1); set('pct-n1', pct(n1));
+    set('count-n2', n2); set('pct-n2', pct(n2));
+    set('count-n3', n3); set('pct-n3', pct(n3));
+
+    setTimeout(() => {
+        const pctW = n => total > 0 ? Math.round(n / total * 100) : 0;
+        document.getElementById('bar-n1').style.width = pctW(n1) + '%';
+        document.getElementById('bar-n2').style.width = pctW(n2) + '%';
+        document.getElementById('bar-n3').style.width = pctW(n3) + '%';
+    }, 150);
 }
 
 function renderEntrStats(n1, n2, n3, source) {
