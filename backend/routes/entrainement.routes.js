@@ -251,5 +251,58 @@ router.get('/stats/:centerId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+/**
+ * GET /api/entrainement/stats/all
+ * Stats globales TOUTES centres confondus — pour le dashboard admin
+ * Lit results/{centerId} pour chaque centre enregistré dans Firebase
+ * Pas de JWT requis (données agrégées anonymes)
+ */
+router.get('/stats/all', async (req, res) => {
+  try {
+    // 1. Récupérer tous les centres enregistrés
+    const centresSnap = await db.ref('centers').once('value');
+    if (!centresSnap.exists()) {
+      return res.json({ success: true, n1: 0, n2: 0, n3: 0, total: 0, centres: [] });
+    }
 
+    const centerIds = Object.keys(centresSnap.val());
+    let n1 = 0, n2 = 0, n3 = 0;
+    const centreStats = [];
+
+    // 2. Lire results/{centerId} pour chaque centre en parallèle
+    await Promise.all(centerIds.map(async centerId => {
+      try {
+        const snap = await db.ref(`results/${centerId}`).once('value');
+        if (!snap.exists()) {
+          centreStats.push({ centerId, n1: 0, n2: 0, n3: 0 });
+          return;
+        }
+        let cn1 = 0, cn2 = 0, cn3 = 0;
+        snap.forEach(userSnap => {
+          userSnap.forEach(sessionSnap => {
+            const d = sessionSnap.val();
+            if (d.niveau === 1 || d.niveau === '1') cn1++;
+            else if (d.niveau === 2 || d.niveau === '2') cn2++;
+            else if (d.niveau === 3 || d.niveau === '3') cn3++;
+          });
+        });
+        n1 += cn1; n2 += cn2; n3 += cn3;
+        centreStats.push({ centerId, n1: cn1, n2: cn2, n3: cn3 });
+      } catch (e) {
+        console.warn(`stats/all: erreur centre ${centerId}:`, e.message);
+      }
+    }));
+
+    res.json({
+      success: true,
+      n1, n2, n3,
+      total: n1 + n2 + n3,
+      centres: centreStats
+    });
+
+  } catch (error) {
+    console.error('Erreur stats/all:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 module.exports = router;
