@@ -341,7 +341,7 @@ tr:hover td{background:var(--subtle)}
           <!-- ENTRAÎNEMENTS PAR NIVEAU -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title"><span class="dot"></span>Quiz complétés / Niveau</div>
+              <div class="card-title"><span class="dot"></span>Stagiaires / Niveau SSIAP</div>
               <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted)" id="entr-source">—</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:14px">
@@ -350,7 +350,7 @@ tr:hover td{background:var(--subtle)}
                   <span>SSIAP 1</span>
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n1" style="color:var(--green);font-weight:700">0</span>
-                    <span style="color:var(--muted);font-size:10px"> quiz</span>
+                    <span style="color:var(--muted);font-size:10px"> stag.</span>
                     <span id="pct-n1" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
                   </span>
                 </div>
@@ -361,7 +361,7 @@ tr:hover td{background:var(--subtle)}
                   <span>SSIAP 2</span>
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n2" style="color:var(--blue);font-weight:700">0</span>
-                    <span style="color:var(--muted);font-size:10px"> quiz</span>
+                    <span style="color:var(--muted);font-size:10px"> stag.</span>
                     <span id="pct-n2" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
                   </span>
                 </div>
@@ -372,7 +372,7 @@ tr:hover td{background:var(--subtle)}
                   <span>SSIAP 3</span>
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n3" style="color:var(--gold);font-weight:700">0</span>
-                    <span style="color:var(--muted);font-size:10px"> quiz</span>
+                    <span style="color:var(--muted);font-size:10px"> stag.</span>
                     <span id="pct-n3" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
                   </span>
                 </div>
@@ -380,7 +380,7 @@ tr:hover td{background:var(--subtle)}
               </div>
             </div>
             <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">
-              <span>Total quiz complétés</span>
+              <span>Total stagiaires inscrits</span>
               <span id="total-entr" style="color:var(--text);font-weight:700;font-size:13px">0</span>
             </div>
           </div>
@@ -749,69 +749,23 @@ async function enrichCentreStats(c) {
 
 // ── ENTRAÎNEMENTS PAR NIVEAU ────────────────────────────────
 async function loadEntrainementsStats(centres) {
+    // Les résultats Firebase nécessitent un token centre, pas admin.
+    // On utilise le nombre de stagiaires par niveau de session — donnée réelle disponible.
     let n1=0, n2=0, n3=0;
 
-    // Collecter tous les (cid, uid, sesNiv) depuis le cache _sessionsData
-    // déjà chargé par enrichCentreStats — pas de nouveaux appels sessions/stagiaires
-    const stagTasks = [];
     centres.forEach(c => {
-        const cid = c.centerId;
-        if (!cid || !c._sessionsData) return;
+        if (!c._sessionsData) return;
         c._sessionsData.forEach(({ sesNiv, stags }) => {
-            stags.forEach(st => {
-                const uid = st.stagiaireId || st.qrCode || st.id;
-                if (uid) stagTasks.push({ cid, uid, sesNiv });
-            });
+            const nb = Array.isArray(stags) ? stags.length : 0;
+            if (sesNiv === 1) n1 += nb;
+            else if (sesNiv === 2) n2 += nb;
+            else n3 += nb;
         });
     });
 
-    console.log(`[EntrStats] ${stagTasks.length} stagiaires trouvés dans le cache`, stagTasks.slice(0,3));
-
-    if (stagTasks.length === 0) {
-        renderEntrStats(0, 0, 0, 'aucun stagiaire');
-        return;
-    }
-
-    // Charger tous les résultats en parallèle par chunks de 10
-    const CHUNK = 10;
-    for (let i = 0; i < stagTasks.length; i += CHUNK) {
-        const chunk = stagTasks.slice(i, i + CHUNK);
-        const results = await Promise.all(chunk.map(async ({ cid, uid, sesNiv }) => {
-            try {
-                const r = await fetchTimeout(
-                    `${API}/entrainement/results/${cid}/${uid}`,
-                    {}, // endpoint public, pas d'auth
-                    6000
-                ).catch(() => null);
-                if (!r || !r.ok) { console.warn(`[EntrStats] results/${cid}/${uid} → ${r?.status}`); return { nb: 0, sesNiv }; }
-                const d = await r.json();
-                console.info(`[EntrStats] results/${uid}:`, JSON.stringify(d).slice(0, 250));
-                // Firebase renvoie un OBJET keyed par sessionId, PAS un tableau
-                // ex: { "SES_abc": { percentage:80, score:8 }, "SES_def": {...} }
-                // d peut être { results: {...} } ou directement l'objet
-                const raw = d.results || d;
-                let nb = 0;
-                if (Array.isArray(raw)) {
-                    nb = raw.length;
-                } else if (raw && typeof raw === 'object') {
-                    // Filtrer les clés metadata éventuelles
-                    nb = Object.values(raw).filter(v => v && typeof v === 'object').length;
-                }
-                console.log(`[EntrStats] uid=${uid} nb=${nb} sesNiv=${sesNiv}`);
-                return { nb, sesNiv };
-            } catch(e) { console.warn('[EntrStats] fetch err:', e.message); return { nb: 0, sesNiv }; }
-        }));
-
-        results.forEach(res => {
-            if (!res || !res.nb) return;
-            if (res.sesNiv === 1) n1 += res.nb;
-            else if (res.sesNiv === 2) n2 += res.nb;
-            else n3 += res.nb;
-        });
-    }
-
-    console.log(`[EntrStats] résultats: SSIAP1=${n1} SSIAP2=${n2} SSIAP3=${n3}`);
-    renderEntrStats(n1, n2, n3, n1+n2+n3 > 0 ? 'résultats' : 'aucun quiz');
+    // Mettre à jour le titre de la carte
+    const titleEl = document.querySelector('#tab-overview .card-title + span[id="entr-source"]');
+    renderEntrStats(n1, n2, n3, 'stagiaires inscrits');
 }
 
 function renderEntrStats(n1, n2, n3, source) {
