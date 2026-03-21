@@ -1269,11 +1269,13 @@ async function openCentreModal(centreId) {
     const debut = lic.createdAt || lic.activatedAt || lic.startDate || null;
     set('mc-lic-debut', debut ? new Date(debut).toLocaleDateString('fr-FR') : '—');
 
-    // Date fin
+    // Date fin + Restant
     const fin = lic.expiresAt || lic.endDate || lic.expiry || null;
+    const isStripe = !fin && (lic.stripeSubId || lic.stripeSubscriptionId || (lic.type || '').toLowerCase() !== 'demo');
     if (!fin) {
-        set('mc-lic-fin',   'Abonnement Stripe');
-        set('mc-lic-reste', 'En cours');
+        set('mc-lic-fin', isStripe ? 'Renouvellement auto' : '—');
+        set('mc-lic-reste', isStripe ? '✓ Actif' : '—');
+        document.getElementById('mc-lic-reste').style.color = isStripe ? 'var(--green)' : 'var(--muted)';
     } else {
         const jours = Math.ceil((fin - Date.now()) / 86400000);
         set('mc-lic-fin', new Date(fin).toLocaleDateString('fr-FR'));
@@ -1289,28 +1291,33 @@ async function openCentreModal(centreId) {
         }
     }
 
-    // ── Quiz par niveau depuis _sessionsData (déjà chargé, pas de fetch) ──
+    // ── Quiz par niveau + taux réussite depuis historique ────
     let mn1=0, mn2=0, mn3=0;
-    let totalScores=0, sumScores=0;
+    let allScores = [];
     if (c._sessionsData) {
         c._sessionsData.forEach(({ sesNiv, stags }) => {
             stags.forEach(st => {
                 const hist = st.historique || st.history || st.entrainements || {};
-                const nb = typeof hist === 'object' && !Array.isArray(hist)
-                    ? Object.keys(hist).length
-                    : (Array.isArray(hist) ? hist.length : 0);
-                if (nb > 0) {
-                    if (sesNiv === 1) mn1 += nb;
-                    else if (sesNiv === 2) mn2 += nb;
-                    else mn3 += nb;
+                if (typeof hist === 'object' && !Array.isArray(hist)) {
+                    const entries = Object.values(hist);
+                    const nb = entries.length;
+                    if (nb > 0) {
+                        if (sesNiv === 1) mn1 += nb;
+                        else if (sesNiv === 2) mn2 += nb;
+                        else mn3 += nb;
+                        // Collecter les scores depuis chaque entrée historique
+                        entries.forEach(h => {
+                            const pct = parseFloat(h.percentage || h.scorePct || h.score || 0);
+                            if (pct > 0) allScores.push(pct);
+                        });
+                    }
                 }
-                // Taux de réussite moyen
-                const score = parseFloat(st.tauxReussite || st.scoreMoyen || st.score || 0);
-                if (score > 0) { sumScores += score; totalScores++; }
             });
         });
     }
-    const tauxMoyen = totalScores > 0 ? Math.round(sumScores / totalScores) + '%' : '—';
+    const tauxMoyen = allScores.length > 0
+        ? Math.round(allScores.reduce((a,b) => a+b, 0) / allScores.length) + '%'
+        : '—';
     set('mc-taux', tauxMoyen);
 
     const mcTotal = mn1 + mn2 + mn3;
