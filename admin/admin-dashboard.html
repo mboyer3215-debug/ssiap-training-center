@@ -351,7 +351,7 @@ tr:hover td{background:var(--subtle)}
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n1" style="color:var(--green);font-weight:700">0</span>
                     <span style="color:var(--muted);font-size:10px"> quiz</span>
-                    <span id="pct-n1" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
+                    
                   </span>
                 </div>
                 <div class="progress-bar"><div class="progress-fill" id="bar-n1" style="background:var(--green);width:0%"></div></div>
@@ -362,7 +362,7 @@ tr:hover td{background:var(--subtle)}
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n2" style="color:var(--blue);font-weight:700">0</span>
                     <span style="color:var(--muted);font-size:10px"> quiz</span>
-                    <span id="pct-n2" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
+                    
                   </span>
                 </div>
                 <div class="progress-bar"><div class="progress-fill" id="bar-n2" style="background:var(--blue);width:0%"></div></div>
@@ -373,7 +373,7 @@ tr:hover td{background:var(--subtle)}
                   <span style="font-family:'DM Mono',monospace">
                     <span id="count-n3" style="color:var(--gold);font-weight:700">0</span>
                     <span style="color:var(--muted);font-size:10px"> quiz</span>
-                    <span id="pct-n3" style="color:var(--muted);font-size:10px;margin-left:4px"></span>
+                    
                   </span>
                 </div>
                 <div class="progress-bar"><div class="progress-fill" id="bar-n3" style="background:var(--gold);width:0%"></div></div>
@@ -811,10 +811,10 @@ function renderEntrStats(n1, n2, n3, source) {
     set('total-entr', total);
     set('entr-source', total > 0 ? source : 'aucun quiz');
 
-    const pct = n => total > 0 ? ' (' + Math.round(n / total * 100) + '%)' : '';
-    set('count-n1', n1); set('pct-n1', pct(n1));
-    set('count-n2', n2); set('pct-n2', pct(n2));
-    set('count-n3', n3); set('pct-n3', pct(n3));
+    // Pas de % — juste le nombre brut de quiz par niveau, c'est suffisant
+    set('count-n1', n1); set('pct-n1', '');
+    set('count-n2', n2); set('pct-n2', '');
+    set('count-n3', n3); set('pct-n3', '');
 
     setTimeout(() => {
         const pctW = n => total > 0 ? Math.round(n / total * 100) : 0;
@@ -824,23 +824,7 @@ function renderEntrStats(n1, n2, n3, source) {
     }, 150);
 }
 
-function renderEntrStats(n1, n2, n3, source) {
-    const total = n1 + n2 + n3;
-    set('total-entr', total);
-    set('entr-source', source);
 
-    const pct = n => total > 0 ? ' (' + Math.round(n / total * 100) + '%)' : '';
-    set('count-n1', n1); set('pct-n1', pct(n1));
-    set('count-n2', n2); set('pct-n2', pct(n2));
-    set('count-n3', n3); set('pct-n3', pct(n3));
-
-    setTimeout(() => {
-        const pctW = n => total > 0 ? Math.round(n / total * 100) : 0;
-        document.getElementById('bar-n1').style.width = pctW(n1) + '%';
-        document.getElementById('bar-n2').style.width = pctW(n2) + '%';
-        document.getElementById('bar-n3').style.width = pctW(n3) + '%';
-    }, 150);
-}
 
 // ── GRAPHIQUE MENSUEL GLOBAL ────────────────────────────────
 async function loadMonthlyStats(centres) {
