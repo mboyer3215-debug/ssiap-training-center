@@ -1526,39 +1526,37 @@ function ouvrirQrFormateur(id) {
 function envoyerMailFormateur() {
     const f = _qrFormateurCourant;
     if (!f) return;
-    const nom      = `${f.prenom||''} ${f.nom||''}`.trim();
-    const pin      = f.pin || f.code || '——';
-    const email    = f.email || '';
-    const loginUrl = f._loginUrl || '';
-    const centre   = centerData.nom || 'votre centre';
+    const nom   = `${f.prenom||''} ${f.nom||''}`.trim();
+    const email = f.email || '';
 
-    const sujet = encodeURIComponent(`Accès SSIAP Training — ${centre}`);
-    const corps = encodeURIComponent(
-`Bonjour ${nom},
+    if (!email) {
+        toast('⚠️ Ce formateur n\'a pas d\'adresse email enregistrée');
+        return;
+    }
 
-Voici vos informations de connexion au dashboard formateur SSIAP Training.
+    const btn = document.querySelector('#modal-qr-formateur .btn-secondary');
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Envoi…'; }
 
-Centre : ${centre}
-Code PIN : ${pin}
-
-Lien de connexion :
-
-${loginUrl}
-
-Instructions :
-1. Cliquez sur le lien ci-dessus (ou copiez-le dans votre navigateur)
-2. Sélectionnez le centre : ${centre}
-3. Entrez votre code PIN : ${pin}
-
-Vous pouvez également scanner le QR code imprimé remis par votre responsable.
-
-Cordialement,
-${centre}`
-    );
-
-    // mailto: ouvre le client mail par défaut (Outlook, Thunderbird, mail macOS, etc.)
-    window.location.href = `mailto:${email}?subject=${sujet}&body=${corps}`;
-    toast('✉️ Ouverture du client mail…');
+    authFetch(`${API_URL}/formateur/send-access`, {
+        method: 'POST',
+        body: JSON.stringify({
+            centerId:    centerData.centerId,
+            formateurId: f.formateurId || f.id
+        })
+    }).then(async r => {
+        if (!r) return;
+        const d = await r.json();
+        if (d.success) {
+            toast(`✅ Email envoyé à ${email}`);
+            closeModal('modal-qr-formateur');
+        } else {
+            toast('⚠️ ' + (d.error || 'Erreur envoi'));
+        }
+    }).catch(() => {
+        toast('⚠️ Erreur réseau');
+    }).finally(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = '✉️ Envoyer par mail'; }
+    });
 }
 
 function imprimerQr() {
