@@ -470,6 +470,44 @@
 <div id="loader" class="loader"><div class="spinner"></div><p style="font-size:12px;color:var(--muted)">Chargement…</p></div>
 <div class="toast" id="toast"></div>
 
+<!-- MODAL QR CODE FORMATEUR -->
+<div class="modal-overlay" id="modal-qr-formateur">
+    <div class="modal" style="max-width:380px">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title">📲 Accès Formateur</div>
+                <div class="modal-sub" id="qr-formateur-nom">—</div>
+            </div>
+            <button class="modal-close" onclick="closeModal('modal-qr-formateur')">✕</button>
+        </div>
+        <div class="modal-body" style="text-align:center">
+            <!-- QR Code -->
+            <div style="background:var(--subtle);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+                <div id="qr-code-container" style="display:flex;justify-content:center;margin-bottom:12px"></div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Scanner pour accéder au dashboard formateur</div>
+                <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all" id="qr-url-display"></div>
+            </div>
+
+            <!-- PIN -->
+            <div style="background:var(--rouge-l);border:1px solid rgba(194,90,58,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Code PIN de connexion</div>
+                <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:700;color:var(--rouge);letter-spacing:8px" id="qr-pin-display">——</div>
+            </div>
+
+            <!-- Infos centre -->
+            <div style="background:var(--subtle);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;text-align:left">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px">URL de connexion directe :</div>
+                <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text);word-break:break-all" id="qr-login-url"></div>
+            </div>
+
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary" style="flex:1" onclick="copierInfosFormateur()">📋 Copier les infos</button>
+                <button class="btn btn-primary" style="flex:1" onclick="imprimerQr()">🖨️ Imprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const API_URL = 'https://ssiap-training-center.onrender.com/api';
 
@@ -816,26 +854,31 @@ function renderFormateurs() {
     if (!list.length) { container.innerHTML = '<div class="empty"><div class="empty-icon">👨‍🏫</div><p>Aucun formateur trouvé</p></div>'; return; }
 
     container.innerHTML = `<table class="data-table">
-        <thead><tr><th>Formateur</th><th>Niveaux</th><th>Sessions</th><th>Stagiaires</th><th>Dernier quiz</th><th>Statut</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Formateur</th><th>Niveaux</th><th>Sessions</th><th>Stagiaires</th><th>Statut</th><th>Actions</th></tr></thead>
         <tbody>${list.map(f => {
+            const fid    = f.formateurId || f.id;
             const nom    = `${f.prenom||''} ${f.nom||''}`.trim() || '—';
             const init   = (f.prenom?.[0]||'?').toUpperCase();
+            // FIX doublon : niveauLabel() gère déjà "SSIAP X", inutile de préfixer
             const niveaux = (f.niveaux||[]).map(n => `<span class="badge badge-blue" style="margin-right:3px">${niveauLabel(n)}</span>`).join('');
             const actif  = f.actif !== false;
-            const nbSess = _sessions.filter(s => s.formateurId === (f.formateurId||f.id)).length;
-            return `<tr class="clickable" onclick="openDetailFormateur('${f.formateurId||f.id}')">
+            // Compter sessions et stagiaires de ce formateur
+            const sessionsF = _sessions.filter(s => s.formateurId === fid || s.formateurId === f.formateurId);
+            const nbSess    = sessionsF.length;
+            const nbStag    = _stagiaires.filter(st => sessionsF.some(s => (s.sessionId||s.id) === st.sessionId)).length;
+            return `<tr class="clickable" onclick="openDetailFormateur('${fid}')">
                 <td><div style="display:flex;align-items:center;gap:8px">
                     <div class="avatar" style="background:var(--blue-l);color:var(--blue)">${init}</div>
                     <div><div style="font-weight:600">${nom}</div><div style="font-size:10px;color:var(--muted)">${f.email||''}</div></div>
                 </div></td>
                 <td>${niveaux || '<span style="color:var(--muted);font-size:11px">Non défini</span>'}</td>
                 <td style="font-family:'DM Mono',monospace;text-align:center">${nbSess}</td>
-                <td style="font-family:'DM Mono',monospace;text-align:center">—</td>
-                <td style="font-size:11px;color:var(--muted)">—</td>
+                <td style="font-family:'DM Mono',monospace;text-align:center">${nbStag || '—'}</td>
                 <td><span class="badge ${actif?'badge-green':'badge-gray'}">${actif?'Actif':'Inactif'}</span></td>
                 <td><div style="display:flex;gap:4px">
-                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();editFormateur('${f.formateurId||f.id}')" title="Modifier">✏️</button>
-                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();toggleFormateurActif('${f.formateurId||f.id}',${actif})" title="${actif?'Désactiver':'Activer'}">${actif?'🔒':'🔓'}</button>
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();ouvrirQrFormateur('${fid}')" title="Envoyer QR Code & PIN">📲</button>
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();editFormateur('${fid}')" title="Modifier">✏️</button>
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();toggleFormateurActif('${fid}',${actif})" title="${actif?'Désactiver':'Activer'}">${actif?'🔒':'🔓'}</button>
                 </div></td>
             </tr>`;
         }).join('')}</tbody>
@@ -847,21 +890,44 @@ async function openDetailFormateur(id) {
     if (!f) return;
     const nom = `${f.prenom||''} ${f.nom||''}`.trim();
     set('detail-form-title', `📊 ${nom}`);
-    const sessions = _sessions.filter(s => s.formateurId === id);
+
+    // Sessions de ce formateur (charger si pas encore fait)
+    let sessions = _sessions.filter(s => s.formateurId === id);
+    if (!sessions.length && _sessions.length === 0) {
+        try {
+            const r = await fetch(`${API_URL}/session/list/${centerData.centerId}`);
+            const d = await r.json();
+            _sessions = d.sessions || [];
+            sessions = _sessions.filter(s => s.formateurId === id);
+        } catch {}
+    }
+
+    // Stagiaires de ses sessions
+    const nbStag = _stagiaires.filter(st => sessions.some(s => (s.sessionId||s.id) === st.sessionId)).length;
+
+    // FIX doublon : utiliser niveauLabel() qui normalise correctement
+    const niveauxStr = (f.niveaux||[]).map(n => niveauLabel(n)).join(', ') || '—';
+
     set('detail-form-stats', `
         <div class="stat-pill"><span class="stat-pill-val">${sessions.length}</span><span class="stat-pill-lbl">Sessions</span></div>
-        <div class="stat-pill"><span class="stat-pill-val">${(f.niveaux||[]).map(n=>'SSIAP '+n).join(', ')||'—'}</span><span class="stat-pill-lbl">Niveaux</span></div>
+        <div class="stat-pill"><span class="stat-pill-val">${nbStag||'—'}</span><span class="stat-pill-lbl">Stagiaires</span></div>
+        <div class="stat-pill"><span class="stat-pill-val" style="font-size:12px">${niveauxStr}</span><span class="stat-pill-lbl">Niveaux</span></div>
         <div class="stat-pill"><span class="stat-pill-val">${f.actif!==false?'Actif':'Inactif'}</span><span class="stat-pill-lbl">Statut</span></div>
     `);
     document.getElementById('detail-form-sessions').innerHTML = sessions.length
         ? `<table class="data-table" style="margin-top:8px">
-            <thead><tr><th>Session</th><th>Niveau</th><th>Début</th><th>Fin</th></tr></thead>
-            <tbody>${sessions.map(s => `<tr>
-                <td>${s.nom||s.sessionNom||'—'}</td>
-                <td><span class="badge badge-blue">${niveauLabel(s.niveau||s.niveauSsiap)}</span></td>
-                <td style="font-family:'DM Mono',monospace;font-size:11px">${fmtDate(s.dateDebut)}</td>
-                <td style="font-family:'DM Mono',monospace;font-size:11px">${fmtDate(s.dateFin)}</td>
-            </tr>`).join('')}</tbody>
+            <thead><tr><th>Session</th><th>Niveau</th><th>Début</th><th>Fin</th><th>Stagiaires</th></tr></thead>
+            <tbody>${sessions.map(s => {
+                const sid = s.sessionId || s.id;
+                const nbS = _stagiaires.filter(st => st.sessionId === sid).length;
+                return `<tr>
+                    <td>${s.nom||s.sessionNom||'—'}</td>
+                    <td><span class="badge badge-blue">${niveauLabel(s.niveau||s.niveauSsiap)}</span></td>
+                    <td style="font-family:'DM Mono',monospace;font-size:11px">${fmtDate(s.dateDebut)}</td>
+                    <td style="font-family:'DM Mono',monospace;font-size:11px">${fmtDate(s.dateFin)}</td>
+                    <td style="font-family:'DM Mono',monospace;text-align:center">${nbS||'—'}</td>
+                </tr>`;
+            }).join('')}</tbody>
            </table>`
         : '<p style="color:var(--muted);font-size:12px;padding:8px 0">Aucune session assignée.</p>';
     openDetail('formateur');
@@ -1433,7 +1499,92 @@ function showAddFormateurModal() {
     openModal('modal-formateur');
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
+// ── QR CODE FORMATEUR ────────────────────────────────────────
+let _qrFormateurCourant = null;
+
+function ouvrirQrFormateur(id) {
+    const f = _formateurs.find(x => (x.formateurId||x.id) === id);
+    if (!f) return;
+    _qrFormateurCourant = f;
+
+    const nom = `${f.prenom||''} ${f.nom||''}`.trim();
+    set('qr-formateur-nom', nom);
+
+    // PIN du formateur
+    const pin = f.pin || f.code || '——';
+    document.getElementById('qr-pin-display').textContent = pin;
+
+    // URL de login direct avec centreId pré-rempli
+    const baseUrl = 'https://ssiap-training-center.onrender.com';
+    const loginUrl = `${baseUrl}/formateur/formateur-login.html?centreId=${centerData.centerId}`;
+    document.getElementById('qr-login-url').textContent = loginUrl;
+    document.getElementById('qr-url-display').textContent = loginUrl;
+
+    // Générer le QR code
+    const qrContainer = document.getElementById('qr-code-container');
+    qrContainer.innerHTML = '';
+
+    // Utiliser l'API QR code (pas de dépendance JS)
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(loginUrl)}&bgcolor=f0ece7&color=1e1a17&margin=10`;
+    const img = document.createElement('img');
+    img.src = qrUrl;
+    img.style.cssText = 'width:160px;height:160px;border-radius:8px';
+    img.alt = 'QR Code';
+    qrContainer.appendChild(img);
+
+    openModal('modal-qr-formateur');
+}
+
+function copierInfosFormateur() {
+    const f   = _qrFormateurCourant;
+    if (!f) return;
+    const nom = `${f.prenom||''} ${f.nom||''}`.trim();
+    const pin = f.pin || f.code || '——';
+    const url = document.getElementById('qr-login-url').textContent;
+    const txt = `Accès SSIAP Training — ${nom}\n\nURL de connexion : ${url}\nCentre : ${centerData.nom}\nCode PIN : ${pin}\n\n1. Scannez le QR code ou ouvrez l'URL\n2. Sélectionnez votre centre\n3. Entrez votre PIN : ${pin}`;
+    navigator.clipboard.writeText(txt).then(() => toast('✅ Informations copiées'))
+        .catch(() => toast('⚠️ Copie manuelle : ' + pin));
+}
+
+function imprimerQr() {
+    const f   = _qrFormateurCourant;
+    if (!f) return;
+    const nom = `${f.prenom||''} ${f.nom||''}`.trim();
+    const pin = f.pin || f.code || '——';
+    const url = document.getElementById('qr-login-url').textContent;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=1e1a17&margin=10`;
+
+    const w = window.open('', '_blank', 'width=400,height=550');
+    w.document.write(`<!DOCTYPE html><html><head><title>Accès Formateur</title>
+    <style>body{font-family:Arial,sans-serif;text-align:center;padding:30px;color:#1e1a17}
+    h2{font-size:18px;margin-bottom:4px}
+    .centre{font-size:12px;color:#8c8078;margin-bottom:20px}
+    img{display:block;margin:0 auto 20px}
+    .pin-box{background:#fdf2ee;border:2px solid #c25a3a;border-radius:10px;padding:12px 20px;display:inline-block;margin-bottom:16px}
+    .pin-label{font-size:11px;color:#8c8078;text-transform:uppercase;letter-spacing:1px}
+    .pin{font-size:36px;font-weight:700;color:#c25a3a;letter-spacing:10px;font-family:'Courier New',monospace}
+    .url{font-size:9px;color:#8c8078;word-break:break-all;margin-top:16px}
+    .steps{text-align:left;font-size:12px;margin-top:16px;background:#f7f4f0;border-radius:8px;padding:12px}
+    .steps li{margin-bottom:6px}
+    </style></head><body>
+    <h2>🔥 SSIAP Training — Accès Formateur</h2>
+    <div class="centre">${centerData.nom}</div>
+    <img src="${qrSrc}" width="200" height="200" alt="QR Code">
+    <div><strong style="font-size:16px">${nom}</strong></div>
+    <div class="pin-box">
+        <div class="pin-label">Code PIN de connexion</div>
+        <div class="pin">${pin}</div>
+    </div>
+    <ol class="steps">
+        <li>Scannez le QR code avec votre téléphone</li>
+        <li>Sélectionnez votre centre : <strong>${centerData.nom}</strong></li>
+        <li>Entrez votre PIN : <strong>${pin}</strong></li>
+    </ol>
+    <div class="url">${url}</div>
+    <script>window.onload=()=>window.print()<\/script>
+    </body></html>`);
+    w.document.close();
+}
 function set(id, val) { const e=document.getElementById(id); if(e) e.innerHTML=val; }
 function starsStr(n) { let s=''; for(let i=1;i<=5;i++) s+=i<=n?'★':'☆'; return s; }
 function normNiveau(n) {
