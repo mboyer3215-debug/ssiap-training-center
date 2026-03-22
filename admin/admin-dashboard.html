@@ -915,11 +915,13 @@ function buildMonthlyChart(chartId, labelsId, data, refDate) {
     const mois = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
     const maxVal = Math.max(...data, 1);
     const now = refDate || new Date();
+    const len = data.length; // 6 ou 12
 
     data.forEach((val, i) => {
-        const h = Math.max(4, Math.round((val / maxVal) * (chart.style.height ? parseInt(chart.style.height) - 20 : 60)));
-        const isCurrent = i === 11;
-        const monthOffset = 11 - i;
+        const chartHeight = chart.style.height ? parseInt(chart.style.height) - 20 : 60;
+        const h = Math.max(4, Math.round((val / maxVal) * chartHeight));
+        const isCurrent = i === len - 1; // dernier élément = mois courant
+        const monthOffset = (len - 1) - i;  // 0 pour le dernier, len-1 pour le premier
         const d = new Date(now.getFullYear(), now.getMonth() - monthOffset, 1);
         const mLabel = mois[d.getMonth()];
 
@@ -1306,8 +1308,14 @@ async function openCentreModal(centreId) {
                         else if (sesNiv === 2) mn2 += nb;
                         else mn3 += nb;
                         // Collecter les scores depuis chaque entrée historique
+                        // percentage peut être absent → calculer depuis score/total
                         entries.forEach(h => {
-                            const pct = parseFloat(h.percentage || h.scorePct || h.score || 0);
+                            let pct = 0;
+                            if (h.percentage != null && h.percentage !== '') {
+                                pct = parseFloat(h.percentage);
+                            } else if (h.score != null && h.total != null && h.total > 0) {
+                                pct = Math.round((h.score / h.total) * 100);
+                            }
                             if (pct > 0) allScores.push(pct);
                         });
                     }
