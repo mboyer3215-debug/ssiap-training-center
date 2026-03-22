@@ -349,8 +349,7 @@ router.post('/send-access', async (req, res) => {
   </td></tr>
   <tr><td style="background:#f0ece7;padding:16px 32px;text-align:center;border-top:1px solid #e8e2db">
     <p style="font-size:11px;color:#8c8078;margin:0">
-      Email envoyé par <strong>${centreNom}</strong> via SSIAP Training<br>
-      <a href="${loginUrl}" style="color:#c25a3a;font-size:10px">${loginUrl}</a>
+      Email envoyé par <strong>${centreNom}</strong> via SSIAP Training
     </p>
   </td></tr>
 </table>
