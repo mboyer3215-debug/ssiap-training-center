@@ -311,5 +311,155 @@ router.delete('/delete/:formateurId', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+// backend/routes/formateur.access.route.js
+// À ajouter dans server.js : app.use('/api/formateur', require('./routes/formateur.access.route'));
+// (déjà monté sur /api/formateur via formateurRoutes — ajouter à la fin du fichier formateur.routes.js)
 
+const express  = require('express');
+const router   = express.Router();
+const { db }   = require('../config/firebase');
+const FormData = require('form-data');
+const Mailgun  = require('mailgun.js');
+
+// ── Config Mailgun (variables d'env existantes) ──────────────
+const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+const MAILGUN_DOMAIN  = process.env.MAILGUN_DOMAIN;      // ex: mg.mib-prevention.fr
+const MAILGUN_FROM    = process.env.MAILGUN_FROM || `SSIAP Training <noreply@${MAILGUN_DOMAIN}>`;
+const APP_URL         = process.env.APP_URL || 'https://ssiap-training-center.onrender.com';
+
+/**
+ * POST /api/formateur/send-access
+ * Envoie un email HTML d'accès à un formateur via Mailgun
+ * Body : { centerId, formateurId }
+ * Auth : JWT centre
+ */
+router.post('/send-access', async (req, res) => {
+  try {
+    const { centerId, formateurId } = req.body;
+    if (!centerId || !formateurId) {
+      return res.status(400).json({ error: 'centerId et formateurId requis' });
+    }
+
+    // Récupérer les données du formateur depuis Firebase
+    const fSnap = await db.ref(`centers/${centerId}/formateurs/${formateurId}`).once('value');
+    if (!fSnap.exists()) {
+      return res.status(404).json({ error: 'Formateur introuvable' });
+    }
+    const f = fSnap.val();
+
+    if (!f.email) {
+      return res.status(400).json({ error: 'Ce formateur n\'a pas d\'adresse email enregistrée' });
+    }
+
+    // Récupérer les données du centre
+    const cSnap = await db.ref(`centers/${centerId}`).once('value');
+    const centre = cSnap.val() || {};
+    const centreNom = centre.nom || centre.info?.nom || centerId;
+
+    const nom      = [f.prenom, f.nom].filter(Boolean).join(' ') || 'Formateur';
+    const pin      = f.pin || f.code || '——';
+    const loginUrl = `${APP_URL}/formateur/formateur-login.html?centreId=${centerId}`;
+    const qrUrl    = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(loginUrl)}&bgcolor=ffffff&color=1e1a17&margin=10`;
+
+    // ── Email HTML ───────────────────────────────────────────
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Accès SSIAP Training</title></head>
+<body style="margin:0;padding:0;background:#f7f4f0;font-family:Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4f0;padding:30px 0">
+    <tr><td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#c25a3a,#aa4a2c);padding:28px 32px;text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🔥</div>
+          <h1 style="color:#ffffff;font-size:22px;margin:0;font-weight:700">SSIAP Training</h1>
+          <p style="color:rgba(255,255,255,.8);font-size:13px;margin:4px 0 0">${centreNom}</p>
+        </td></tr>
+
+        <!-- Bonjour -->
+        <tr><td style="padding:28px 32px 0">
+          <p style="font-size:16px;color:#1e1a17;margin:0 0 8px">Bonjour <strong>${nom}</strong>,</p>
+          <p style="font-size:14px;color:#4a4340;margin:0;line-height:1.6">
+            Voici vos informations de connexion au tableau de bord formateur.
+          </p>
+        </td></tr>
+
+        <!-- PIN -->
+        <tr><td style="padding:20px 32px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf2ee;border:2px solid #c25a3a;border-radius:12px">
+            <tr><td style="padding:18px;text-align:center">
+              <p style="font-size:11px;color:#8c8078;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px">Code PIN de connexion</p>
+              <p style="font-family:'Courier New',monospace;font-size:40px;font-weight:700;color:#c25a3a;letter-spacing:12px;margin:0">${pin}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- QR Code -->
+        <tr><td style="padding:0 32px;text-align:center">
+          <p style="font-size:13px;color:#8c8078;margin:0 0 12px">Scannez le QR code pour accéder au dashboard</p>
+          <img src="${qrUrl}" width="160" height="160" alt="QR Code" style="border-radius:10px;border:1px solid #e8e2db">
+        </td></tr>
+
+        <!-- Bouton -->
+        <tr><td style="padding:20px 32px;text-align:center">
+          <a href="${loginUrl}" style="display:inline-block;background:#c25a3a;color:#ffffff;font-size:15px;font-weight:700;padding:14px 32px;border-radius:9px;text-decoration:none">
+            🚀 Accéder au dashboard formateur
+          </a>
+        </td></tr>
+
+        <!-- Instructions -->
+        <tr><td style="padding:0 32px 24px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4f0;border-radius:10px">
+            <tr><td style="padding:16px">
+              <p style="font-size:11px;color:#8c8078;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px">Instructions</p>
+              <ol style="margin:0;padding-left:18px;font-size:13px;color:#4a4340;line-height:1.8">
+                <li>Cliquez sur le bouton ci-dessus ou scannez le QR code</li>
+                <li>Sélectionnez le centre : <strong>${centreNom}</strong></li>
+                <li>Entrez votre PIN : <strong style="color:#c25a3a;font-size:15px">${pin}</strong></li>
+              </ol>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#f0ece7;padding:16px 32px;text-align:center;border-top:1px solid #e8e2db">
+          <p style="font-size:11px;color:#8c8078;margin:0">
+            Cet email a été envoyé par <strong>${centreNom}</strong> via SSIAP Training.<br>
+            <a href="${loginUrl}" style="color:#c25a3a;font-size:10px">${loginUrl}</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+    // ── Envoi via Mailgun ────────────────────────────────────
+    const mailgun = new Mailgun(FormData);
+    const mg      = mailgun.client({ username: 'api', key: MAILGUN_API_KEY, url: 'https://api.eu.mailgun.net' }); // EU endpoint
+
+    await mg.messages.create(MAILGUN_DOMAIN, {
+      from:    MAILGUN_FROM,
+      to:      [f.email],
+      subject: `Accès SSIAP Training — ${centreNom}`,
+      html,
+      text: `Bonjour ${nom},\n\nVoici vos informations de connexion.\n\nCentre : ${centreNom}\nCode PIN : ${pin}\nLien : ${loginUrl}\n\nCordialement,\n${centreNom}`,
+    });
+
+    console.log(`[send-access] Email envoyé à ${f.email} (formateur: ${formateurId})`);
+    res.json({ success: true, message: `Email envoyé à ${f.email}` });
+
+  } catch (error) {
+    console.error('[send-access] Erreur:', error.message);
+    // Erreur Mailgun spécifique
+    if (error.status === 400 || error.status === 401) {
+      return res.status(500).json({ error: 'Erreur configuration Mailgun', detail: error.message });
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
 module.exports = router;
