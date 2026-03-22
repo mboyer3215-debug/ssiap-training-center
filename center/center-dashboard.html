@@ -472,7 +472,7 @@
 
 <!-- MODAL QR CODE FORMATEUR -->
 <div class="modal-overlay" id="modal-qr-formateur">
-    <div class="modal" style="max-width:380px">
+    <div class="modal" style="max-width:360px">
         <div class="modal-header">
             <div>
                 <div class="modal-title">📲 Accès Formateur</div>
@@ -482,27 +482,23 @@
         </div>
         <div class="modal-body" style="text-align:center">
             <!-- QR Code -->
-            <div style="background:var(--subtle);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
-                <div id="qr-code-container" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Scanner pour accéder au dashboard formateur</div>
-                <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);word-break:break-all" id="qr-url-display"></div>
+            <div style="background:white;border-radius:12px;padding:16px;margin-bottom:16px;display:inline-block">
+                <div id="qr-code-container" style="display:flex;justify-content:center"></div>
             </div>
 
             <!-- PIN -->
-            <div style="background:var(--rouge-l);border:1px solid rgba(194,90,58,.2);border-radius:10px;padding:14px;margin-bottom:16px">
-                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Code PIN de connexion</div>
-                <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:700;color:var(--rouge);letter-spacing:8px" id="qr-pin-display">——</div>
-            </div>
-
-            <!-- Infos centre -->
-            <div style="background:var(--subtle);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;text-align:left">
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px">URL de connexion directe :</div>
-                <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text);word-break:break-all" id="qr-login-url"></div>
+            <div style="background:var(--rouge-l);border:2px solid rgba(194,90,58,.3);border-radius:12px;padding:16px;margin-bottom:20px">
+                <div style="font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Code PIN de connexion</div>
+                <div style="font-family:'DM Mono',monospace;font-size:36px;font-weight:700;color:var(--rouge);letter-spacing:8px" id="qr-pin-display">——</div>
             </div>
 
             <div style="display:flex;gap:8px">
-                <button class="btn btn-secondary" style="flex:1" onclick="copierInfosFormateur()">📋 Copier les infos</button>
-                <button class="btn btn-primary" style="flex:1" onclick="imprimerQr()">🖨️ Imprimer</button>
+                <button class="btn btn-secondary" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px" onclick="envoyerMailFormateur()">
+                    ✉️ Envoyer par mail
+                </button>
+                <button class="btn btn-primary" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px" onclick="imprimerQr()">
+                    🖨️ Imprimer / PDF
+                </button>
             </div>
         </div>
     </div>
@@ -866,7 +862,7 @@ function renderFormateurs() {
             const sessionsF = _sessions.filter(s => s.formateurId === fid || s.formateurId === f.formateurId);
             const nbSess    = sessionsF.length;
             const nbStag    = _stagiaires.filter(st => sessionsF.some(s => (s.sessionId||s.id) === st.sessionId)).length;
-            return `<tr class="clickable" onclick="openDetailFormateur('${fid}')">
+            return `<tr>
                 <td><div style="display:flex;align-items:center;gap:8px">
                     <div class="avatar" style="background:var(--blue-l);color:var(--blue)">${init}</div>
                     <div><div style="font-weight:600">${nom}</div><div style="font-size:10px;color:var(--muted)">${f.email||''}</div></div>
@@ -876,9 +872,9 @@ function renderFormateurs() {
                 <td style="font-family:'DM Mono',monospace;text-align:center">${nbStag || '—'}</td>
                 <td><span class="badge ${actif?'badge-green':'badge-gray'}">${actif?'Actif':'Inactif'}</span></td>
                 <td><div style="display:flex;gap:4px">
-                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();ouvrirQrFormateur('${fid}')" title="Envoyer QR Code & PIN">📲</button>
-                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();editFormateur('${fid}')" title="Modifier">✏️</button>
-                    <button class="btn btn-secondary btn-sm btn-icon" onclick="event.stopPropagation();toggleFormateurActif('${fid}',${actif})" title="${actif?'Désactiver':'Activer'}">${actif?'🔒':'🔓'}</button>
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="ouvrirQrFormateur('${fid}')" title="QR Code & PIN">📲</button>
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="editFormateur('${fid}')" title="Modifier">✏️</button>
+                    <button class="btn btn-secondary btn-sm btn-icon" onclick="toggleFormateurActif('${fid}',${actif})" title="${actif?'Désactiver':'Activer'}">${actif?'🔒':'🔓'}</button>
                 </div></td>
             </tr>`;
         }).join('')}</tbody>
@@ -1509,82 +1505,120 @@ function ouvrirQrFormateur(id) {
 
     const nom = `${f.prenom||''} ${f.nom||''}`.trim();
     set('qr-formateur-nom', nom);
+    document.getElementById('qr-pin-display').textContent = f.pin || f.code || '——';
 
-    // PIN du formateur
-    const pin = f.pin || f.code || '——';
-    document.getElementById('qr-pin-display').textContent = pin;
+    // URL de login avec centreId pré-rempli
+    const loginUrl = `https://ssiap-training-center.onrender.com/formateur/formateur-login.html?centreId=${centerData.centerId}`;
+    _qrFormateurCourant._loginUrl = loginUrl;
 
-    // URL de login direct avec centreId pré-rempli
-    const baseUrl = 'https://ssiap-training-center.onrender.com';
-    const loginUrl = `${baseUrl}/formateur/formateur-login.html?centreId=${centerData.centerId}`;
-    document.getElementById('qr-login-url').textContent = loginUrl;
-    document.getElementById('qr-url-display').textContent = loginUrl;
-
-    // Générer le QR code
+    // QR code via API publique (fond blanc pour l'impression)
     const qrContainer = document.getElementById('qr-code-container');
     qrContainer.innerHTML = '';
-
-    // Utiliser l'API QR code (pas de dépendance JS)
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(loginUrl)}&bgcolor=f0ece7&color=1e1a17&margin=10`;
     const img = document.createElement('img');
-    img.src = qrUrl;
-    img.style.cssText = 'width:160px;height:160px;border-radius:8px';
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(loginUrl)}&bgcolor=ffffff&color=1e1a17&margin=8`;
+    img.style.cssText = 'width:180px;height:180px;border-radius:6px';
     img.alt = 'QR Code';
     qrContainer.appendChild(img);
 
     openModal('modal-qr-formateur');
 }
 
-function copierInfosFormateur() {
-    const f   = _qrFormateurCourant;
+function envoyerMailFormateur() {
+    const f = _qrFormateurCourant;
     if (!f) return;
-    const nom = `${f.prenom||''} ${f.nom||''}`.trim();
-    const pin = f.pin || f.code || '——';
-    const url = document.getElementById('qr-login-url').textContent;
-    const txt = `Accès SSIAP Training — ${nom}\n\nURL de connexion : ${url}\nCentre : ${centerData.nom}\nCode PIN : ${pin}\n\n1. Scannez le QR code ou ouvrez l'URL\n2. Sélectionnez votre centre\n3. Entrez votre PIN : ${pin}`;
-    navigator.clipboard.writeText(txt).then(() => toast('✅ Informations copiées'))
-        .catch(() => toast('⚠️ Copie manuelle : ' + pin));
+    const nom      = `${f.prenom||''} ${f.nom||''}`.trim();
+    const pin      = f.pin || f.code || '——';
+    const email    = f.email || '';
+    const loginUrl = f._loginUrl || '';
+    const centre   = centerData.nom || 'votre centre';
+
+    const sujet = encodeURIComponent(`Accès SSIAP Training — ${centre}`);
+    const corps = encodeURIComponent(
+`Bonjour ${nom},
+
+Voici vos informations de connexion au dashboard formateur SSIAP Training.
+
+Centre : ${centre}
+Code PIN : ${pin}
+
+Pour vous connecter :
+1. Ouvrez ce lien sur votre téléphone ou ordinateur :
+   ${loginUrl}
+2. Sélectionnez le centre : ${centre}
+3. Entrez votre code PIN : ${pin}
+
+Vous pouvez également scanner le QR code imprimé remis par votre responsable.
+
+Cordialement,
+${centre}`
+    );
+
+    // mailto: ouvre le client mail par défaut (Outlook, Thunderbird, mail macOS, etc.)
+    window.location.href = `mailto:${email}?subject=${sujet}&body=${corps}`;
+    toast('✉️ Ouverture du client mail…');
 }
 
 function imprimerQr() {
-    const f   = _qrFormateurCourant;
+    const f = _qrFormateurCourant;
     if (!f) return;
-    const nom = `${f.prenom||''} ${f.nom||''}`.trim();
-    const pin = f.pin || f.code || '——';
-    const url = document.getElementById('qr-login-url').textContent;
-    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=1e1a17&margin=10`;
+    const nom      = `${f.prenom||''} ${f.nom||''}`.trim();
+    const pin      = f.pin || f.code || '——';
+    const loginUrl = f._loginUrl || '';
+    const centre   = centerData.nom || '';
+    const qrSrc    = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(loginUrl)}&bgcolor=ffffff&color=1e1a17&margin=10`;
 
-    const w = window.open('', '_blank', 'width=400,height=550');
-    w.document.write(`<!DOCTYPE html><html><head><title>Accès Formateur</title>
-    <style>body{font-family:Arial,sans-serif;text-align:center;padding:30px;color:#1e1a17}
-    h2{font-size:18px;margin-bottom:4px}
-    .centre{font-size:12px;color:#8c8078;margin-bottom:20px}
-    img{display:block;margin:0 auto 20px}
-    .pin-box{background:#fdf2ee;border:2px solid #c25a3a;border-radius:10px;padding:12px 20px;display:inline-block;margin-bottom:16px}
-    .pin-label{font-size:11px;color:#8c8078;text-transform:uppercase;letter-spacing:1px}
-    .pin{font-size:36px;font-weight:700;color:#c25a3a;letter-spacing:10px;font-family:'Courier New',monospace}
-    .url{font-size:9px;color:#8c8078;word-break:break-all;margin-top:16px}
-    .steps{text-align:left;font-size:12px;margin-top:16px;background:#f7f4f0;border-radius:8px;padding:12px}
-    .steps li{margin-bottom:6px}
+    const w = window.open('', '_blank', 'width=420,height=600');
+    w.document.write(`<!DOCTYPE html><html><head><title>Accès Formateur — ${nom}</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Arial,sans-serif;color:#1e1a17;padding:32px;max-width:380px;margin:0 auto}
+        .header{text-align:center;margin-bottom:20px}
+        .flame{font-size:28px;margin-bottom:6px}
+        h1{font-size:18px;font-weight:700;color:#c25a3a;margin-bottom:2px}
+        .centre-name{font-size:12px;color:#8c8078}
+        .qr-block{text-align:center;margin-bottom:18px}
+        .qr-block img{border-radius:8px;border:1px solid #e8e2db}
+        .nom{font-size:15px;font-weight:700;margin-top:10px}
+        .pin-block{text-align:center;background:#fdf2ee;border:2px solid #c25a3a;border-radius:12px;padding:14px;margin-bottom:18px}
+        .pin-label{font-size:10px;color:#8c8078;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+        .pin{font-family:'Courier New',monospace;font-size:38px;font-weight:700;color:#c25a3a;letter-spacing:10px}
+        .steps{background:#f7f4f0;border-radius:10px;padding:14px}
+        .steps-title{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#8c8078;margin-bottom:8px}
+        ol{padding-left:16px}
+        li{font-size:12px;margin-bottom:5px;line-height:1.4}
+        @media print{@page{margin:15mm}body{padding:0}}
     </style></head><body>
-    <h2>🔥 SSIAP Training — Accès Formateur</h2>
-    <div class="centre">${centerData.nom}</div>
-    <img src="${qrSrc}" width="200" height="200" alt="QR Code">
-    <div><strong style="font-size:16px">${nom}</strong></div>
-    <div class="pin-box">
+    <div class="header">
+        <div class="flame">🔥</div>
+        <h1>SSIAP Training</h1>
+        <div class="centre-name">${centre}</div>
+    </div>
+    <div class="qr-block">
+        <img src="${qrSrc}" width="180" height="180" alt="QR Code">
+        <div class="nom">${nom}</div>
+    </div>
+    <div class="pin-block">
         <div class="pin-label">Code PIN de connexion</div>
         <div class="pin">${pin}</div>
     </div>
-    <ol class="steps">
-        <li>Scannez le QR code avec votre téléphone</li>
-        <li>Sélectionnez votre centre : <strong>${centerData.nom}</strong></li>
-        <li>Entrez votre PIN : <strong>${pin}</strong></li>
-    </ol>
-    <div class="url">${url}</div>
-    <script>window.onload=()=>window.print()<\/script>
+    <div class="steps">
+        <div class="steps-title">Instructions</div>
+        <ol>
+            <li>Scannez le QR code avec votre téléphone</li>
+            <li>Sélectionnez : <strong>${centre}</strong></li>
+            <li>PIN : <strong style="color:#c25a3a;font-size:14px">${pin}</strong></li>
+        </ol>
+    </div>
+    <script>
+        const img = document.querySelector('img');
+        img.onload  = () => setTimeout(() => window.print(), 300);
+        img.onerror = () => setTimeout(() => window.print(), 300);
+        setTimeout(() => window.print(), 3500);
+    <\/script>
     </body></html>`);
     w.document.close();
 }
+
 function set(id, val) { const e=document.getElementById(id); if(e) e.innerHTML=val; }
 function starsStr(n) { let s=''; for(let i=1;i<=5;i++) s+=i<=n?'★':'☆'; return s; }
 function normNiveau(n) {
