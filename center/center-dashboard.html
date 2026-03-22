@@ -558,36 +558,40 @@ async function loadDashboard() {
     showLoader();
     try {
         const r = await authFetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
-        if (!r) return;
-        const d = await r.json();
+        if (r && r.ok) {
+            const d = await r.json();
+            const lic = d.license || centerData.license || {};
+            set('kpi-formateurs', d.stats?.formateurs ?? '—');
+            if (lic.maxFormateurs) set('usage-formateurs', `/ ${lic.maxFormateurs} autorisés`);
+            if (lic.maxStagiaires) set('usage-stagiaires', `/ ${lic.maxStagiaires} max`);
 
-        const lic = d.license || centerData.license || {};
-        set('kpi-formateurs', d.stats?.formateurs || '—');
-        loadKpiCounts();
-        if (lic.maxFormateurs) set('usage-formateurs', `/ ${lic.maxFormateurs} autorisés`);
-        if (lic.maxStagiaires) set('usage-stagiaires', `/ ${lic.maxStagiaires} max`);
-
-        const licType = (lic.type || '').toUpperCase();
-        set('license-type', licType ? `Licence ${licType}` : '');
-        const exp = lic.expiresAt;
-        if (!exp) {
-            set('kpi-license-days', licType || '—');
-            set('kpi-license-label', 'Renouvellement auto');
-        } else {
-            const days = Math.max(0, Math.ceil((exp - Date.now()) / 86400000));
-            set('kpi-license-days', days);
-            set('kpi-license-label', 'Jours restants');
-            const lc = document.getElementById('license-card');
-            lc.style.borderLeft = days < 7 ? '3px solid var(--red)' : days < 30 ? '3px solid var(--gold)' : '3px solid var(--green)';
+            const licType = (lic.type || '').toUpperCase();
+            set('license-type', licType ? `Licence ${licType}` : '');
+            const exp = lic.expiresAt;
+            if (!exp) {
+                set('kpi-license-days', licType || '—');
+                set('kpi-license-label', 'Renouvellement auto');
+            } else {
+                const days = Math.max(0, Math.ceil((exp - Date.now()) / 86400000));
+                set('kpi-license-days', days);
+                set('kpi-license-label', 'Jours restants');
+                const lc = document.getElementById('license-card');
+                if (lc) lc.style.borderLeft = days < 7 ? '3px solid var(--red)' : days < 30 ? '3px solid var(--gold)' : '3px solid var(--green)';
+            }
+            if (d.license) {
+                centerData.license = { ...centerData.license, ...d.license };
+                localStorage.setItem('ssiap_center', JSON.stringify(centerData));
+            }
         }
+    } catch(e) { console.warn('loadDashboard center/dashboard:', e); }
 
-        if (d.license) {
-            centerData.license = { ...centerData.license, ...d.license };
-            localStorage.setItem('ssiap_center', JSON.stringify(centerData));
-        }
-
+    // Toujours charger les vraies données même si /center/dashboard échoue
+    try {
         await Promise.all([loadAvisOverview(), loadChartsData()]);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('loadDashboard charts:', e); }
+
+    // KPI formateurs en temps réel
+    loadKpiCounts();
     hideLoader();
 }
 
@@ -640,9 +644,14 @@ async function loadChartsData() {
             if (!rst.ok) return;
             const dst  = await rst.json();
             const stags = dst.stagiaires || dst || [];
-            stags.forEach(st => _stagiaires.push({ ...st, _sesNiv: sesNiv }));
+            // FIX : ajouter sessionId pour que les filtres fonctionnent
+            stags.forEach(st => _stagiaires.push({ ...st, sessionId: sid, _sesNiv: sesNiv }));
         } catch {}
     }));
+
+    // Mettre à jour les KPIs avec les données réelles
+    set('kpi-sessions',   _sessions.length);
+    set('kpi-stagiaires', _stagiaires.length);
 
     buildActivityChart();
     buildNiveauxChart();
@@ -1080,21 +1089,6 @@ function renderSessions() {
         <thead><tr><th>Session</th><th>Niveau</th><th>Formateur</th><th>Début</th><th>Fin</th><th>Stagiaires</th><th>Taux réussite</th><th>Statut</th><th></th></tr></thead>
         <tbody>${list.map(s => {
             const sid     = s.sessionId || s.id;
-            // Chercher le(s) formateur(s) — Firebase peut stocker formateurId, formateurs (array), ou formateurIds
-            const fIds = [];
-            if (s.formateurId)  fIds.push(s.formateurId);
-            if (s.formateurIds && Array.isArray(s.formateurIds)) fIds.push(...s.formateurIds);
-            if (s.formateurs   && Array.isArray(s.formateurs))   fIds.push(...s.formateurs);
-
-            const formNoms = fIds.map(fid => {
-                const f = _formateurs.find(f =>
-                    (f.formateurId || f.id) === fid ||
-                    f.formateurId === fid ||
-                    f.id === fid
-                );
-                return f ? `${f.prenom||''} ${f.nom||''}`.trim() : null;
-            }).filter(Boolean);
-            const formNom = formNoms.length ? formNoms.join(', ') : '—';
             const niv     = s.niveau || s.niveauSsiap || '—';
             const deb     = new Date(s.dateDebut||0).getTime();
             const fin     = new Date(s.dateFin||0).getTime();
@@ -1103,11 +1097,10 @@ function renderSessions() {
             const badgeLbl = statut==='encours'?'En cours':statut==='future'?'À venir':'Terminée';
             // Nom : Firebase stocke sous "titre"
             const nomSess = s.titre || s.nom || s.sessionNom || s.name || sid.slice(0,16);
-            // Formateurs : s.formateurs est un tableau d'objets {formateurId, nom, prenom}
+            // Formateurs : s.formateurs = [{formateurId, nom, prenom}] dans Firebase
             const formNom = (s.formateurs && Array.isArray(s.formateurs) && s.formateurs.length)
                 ? s.formateurs.map(f => `${f.prenom||''} ${f.nom||''}`.trim()).filter(Boolean).join(', ')
                 : (() => {
-                    // Fallback : chercher dans _formateurs via formateurIds
                     const ids = s.formateurIds || (s.formateurId ? [s.formateurId] : []);
                     const noms = ids.map(fid => {
                         const f = _formateurs.find(f => (f.formateurId||f.id) === fid);
@@ -1115,6 +1108,8 @@ function renderSessions() {
                     }).filter(Boolean);
                     return noms.length ? noms.join(', ') : '—';
                 })();
+            // Stagiaires depuis cache _stagiaires
+            const stagsSession = _stagiaires.filter(st => st.sessionId === sid);
             const nbStag = stagsSession.length;
             // Taux depuis historique
             const scores = [];
