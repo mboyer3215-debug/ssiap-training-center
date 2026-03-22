@@ -5,9 +5,7 @@ const crypto  = require('crypto');
 const admin   = require('firebase-admin');
 const db      = admin.database();
 
-// Mailgun
-const FormData = require('form-data');
-const Mailgun  = require('mailgun.js');
+// ── Config Mailgun via fetch natif (Node 18+, pas de dépendance) ──
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
 const MAILGUN_DOMAIN  = process.env.MAILGUN_DOMAIN;
 const MAILGUN_FROM    = process.env.MAILGUN_FROM || `SSIAP Training <noreply@${MAILGUN_DOMAIN}>`;
@@ -360,20 +358,28 @@ router.post('/send-access', async (req, res) => {
 </table>
 </body></html>`;
 
-    const mailgun = new Mailgun(FormData);
-    const mg      = mailgun.client({
-      username: 'api',
-      key:      MAILGUN_API_KEY,
-      url:      'https://api.eu.mailgun.net'
+    // ── Envoi via Mailgun REST API (fetch natif, pas de dépendance) ──
+    const formData = new URLSearchParams();
+    formData.append('from',    MAILGUN_FROM);
+    formData.append('to',      f.email);
+    formData.append('subject', `Accès SSIAP Training — ${centreNom}`);
+    formData.append('html',    html);
+    formData.append('text',    `Bonjour ${nom},\n\nVoici vos informations de connexion.\n\nCentre : ${centreNom}\nCode PIN : ${pin}\nLien : ${loginUrl}\n\nCordialement,\n${centreNom}`);
+
+    const mgRes = await fetch(`https://api.eu.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`, {
+      method:  'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64'),
+        'Content-Type':  'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
     });
 
-    await mg.messages.create(MAILGUN_DOMAIN, {
-      from:    MAILGUN_FROM,
-      to:      [f.email],
-      subject: `Accès SSIAP Training — ${centreNom}`,
-      html,
-      text: `Bonjour ${nom},\n\nVoici vos informations de connexion.\n\nCentre : ${centreNom}\nCode PIN : ${pin}\nLien : ${loginUrl}\n\nCordialement,\n${centreNom}`,
-    });
+    if (!mgRes.ok) {
+      const err = await mgRes.text();
+      console.error('[send-access] Mailgun error:', err);
+      return res.status(500).json({ error: 'Erreur Mailgun : ' + err });
+    }
 
     console.log(`[send-access] Email envoyé à ${f.email}`);
     res.json({ success: true, message: `Email envoyé à ${f.email}` });
