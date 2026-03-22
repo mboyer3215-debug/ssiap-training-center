@@ -1044,7 +1044,7 @@ async function loadSessions() {
 
 function populateSessionSelect() {
     const sel = document.getElementById('f-session-stag');
-    if (sel) sel.innerHTML = '<option value="">Toutes les sessions</option>' + _sessions.map(s => `<option value="${s.sessionId||s.id}">${s.nom||s.sessionNom||s.sessionId||'—'}</option>`).join('');
+    if (sel) sel.innerHTML = '<option value="">Toutes les sessions</option>' + _sessions.map(s => `<option value="${s.sessionId||s.id}">${s.titre||s.nom||s.sessionNom||s.sessionId||'—'}</option>`).join('');
 }
 
 function renderSessions() {
@@ -1055,14 +1055,14 @@ function renderSessions() {
     const now         = Date.now();
 
     let list = _sessions.filter(s => {
-        const nom    = (s.nom||s.sessionNom||'').toLowerCase();
-        const formNom = (_formateurs.find(f => (f.formateurId||f.id) === s.formateurId) || {});
-        const fnStr  = `${formNom.prenom||''} ${formNom.nom||''}`.toLowerCase();
-        if (search && !nom.includes(search) && !fnStr.includes(search)) return false;
+        const nom    = (s.titre||s.nom||s.sessionNom||'').toLowerCase();
+        const formNomSearch = s.formateurs?.map(f=>`${f.prenom||''} ${f.nom||''}`).join(' ').toLowerCase() || '';
+        if (search && !nom.includes(search) && !formNomSearch.includes(search)) return false;
+        // niveau peut être "SSIAP1" ou "1"
         if (niveau && normNiveau(s.niveau||s.niveauSsiap) !== niveau) return false;
-        if (formateurId && s.formateurId !== formateurId &&
-            !(s.formateurIds||[]).includes(formateurId) &&
-            !(s.formateurs||[]).includes(formateurId)) return false;
+        if (formateurId && !((s.formateurIds||[]).includes(formateurId)) &&
+            !(s.formateurs||[]).some(f=>f.formateurId===formateurId) &&
+            s.formateurId !== formateurId) return false;
         if (periode) {
             const deb = new Date(s.dateDebut).getTime();
             const fin = new Date(s.dateFin).getTime();
@@ -1101,10 +1101,20 @@ function renderSessions() {
             const statut  = now < deb ? 'future' : now > fin ? 'passee' : 'encours';
             const badgeCls = statut==='encours'?'badge-green':statut==='future'?'badge-blue':'badge-gray';
             const badgeLbl = statut==='encours'?'En cours':statut==='future'?'À venir':'Terminée';
-            // Nom : Firebase peut stocker sous "nom", "sessionNom", "name", ou "titre"
-            const nomSess = s.nom || s.sessionNom || s.name || s.titre || sid.slice(0,16);
-            // Stagiaires depuis _stagiaires (déjà chargés)
-            const stagsSession = _stagiaires.filter(st => st.sessionId === sid);
+            // Nom : Firebase stocke sous "titre"
+            const nomSess = s.titre || s.nom || s.sessionNom || s.name || sid.slice(0,16);
+            // Formateurs : s.formateurs est un tableau d'objets {formateurId, nom, prenom}
+            const formNom = (s.formateurs && Array.isArray(s.formateurs) && s.formateurs.length)
+                ? s.formateurs.map(f => `${f.prenom||''} ${f.nom||''}`.trim()).filter(Boolean).join(', ')
+                : (() => {
+                    // Fallback : chercher dans _formateurs via formateurIds
+                    const ids = s.formateurIds || (s.formateurId ? [s.formateurId] : []);
+                    const noms = ids.map(fid => {
+                        const f = _formateurs.find(f => (f.formateurId||f.id) === fid);
+                        return f ? `${f.prenom||''} ${f.nom||''}`.trim() : null;
+                    }).filter(Boolean);
+                    return noms.length ? noms.join(', ') : '—';
+                })();
             const nbStag = stagsSession.length;
             // Taux depuis historique
             const scores = [];
@@ -1138,7 +1148,7 @@ async function openDetailSession(sessionId) {
     _currentSessionId = sessionId;
     const s = _sessions.find(x => (x.sessionId||x.id) === sessionId);
     if (!s) return;
-    const nom = s.nom || s.sessionNom || sessionId;
+    const nom = s.titre || s.nom || s.sessionNom || sessionId;
     set('detail-sess-title', `🎓 Stagiaires — ${nom}`);
     set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px;padding:8px 0">Chargement des scores…</p>');
     openDetail('session');
@@ -1265,7 +1275,7 @@ async function loadAllStagiaires() {
             const stags = (d.stagiaires || d || []).map(st => ({
                 ...st,
                 sessionId:  s.sessionId || s.id,
-                sessionNom: s.nom || s.sessionNom || '—',
+                sessionNom: s.titre || s.nom || s.sessionNom || '—',
                 niveau:     normNiveau(s.niveau || s.niveauSsiap) || '—',
                 _sesNiv:    parseInt(String(s.niveau||s.niveauSsiap||'1').replace(/[^0-9]/g,''))||1,
             }));
