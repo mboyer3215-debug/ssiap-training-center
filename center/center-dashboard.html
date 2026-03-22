@@ -820,6 +820,33 @@ async function loadFormateurs() {
         _formateurs = d.formateurs || d.data || d || [];
         populateFormateurSelect();
     } catch { _formateurs = []; }
+
+    // Charger sessions si pas encore fait
+    if (!_sessions.length) {
+        try {
+            const rs = await fetch(`${API_URL}/session/list/${centerData.centerId}`);
+            const ds = await rs.json();
+            _sessions = ds.sessions || [];
+            populateSessionSelect();
+            populateFormateurSelect();
+        } catch {}
+    }
+
+    // Charger stagiaires si pas encore fait
+    if (!_stagiaires.length && _sessions.length) {
+        await Promise.all(_sessions.map(async s => {
+            try {
+                const sid    = s.sessionId || s.id;
+                const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
+                const rst    = await fetch(`${API_URL}/stagiaire/list/${centerData.centerId}?sessionId=${sid}`);
+                if (!rst.ok) return;
+                const dst  = await rst.json();
+                const stags = dst.stagiaires || dst || [];
+                stags.forEach(st => _stagiaires.push({ ...st, sessionId: sid, _sesNiv: sesNiv }));
+            } catch {}
+        }));
+    }
+
     hideLoader();
     renderFormateurs();
 }
