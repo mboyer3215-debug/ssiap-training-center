@@ -419,7 +419,7 @@
             <input type="hidden" id="edit-form-id">
             <div class="form-group"><label class="form-label">Prénom *</label><input type="text" class="form-input" id="form-prenom" placeholder="Jean"></div>
             <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="form-nom" placeholder="Dupont"></div>
-            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="form-email" placeholder="jean@exemple.fr"></div>
+            <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-input" id="form-email" placeholder="jean@exemple.fr" required></div>
             <div class="form-group"><label class="form-label">Niveaux SSIAP habilités</label>
                 <div style="display:flex;gap:10px;margin-top:6px">
                     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="niv-1" value="1"> SSIAP 1</label>
@@ -959,11 +959,13 @@ async function openDetailFormateur(id) {
 async function saveFormateur() {
     const prenom = document.getElementById('form-prenom').value.trim();
     const nom    = document.getElementById('form-nom').value.trim();
+    const email  = document.getElementById('form-email').value.trim();
     if (!prenom || !nom) { toast('⚠️ Prénom et nom requis'); return; }
+    if (!email) { toast('⚠️ Email requis pour pouvoir envoyer l\'accès au formateur'); return; }
     const niveaux = [1,2,3].filter(n => document.getElementById(`niv-${n}`)?.checked);
     const pin     = document.getElementById('form-pin').value.trim() || String(Math.floor(100000 + Math.random()*900000));
     const editId  = document.getElementById('edit-form-id').value;
-    const payload = { centerId: centerData.centerId, prenom, nom, email: document.getElementById('form-email').value.trim(), niveaux, pin };
+    const payload = { centerId: centerData.centerId, prenom, nom, email, niveaux, pin };
     try {
         const url = editId ? `${API_URL}/formateur/update/${editId}` : `${API_URL}/formateur/create`;
         const r   = await authFetch(url, { method: editId ? 'PUT' : 'POST', body: JSON.stringify(payload) });
@@ -1009,6 +1011,25 @@ async function loadSessions() {
         populateSessionSelect();
         populateFormateurSelect();
     } catch { _sessions = []; }
+
+    // Charger stagiaires + historique pour calcul du taux
+    if (_sessions.length) {
+        await Promise.all(_sessions.map(async s => {
+            const sid    = s.sessionId || s.id;
+            const sesNiv = parseInt(String(s.niveau || s.niveauSsiap || '1').replace(/[^0-9]/g,'')) || 1;
+            // Ne pas recharger les stags déjà présents
+            if (_stagiaires.some(st => st.sessionId === sid)) return;
+            try {
+                const rst = await fetch(`${API_URL}/stagiaire/list/${centerData.centerId}?sessionId=${sid}`);
+                if (!rst.ok) return;
+                const dst = await rst.json();
+                (dst.stagiaires || dst || []).forEach(st => _stagiaires.push({
+                    ...st, sessionId: sid, _sesNiv: sesNiv
+                }));
+            } catch {}
+        }));
+    }
+
     hideLoader();
     renderSessions();
 }
@@ -1046,28 +1067,45 @@ function renderSessions() {
     if (!list.length) { container.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Aucune session trouvée</p></div>'; return; }
 
     container.innerHTML = `<table class="data-table">
-        <thead><tr><th>Session</th><th>Niveau</th><th>Formateur</th><th>Début</th><th>Fin</th><th>Stagiaires</th><th>Taux</th><th>Statut</th><th></th></tr></thead>
+        <thead><tr><th>Session</th><th>Niveau</th><th>Formateur</th><th>Début</th><th>Fin</th><th>Stagiaires</th><th>Taux réussite</th><th>Statut</th><th></th></tr></thead>
         <tbody>${list.map(s => {
-            const form   = _formateurs.find(f => (f.formateurId||f.id) === s.formateurId);
+            const sid     = s.sessionId || s.id;
+            const form    = _formateurs.find(f => (f.formateurId||f.id) === s.formateurId);
             const formNom = form ? `${form.prenom||''} ${form.nom||''}`.trim() : '—';
-            const niv    = s.niveau||s.niveauSsiap||'—';
-            const deb    = new Date(s.dateDebut||0).getTime();
-            const fin    = new Date(s.dateFin||0).getTime();
-            const statut = now < deb ? 'future' : now > fin ? 'passee' : 'encours';
+            const niv     = s.niveau || s.niveauSsiap || '—';
+            const deb     = new Date(s.dateDebut||0).getTime();
+            const fin     = new Date(s.dateFin||0).getTime();
+            const statut  = now < deb ? 'future' : now > fin ? 'passee' : 'encours';
             const badgeCls = statut==='encours'?'badge-green':statut==='future'?'badge-blue':'badge-gray';
             const badgeLbl = statut==='encours'?'En cours':statut==='future'?'À venir':'Terminée';
-            const nbStag = s.stagiaires?.length || s.nbStagiaires || 0;
-            const taux   = s.tauxReussite!=null ? Math.round(s.tauxReussite)+'%' : '—';
-            return `<tr class="clickable" onclick="openDetailSession('${s.sessionId||s.id}')">
-                <td><div style="font-weight:600;font-size:13px">${s.nom||s.sessionNom||'—'}</div></td>
+            // Nom : Firebase peut stocker sous "nom", "sessionNom", "name", ou "titre"
+            const nomSess = s.nom || s.sessionNom || s.name || s.titre || sid.slice(0,16);
+            // Stagiaires depuis _stagiaires (déjà chargés)
+            const stagsSession = _stagiaires.filter(st => st.sessionId === sid);
+            const nbStag = stagsSession.length;
+            // Taux depuis historique
+            const scores = [];
+            stagsSession.forEach(st => {
+                const hist = st.historique || st.history || {};
+                Object.values(hist).forEach(h => {
+                    let p = 0;
+                    if (h.percentage != null) p = parseFloat(h.percentage);
+                    else if (h.score != null && h.total > 0) p = Math.round(h.score/h.total*100);
+                    if (p > 0) scores.push(p);
+                });
+            });
+            const tauxNum = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+            const taux    = tauxNum !== null ? tauxNum + '%' : '—';
+            return `<tr class="clickable" onclick="openDetailSession('${sid}')">
+                <td><div style="font-weight:600;font-size:13px">${nomSess}</div></td>
                 <td><span class="badge badge-blue">${niveauLabel(niv)}</span></td>
                 <td style="font-size:12px">${formNom}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fmtDate(s.dateDebut)}</td>
                 <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fmtDate(s.dateFin)}</td>
                 <td style="text-align:center;font-family:'DM Mono',monospace">${nbStag}</td>
-                <td style="min-width:100px">${taux!=='—'?`<div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${taux};background:${parseInt(taux)>=70?'var(--green)':'var(--rouge)'}"></div></div><span class="score-val">${taux}</span></div>`:'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+                <td style="min-width:100px">${tauxNum!==null?`<div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${tauxNum}%;background:${tauxNum>=70?'var(--green)':'var(--rouge)'}"></div></div><span class="score-val">${taux}</span></div>`:'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
                 <td><span class="badge ${badgeCls}">${badgeLbl}</span></td>
-                <td onclick="event.stopPropagation()"><button class="btn btn-secondary btn-sm btn-icon" title="Exporter CSV" onclick="exportCSVSessionById('${s.sessionId||s.id}')">⬇</button></td>
+                <td onclick="event.stopPropagation()"><button class="btn btn-secondary btn-sm btn-icon" title="Exporter CSV" onclick="exportCSVSessionById('${sid}')">⬇</button></td>
             </tr>`;
         }).join('')}</tbody>
     </table>`;
