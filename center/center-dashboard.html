@@ -1111,18 +1111,18 @@ function renderSessions() {
             // Stagiaires depuis cache _stagiaires
             const stagsSession = _stagiaires.filter(st => st.sessionId === sid);
             const nbStag = stagsSession.length;
-            // Taux depuis historique
-            const scores = [];
-            stagsSession.forEach(st => {
+            // Taux : moyenne des moyennes par stagiaire (chaque élève compte pareil)
+            const stagTaux = stagsSession.map(st => {
                 const hist = st.historique || st.history || {};
-                Object.values(hist).forEach(h => {
-                    let p = 0;
-                    if (h.percentage != null) p = parseFloat(h.percentage);
-                    else if (h.score != null && h.total > 0) p = Math.round(h.score/h.total*100);
-                    if (p > 0) scores.push(p);
-                });
-            });
-            const tauxNum = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+                const entries = Object.values(hist);
+                const stagScores = entries.map(h => {
+                    if (h.percentage != null) return parseFloat(h.percentage);
+                    if (h.score != null && h.total > 0) return Math.round(h.score/h.total*100);
+                    return null;
+                }).filter(p => p !== null && p > 0);
+                return stagScores.length ? stagScores.reduce((a,b)=>a+b,0)/stagScores.length : null;
+            }).filter(t => t !== null);
+            const tauxNum = stagTaux.length ? Math.round(stagTaux.reduce((a,b)=>a+b,0)/stagTaux.length) : null;
             const taux    = tauxNum !== null ? tauxNum + '%' : '—';
             return `<tr class="clickable" onclick="openDetailSession('${sid}')">
                 <td><div style="font-weight:600;font-size:13px">${nomSess}</div></td>
