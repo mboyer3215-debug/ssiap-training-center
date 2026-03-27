@@ -28,16 +28,26 @@ router.get('/config/:niveau', (req, res) => {
 /**
  * POST /api/entrainement/start
  */
+// CORRECTION dans backend/routes/entrainement.routes.js
+// Remplacer le bloc POST /api/entrainement/start par celui-ci :
+
 router.post('/start', async (req, res) => {
   try {
-    const { userId, niveau, partieId, nbQuestions } = req.body;
+    // FIX : ajouter centerId au body — le stagiaire connaît son centre
+    const { userId, centerId, niveau, partieId, nbQuestions } = req.body;
+
     if (!userId || !niveau) {
       return res.status(400).json({ error: 'userId et niveau requis' });
     }
+
+    // FIX : utiliser le centerId fourni, sinon fallback sur CENTER_DEFAULT
+    const effectiveCenterId = centerId || CENTER_DEFAULT;
+
     const niveauInt = parseInt(niveau);
     if (![1, 2, 3].includes(niveauInt)) {
       return res.status(400).json({ error: 'Niveau doit être 1, 2 ou 3' });
     }
+
     const nbQuestionsInt = parseInt(nbQuestions) || 30;
     if (!NOMBRE_QUESTIONS_OPTIONS.includes(nbQuestionsInt)) {
       return res.status(400).json({
@@ -45,7 +55,8 @@ router.post('/start', async (req, res) => {
       });
     }
 
-    const snapshot = await db.ref(`centers/${CENTER_DEFAULT}/questions/${niveauInt}`).once('value');
+    // FIX : lire les questions du bon centre
+    const snapshot = await db.ref(`centers/${effectiveCenterId}/questions/${niveauInt}`).once('value');
     const allQuestions = snapshot.val() || {};
     let questionsArray = Object.entries(allQuestions).map(([id, data]) => ({ id, ...data }));
 
@@ -54,7 +65,14 @@ router.post('/start', async (req, res) => {
     }
 
     if (questionsArray.length < nbQuestionsInt) {
-      console.warn(`⚠️ Seulement ${questionsArray.length} questions disponibles (demandé: ${nbQuestionsInt})`);
+      console.warn(`⚠️ Seulement ${questionsArray.length} questions disponibles (demandé: ${nbQuestionsInt}) dans ${effectiveCenterId}/questions/${niveauInt}`);
+    }
+
+    if (questionsArray.length === 0) {
+      return res.status(404).json({
+        error: `Aucune question disponible pour le niveau SSIAP ${niveauInt}.`,
+        centerId: effectiveCenterId
+      });
     }
 
     const shuffled = questionsArray.sort(() => Math.random() - 0.5);
@@ -62,7 +80,7 @@ router.post('/start', async (req, res) => {
 
     const sessionRef = db.ref('sessions').push();
     const sessionData = {
-      centerId: CENTER_DEFAULT,
+      centerId: effectiveCenterId,
       userId,
       niveau: niveauInt,
       partieId: partieId || 'toutes',
@@ -74,7 +92,9 @@ router.post('/start', async (req, res) => {
       type: 'entrainement'
     };
     await sessionRef.set(sessionData);
-    await db.ref(`centers/${CENTER_DEFAULT}/stagiaires/${userId}`).update({ lastActivity: Date.now() });
+
+    // Mettre à jour lastActivity du stagiaire dans son centre
+    await db.ref(`centers/${effectiveCenterId}/stagiaires/${userId}`).update({ lastActivity: Date.now() });
 
     res.json({
       success: true,
