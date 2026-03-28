@@ -511,7 +511,7 @@ async function ajouterStagiaire(sessionId, si) {
   }
   showLoader();
   try {
-    var r=await fetch(API+'/stagiaire/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({centerId:formateurData.centerId,sessionId:sessionId,prenom:prenom,nom:nom,email:email||null,telephone:tel||null})});
+    var r=await fetch(API+'/stagiaire/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({centerId:formateurData.centerId,sessionId:sessionId,prenom:prenom,nom:nom,email:email||null,telephone:tel||null})});
     var d=await r.json(); if(!d.success) throw new Error(d.error||'Erreur ajout');
     ['s-prenom-','s-nom-','s-email-','s-tel-'].forEach(function(p){var el=document.getElementById(p+si);if(el)el.value='';});
     toggleAddForm('form-'+si);
