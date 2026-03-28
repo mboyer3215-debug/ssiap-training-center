@@ -5,14 +5,27 @@ const { db } = require('../config/firebase');
 const { CENTER_DEFAULT, STATUS, NOMBRE_QUESTIONS_OPTIONS } = require('../config/constants');
 const constants = require('../config/constants');
 
+// Helper : normalise le champ explanation (objet ou string)
+function normalizeExplanation(exp) {
+  if (!exp) return '';
+  if (typeof exp === 'string') return exp;
+  if (typeof exp === 'object') {
+    // { fr: "...", en: "..." } ou { text: "..." } ou { value: "..." }
+    return exp.fr || exp.text || exp.value || exp.en || Object.values(exp)[0] || '';
+  }
+  return String(exp);
+}
+
 // Helper : charge les questions d'un niveau depuis le centre ou la racine Firebase
 async function loadQuestions(centerId, niveauInt) {
+  const normalize = q => ({ ...q, explanation: normalizeExplanation(q.explanation) });
+
   // 1. Dans le centre
   if (centerId && centerId !== CENTER_DEFAULT) {
     const snap = await db.ref(`centers/${centerId}/questions/${niveauInt}`).once('value');
     if (snap.exists()) {
       const data = snap.val();
-      const arr  = Object.entries(data).map(([id, q]) => ({ id, ...q }));
+      const arr  = Object.entries(data).map(([id, q]) => normalize({ id, ...q }));
       if (arr.length > 0) {
         console.log(`[questions] ${arr.length} depuis centers/${centerId}/questions/${niveauInt}`);
         return arr;
@@ -23,7 +36,7 @@ async function loadQuestions(centerId, niveauInt) {
   const snapRoot = await db.ref(`questions/${niveauInt}`).once('value');
   if (snapRoot.exists()) {
     const data = snapRoot.val();
-    const arr  = Object.entries(data).map(([id, q]) => ({ id, ...q }));
+    const arr  = Object.entries(data).map(([id, q]) => normalize({ id, ...q }));
     console.log(`[questions] ${arr.length} depuis racine questions/${niveauInt}`);
     return arr;
   }
