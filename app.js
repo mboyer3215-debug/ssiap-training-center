@@ -650,5 +650,43 @@ function openEchecsModal(histIdx) {
     modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
     document.body.appendChild(modal);
 }
+// ═══════════════════════════════════════════════════
+// AJOUTER À LA FIN DE app.js (avant le console.log)
+// ═══════════════════════════════════════════════════
 
+// Rendre openHistoriqueModal accessible globalement (pour onclick dans le HTML)
+window.openHistoriqueModal = openHistoriqueModal;
+
+// Réinitialiser pour un nouvel entraînement
+window.resetPourNouvelEntrainement = function() {
+    questions = []; currentQuestionIndex = 0; userAnswers = {};
+    currentSession = null; sessionStartTime = null;
+    showPage('page-connexion');
+    document.querySelectorAll('.btn-niveau').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.btn-nombre').forEach(b => b.classList.remove('active'));
+    niveauSelected = null; partieSelected = 'toutes'; nbQuestionsSelected = null;
+    document.getElementById('groupe-partie').style.display = 'none';
+    document.getElementById('groupe-nombre').style.display = 'none';
+    document.getElementById('btn-demarrer').disabled = true;
+    // Ré-sélectionner le niveau automatiquement si stagiaire connecté
+    if (window.STAGIAIRE_CONNECTE?.niveau) {
+        const niv = window.STAGIAIRE_CONNECTE.niveau;
+        setTimeout(() => {
+            const btnNiveau = document.querySelector(`.btn-niveau[data-niveau="${niv}"]`);
+            if (btnNiveau) btnNiveau.click();
+            setTimeout(() => {
+                const btn10 = document.querySelector('.btn-nombre[data-nombre="10"]');
+                if (btn10) btn10.click();
+            }, 200);
+        }, 100);
+    }
+};
+
+// Attacher les boutons de la page résultats
+const _btnNouvel = document.getElementById('btn-nouvel-entrainement');
+if (_btnNouvel) _btnNouvel.addEventListener('click', window.resetPourNouvelEntrainement);
+
+document.querySelectorAll('#btn-voir-historique').forEach(btn =>
+    btn.addEventListener('click', openHistoriqueModal)
+);
 console.log('🔥 SSIAP Entraînement — API:', API_URL);
