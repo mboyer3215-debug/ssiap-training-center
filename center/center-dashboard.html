@@ -333,8 +333,10 @@
     <div class="detail-panel" id="detail-session">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h4 id="detail-sess-title">Stagiaires de la session</h4>
-            <div style="display:flex;gap:6px">
-                <button class="btn btn-secondary btn-sm" onclick="exportCSVSession()">⬇ CSV session</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm" onclick="ouvrirModalAjoutStagiaire()">➕ Ajouter</button>
+                <button class="btn btn-secondary btn-sm" onclick="ouvrirImportCSVStagiaires()">📥 Import CSV</button>
+                <button class="btn btn-secondary btn-sm" onclick="exportCSVSession()">⬇ Export CSV</button>
                 <button class="btn btn-secondary btn-sm" onclick="closeDetail('session')">✕</button>
             </div>
         </div>
@@ -467,7 +469,58 @@
     </div>
 </div>
 
-<div id="loader" class="loader"><div class="spinner"></div><p style="font-size:12px;color:var(--muted)">Chargement…</p></div>
+<!-- MODAL AJOUTER STAGIAIRE -->
+<div class="modal-overlay" id="modal-add-stagiaire">
+    <div class="modal" style="max-width:440px">
+        <div class="modal-header">
+            <div><div class="modal-title">➕ Ajouter un stagiaire</div><div class="modal-sub" id="add-stag-session-nom">—</div></div>
+            <button class="modal-close" onclick="closeModal('modal-add-stagiaire')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group"><label class="form-label">Prénom *</label><input type="text" class="form-input" id="add-stag-prenom" placeholder="Jean"></div>
+                <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="add-stag-nom" placeholder="DUPONT"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="add-stag-email" placeholder="jean.dupont@exemple.fr"></div>
+            <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" class="form-input" id="add-stag-tel" placeholder="06 12 34 56 78"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-add-stagiaire')">Annuler</button>
+                <button class="btn btn-primary" onclick="enregistrerStagiaire()">💾 Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL IMPORT CSV STAGIAIRES -->
+<div class="modal-overlay" id="modal-import-csv">
+    <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+            <div><div class="modal-title">📥 Import CSV Stagiaires</div><div class="modal-sub">Format : Prénom;Nom;Email;Téléphone</div></div>
+            <button class="modal-close" onclick="closeModal('modal-import-csv')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Fichier CSV *</label>
+                <input type="file" class="form-input" id="csv-file" accept=".csv,.txt" onchange="previewCSV(this)">
+            </div>
+            <div id="csv-preview" style="margin-top:12px;display:none">
+                <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Aperçu (<span id="csv-count">0</span> stagiaires)</div>
+                <div id="csv-preview-list" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;font-size:12px"></div>
+            </div>
+            <div style="background:var(--subtle);border-radius:8px;padding:12px;margin-top:12px;font-size:11px;color:var(--muted)">
+                <strong>Format attendu :</strong><br>
+                • Séparateur : point-virgule (;) ou virgule (,)<br>
+                • Colonnes : Prénom ; Nom ; Email (opt.) ; Téléphone (opt.)<br>
+                • 1ère ligne ignorée si elle contient "prenom" ou "nom"<br>
+                • Encodage : UTF-8
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-import-csv')">Annuler</button>
+                <button class="btn btn-primary" id="btn-import-confirm" onclick="importerCSVStagiaires()" disabled>📥 Importer</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <!-- MODAL QR CODE FORMATEUR -->
@@ -1554,7 +1607,134 @@ async function loadLicenseInfo() {
         <div class="licence-row"><strong>ID Centre :</strong> <code style="font-size:11px">${centerData.centerId||'—'}</code></div>`;
 }
 
-// ── EXPORT CSV ────────────────────────────────────────────────
+// ── AJOUT STAGIAIRE ──────────────────────────────────────────
+function ouvrirModalAjoutStagiaire() {
+    if (!_currentSessionId) { toast('⚠️ Sélectionnez une session d\'abord'); return; }
+    const s = _sessions.find(x => (x.sessionId||x.id) === _currentSessionId);
+    document.getElementById('add-stag-session-nom').textContent = s?.titre || s?.nom || _currentSessionId;
+    ['add-stag-prenom','add-stag-nom','add-stag-email','add-stag-tel'].forEach(id => {
+        const el = document.getElementById(id); if(el) el.value = '';
+    });
+    openModal('modal-add-stagiaire');
+}
+
+async function enregistrerStagiaire() {
+    const prenom = document.getElementById('add-stag-prenom').value.trim();
+    const nom    = document.getElementById('add-stag-nom').value.trim();
+    const email  = document.getElementById('add-stag-email').value.trim();
+    const tel    = document.getElementById('add-stag-tel').value.trim();
+    if (!prenom || !nom) { toast('⚠️ Prénom et nom requis'); return; }
+
+    const btn = document.querySelector('#modal-add-stagiaire .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Enregistrement…'; }
+
+    try {
+        const r = await authFetch(`${API_URL}/stagiaire/create`, {
+            method: 'POST',
+            body: JSON.stringify({
+                centerId:   centerData.centerId,
+                sessionId:  _currentSessionId,
+                prenom, nom,
+                email:      email || '',
+                telephone:  tel   || '',
+            })
+        });
+        if (!r) return;
+        const d = await r.json();
+        if (d.success || d.stagiaire) {
+            toast(`✅ ${prenom} ${nom} ajouté — PIN : ${d.stagiaire?.pin || '—'}`);
+            closeModal('modal-add-stagiaire');
+            await openDetailSession(_currentSessionId); // Rafraîchir la liste
+        } else {
+            toast('⚠️ ' + (d.error || 'Erreur'));
+        }
+    } catch(e) {
+        toast('⚠️ Erreur réseau : ' + e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Enregistrer'; }
+    }
+}
+
+// ── IMPORT CSV STAGIAIRES ─────────────────────────────────────
+let _csvStagiairesToImport = [];
+
+function ouvrirImportCSVStagiaires() {
+    if (!_currentSessionId) { toast('⚠️ Sélectionnez une session d\'abord'); return; }
+    _csvStagiairesToImport = [];
+    document.getElementById('csv-file').value = '';
+    document.getElementById('csv-preview').style.display = 'none';
+    document.getElementById('btn-import-confirm').disabled = true;
+    openModal('modal-import-csv');
+}
+
+function previewCSV(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        const sep = lines[0]?.includes(';') ? ';' : ',';
+        _csvStagiairesToImport = [];
+
+        lines.forEach((line, i) => {
+            const cols = line.split(sep).map(c => c.trim().replace(/^"|"$/g,''));
+            // Ignorer l'en-tête si la 1ère colonne contient "prenom" ou "nom"
+            if (i === 0 && /prenom|nom|prénom|name/i.test(cols[0])) return;
+            const prenom = cols[0] || '';
+            const nom    = cols[1] || '';
+            if (!prenom && !nom) return;
+            _csvStagiairesToImport.push({
+                prenom, nom,
+                email:     cols[2] || '',
+                telephone: cols[3] || '',
+            });
+        });
+
+        const count = _csvStagiairesToImport.length;
+        document.getElementById('csv-count').textContent = count;
+        document.getElementById('csv-preview-list').innerHTML = _csvStagiairesToImport.slice(0, 10).map(s =>
+            `<div style="padding:6px 10px;border-bottom:1px solid var(--border);display:flex;gap:8px">
+                <span style="font-weight:600;flex:1">${s.prenom} ${s.nom}</span>
+                <span style="color:var(--muted);font-size:11px">${s.email||''}</span>
+            </div>`
+        ).join('') + (count > 10 ? `<div style="padding:6px 10px;color:var(--muted);font-size:11px">… et ${count-10} autres</div>` : '');
+        document.getElementById('csv-preview').style.display = count > 0 ? 'block' : 'none';
+        document.getElementById('btn-import-confirm').disabled = count === 0;
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+async function importerCSVStagiaires() {
+    if (!_csvStagiairesToImport.length) return;
+    const btn = document.getElementById('btn-import-confirm');
+    btn.disabled = true; btn.textContent = '⏳ Import en cours…';
+
+    let ok = 0, errors = 0;
+    for (const stag of _csvStagiairesToImport) {
+        try {
+            const r = await authFetch(`${API_URL}/stagiaire/create`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    centerId:  centerData.centerId,
+                    sessionId: _currentSessionId,
+                    prenom:    stag.prenom,
+                    nom:       stag.nom,
+                    email:     stag.email     || '',
+                    telephone: stag.telephone || '',
+                })
+            });
+            if (!r) { errors++; continue; }
+            const d = await r.json();
+            if (d.success || d.stagiaire) ok++; else errors++;
+        } catch { errors++; }
+    }
+
+    toast(`✅ ${ok} stagiaire(s) importé(s)${errors > 0 ? ` · ⚠️ ${errors} erreur(s)` : ''}`);
+    closeModal('modal-import-csv');
+    await openDetailSession(_currentSessionId);
+    btn.disabled = false; btn.textContent = '📥 Importer';
+}
 function exportCSV(type) {
     let rows = [], filename = '';
     if (type === 'formateurs') {
