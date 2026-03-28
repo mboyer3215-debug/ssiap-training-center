@@ -1021,6 +1021,18 @@ async function toggleFormateurActif(id, actif) {
 // ── SESSIONS ─────────────────────────────────────────────────
 async function loadSessions() {
     showLoader();
+
+    // Charger les formateurs si pas encore fait (nécessaire pour le filtre et la modal)
+    if (!_formateurs.length) {
+        try {
+            const rf = await authFetch(`${API_URL}/formateur/list/${centerData.centerId}`);
+            if (rf && rf.ok) {
+                const df = await rf.json();
+                _formateurs = df.formateurs || df.data || df || [];
+            }
+        } catch {}
+    }
+
     try {
         const r = await fetch(`${API_URL}/session/list/${centerData.centerId}`);
         const d = await r.json();
