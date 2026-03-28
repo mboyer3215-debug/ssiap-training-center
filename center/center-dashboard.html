@@ -1242,16 +1242,35 @@ async function openDetailSession(sessionId) {
 }
 
 async function saveSession() {
-    const nom      = document.getElementById('sess-nom').value.trim();
+    const titre    = document.getElementById('sess-nom').value.trim();
     const niveau   = document.getElementById('sess-niveau').value;
     const formId   = document.getElementById('sess-formateur').value;
     const dateDebut = document.getElementById('sess-debut').value;
     const dateFin  = document.getElementById('sess-fin').value;
-    if (!nom || !formId || !dateDebut || !dateFin) { toast('⚠️ Tous les champs sont requis'); return; }
+    if (!titre || !formId || !dateDebut || !dateFin) { toast('⚠️ Tous les champs sont requis'); return; }
+
+    // Convertir les dates en timestamps
+    const tsDebut = new Date(dateDebut).getTime();
+    const tsFin   = new Date(dateFin).getTime();
+
+    // Trouver le formateur pour l'embarquer dans la session
+    const form = _formateurs.find(f => (f.formateurId||f.id) === formId);
+
     try {
         const r = await authFetch(`${API_URL}/session/create`, {
             method: 'POST',
-            body: JSON.stringify({ centerId: centerData.centerId, nom, niveau: parseInt(niveau), formateurId: formId, dateDebut, dateFin })
+            body: JSON.stringify({
+                centerId:    centerData.centerId,
+                titre,
+                nom:         titre,  // compatibilité
+                niveau:      parseInt(niveau),
+                niveauSsiap: parseInt(niveau),
+                formateurId: formId,
+                formateurIds: [formId],
+                formateurs:  form ? [{ formateurId: formId, nom: form.nom, prenom: form.prenom }] : [],
+                dateDebut:   tsDebut,
+                dateFin:     tsFin,
+            })
         });
         if (!r) return;
         const d = await r.json();
