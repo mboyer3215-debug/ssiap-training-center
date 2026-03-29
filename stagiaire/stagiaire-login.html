@@ -467,7 +467,7 @@ function handleSuccess(d) {
   const stag = d.stagiaire || d;
   const sess = stag.session || {};
   const sessionNiv = sess.niveau || sessionData?.niveau || '1';
-  const niv = sessionNiv.replace(/[^0-9]/g, '') || '1';
+  const niv = String(sessionNiv).replace(/[^0-9]/g, '') || '1';
   localStorage.setItem('ssiap_stagiaire', JSON.stringify({
     stagiaireId:      stag.stagiaireId   || '',
     centerId:         stag.centerId      || '',
