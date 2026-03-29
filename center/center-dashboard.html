@@ -469,7 +469,28 @@
     </div>
 </div>
 
-<!-- MODAL AJOUTER STAGIAIRE -->
+<!-- MODAL ÉDITER STAGIAIRE -->
+<div class="modal-overlay" id="modal-edit-stagiaire">
+    <div class="modal" style="max-width:440px">
+        <div class="modal-header">
+            <div><div class="modal-title">✏️ Modifier le stagiaire</div><div class="modal-sub" id="edit-stag-doublon" style="color:var(--rouge);display:none"></div></div>
+            <button class="modal-close" onclick="closeModal('modal-edit-stagiaire')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-stag-id">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group"><label class="form-label">Prénom *</label><input type="text" class="form-input" id="edit-stag-prenom"></div>
+                <div class="form-group"><label class="form-label">Nom *</label><input type="text" class="form-input" id="edit-stag-nom"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="edit-stag-email"></div>
+            <div class="form-group"><label class="form-label">Téléphone</label><input type="tel" class="form-input" id="edit-stag-tel"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-edit-stagiaire')">Annuler</button>
+                <button class="btn btn-primary" onclick="enregistrerEditStagiaire()">💾 Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal-overlay" id="modal-add-stagiaire">
     <div class="modal" style="max-width:440px">
         <div class="modal-header">
@@ -1269,22 +1290,30 @@ async function openDetailSession(sessionId) {
 
         if (!stags.length) { set('detail-sess-stagiaires', '<p style="color:var(--muted);font-size:12px;padding:8px 0">Aucun stagiaire inscrit.</p>'); return; }
 
+        // Stocker pour les actions modifier/supprimer
+        window._currentSessionStags = stags;
+
         document.getElementById('detail-sess-stagiaires').innerHTML = `
             <table class="data-table" style="margin-top:8px">
-                <thead><tr><th>Stagiaire</th><th>Score moyen</th><th>Quiz complétés</th><th>Résultat</th></tr></thead>
-                <tbody>${stags.map(st => {
+                <thead><tr><th>Stagiaire</th><th>PIN</th><th>Score moyen</th><th>Quiz</th><th>Résultat</th><th></th></tr></thead>
+                <tbody>${stags.map((st, idx) => {
                     const nom   = `${st.prenom||''} ${st.nom||''}`.trim() || '—';
                     const score = st.tauxReussite;
                     const has   = score != null && score > 0;
                     const ok    = has && score >= 70;
                     return `<tr>
-                        <td style="font-weight:600">${nom}</td>
+                        <td style="font-weight:600">${nom}<div style="font-size:11px;color:var(--muted)">${st.email||''}</div></td>
+                        <td><span style="font-family:monospace;background:var(--subtle);padding:2px 7px;border-radius:4px;font-size:12px;font-weight:700">${st.pin||'—'}</span></td>
                         <td><div class="score-bar">
                             <div class="score-track"><div class="score-fill" style="width:${has?score:0}%;background:${ok?'var(--green)':has?'var(--rouge)':'var(--border)'}"></div></div>
                             <span class="score-val" style="color:${ok?'var(--green)':has?'var(--rouge)':'var(--muted)'}">${has?score+'%':'—'}</span>
                         </div></td>
                         <td style="text-align:center;font-family:'DM Mono',monospace">${st.nbQuiz||'—'}</td>
                         <td>${has?`<span class="badge ${ok?'badge-green':'badge-red'}">${ok?'Réussi':'En difficulté'}</span>`:'<span class="badge badge-gray">Pas de quiz</span>'}</td>
+                        <td onclick="event.stopPropagation()" style="white-space:nowrap">
+                            <button class="btn btn-secondary btn-sm" onclick="ouvrirEditStagiaire(${idx})" title="Modifier">✏️</button>
+                            <button class="btn btn-secondary btn-sm" style="color:var(--rouge)" onclick="supprimerStagiaire('${st.stagiaireId||st.id}','${nom}')" title="Supprimer">🗑️</button>
+                        </td>
                     </tr>`;
                 }).join('')}</tbody>
             </table>`;
@@ -1607,6 +1636,73 @@ async function loadLicenseInfo() {
         <div class="licence-row"><strong>ID Centre :</strong> <code style="font-size:11px">${centerData.centerId||'—'}</code></div>`;
 }
 
+// ── MODIFIER STAGIAIRE ────────────────────────────────────────
+function ouvrirEditStagiaire(idx) {
+    const st = (window._currentSessionStags || [])[idx];
+    if (!st) return;
+    document.getElementById('edit-stag-id').value      = st.stagiaireId || st.id;
+    document.getElementById('edit-stag-prenom').value  = st.prenom || '';
+    document.getElementById('edit-stag-nom').value     = st.nom    || '';
+    document.getElementById('edit-stag-email').value   = st.email  || '';
+    document.getElementById('edit-stag-tel').value     = st.telephone || '';
+    document.getElementById('edit-stag-doublon').style.display = 'none';
+    openModal('modal-edit-stagiaire');
+}
+
+async function enregistrerEditStagiaire() {
+    const stagiaireId = document.getElementById('edit-stag-id').value;
+    const prenom      = document.getElementById('edit-stag-prenom').value.trim();
+    const nom         = document.getElementById('edit-stag-nom').value.trim();
+    const email       = document.getElementById('edit-stag-email').value.trim();
+    const tel         = document.getElementById('edit-stag-tel').value.trim();
+    if (!prenom || !nom) { toast('⚠️ Prénom et nom requis'); return; }
+
+    // Détection doublon (exclure le stagiaire en cours d'édition)
+    const doublon = _stagiaires.find(s =>
+        s.stagiaireId !== stagiaireId &&
+        s.nom?.toLowerCase() === nom.toLowerCase() &&
+        s.prenom?.toLowerCase() === prenom.toLowerCase()
+    );
+    if (doublon) {
+        const msg = `⚠️ ${prenom} ${nom} existe déjà${doublon.sessionId === _currentSessionId ? ' dans cette session' : ' dans une autre session'}`;
+        const el  = document.getElementById('edit-stag-doublon');
+        el.textContent  = msg;
+        el.style.display = 'block';
+        return;
+    }
+
+    const btn = document.querySelector('#modal-edit-stagiaire .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳…'; }
+    try {
+        const r = await authFetch(`${API_URL}/stagiaire/update/${stagiaireId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ centerId: centerData.centerId, prenom, nom, email, telephone: tel })
+        });
+        if (!r) return;
+        const d = await r.json();
+        if (d.success) {
+            toast(`✅ ${prenom} ${nom} mis à jour`);
+            closeModal('modal-edit-stagiaire');
+            await openDetailSession(_currentSessionId);
+        } else { toast('⚠️ ' + (d.error || 'Erreur')); }
+    } catch(e) { toast('⚠️ Erreur réseau'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = '💾 Enregistrer'; } }
+}
+
+// ── SUPPRIMER STAGIAIRE ───────────────────────────────────────
+async function supprimerStagiaire(stagiaireId, nom) {
+    if (!confirm(`Supprimer ${nom} ? Cette action est irréversible.`)) return;
+    try {
+        const r = await authFetch(`${API_URL}/stagiaire/delete/${stagiaireId}?centerId=${centerData.centerId}`, { method: 'DELETE' });
+        if (!r) return;
+        const d = await r.json();
+        if (d.success) {
+            toast(`🗑️ ${nom} supprimé`);
+            await openDetailSession(_currentSessionId);
+        } else { toast('⚠️ ' + (d.error || 'Erreur')); }
+    } catch(e) { toast('⚠️ Erreur réseau'); }
+}
+
 // ── AJOUT STAGIAIRE ──────────────────────────────────────────
 function ouvrirModalAjoutStagiaire() {
     if (!_currentSessionId) { toast('⚠️ Sélectionnez une session d\'abord'); return; }
@@ -1627,6 +1723,18 @@ async function enregistrerStagiaire() {
 
     const btn = document.querySelector('#modal-add-stagiaire .btn-primary');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Enregistrement…'; }
+
+    // Détection doublon
+    const doublon = _stagiaires.find(s =>
+        s.nom?.toLowerCase() === nom.toLowerCase() &&
+        s.prenom?.toLowerCase() === prenom.toLowerCase()
+    );
+    if (doublon) {
+        const msg = `⚠️ ${prenom} ${nom} existe déjà${doublon.sessionId === _currentSessionId ? ' dans cette session' : ' dans une autre session (PIN: ' + (doublon.pin||'?') + ')'}`;
+        toast(msg);
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Enregistrer'; }
+        return;
+    }
 
     try {
         const r = await authFetch(`${API_URL}/stagiaire/create`, {
