@@ -413,55 +413,58 @@ function selectPlan(val, el) {
 document.getElementById('form-generate').addEventListener('submit', async (e) => {
   e.preventDefault();
   const nomCentre = document.getElementById('center-name').value.trim();
-  const email = document.getElementById('center-email').value.trim();
-  const planKey = selectedPlan;
+  const email     = document.getElementById('center-email').value.trim();
+  const planKey   = selectedPlan;
+ 
   if (!nomCentre || !email || !planKey) {
     alert('Veuillez remplir tous les champs et sélectionner un forfait');
     return;
   }
-
+ 
   const btn = document.getElementById('btn-generate');
   btn.disabled = true;
   btn.innerHTML = '⏳ Génération en cours…';
-
+ 
   try {
-    // Utilise la route activate-manual existante
     const r = await fetch(`${API}/stripe/activate-manual`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planKey, nomCentre, email, adminKey: ADMIN_SECRET })
+      body:    JSON.stringify({ planKey, nomCentre, email, adminKey: ADMIN_SECRET }),
     });
     const data = await r.json();
-
+ 
     if (data.success || data.licenceKey) {
       lastKey = data.licenceKey;
+ 
       const planLabels = {
-        DEMO:        { label:'DEMO',        maxF:1,   maxS:5,    days:7   },
-        independant: { label:'INDÉPENDANT', maxF:1,   maxS:20,   days:30  },
-        starter:     { label:'STARTER',     maxF:10,  maxS:150,  days:30  },
-        pro:         { label:'PRO',         maxF:20,  maxS:300,  days:30  },
-        entreprise:  { label:'GROUPE',      maxF:999, maxS:9999, days:365 }
+        DEMO:        { label: 'DEMO',        maxF: 1,   maxS: 5,    days: 7   },
+        independant: { label: 'INDÉPENDANT', maxF: 1,   maxS: 20,   days: 30  },
+        starter:     { label: 'STARTER',     maxF: 10,  maxS: 150,  days: 30  },
+        pro:         { label: 'PRO',         maxF: 20,  maxS: 300,  days: 30  },
+        entreprise:  { label: 'GROUPE',      maxF: 999, maxS: 9999, days: 365 },
       };
-      const pl = planLabels[planKey] || { label: planKey, maxF:'—', maxS:'—', days:30 };
+      const pl  = planLabels[planKey] || { label: planKey, maxF: '—', maxS: '—', days: 30 };
       const now = new Date();
-      const exp = new Date(now.getTime() + pl.days*86400000);
-
+      const exp = new Date(now.getTime() + pl.days * 86400000);
+ 
       showResult({
-        licenceKey: data.licenceKey,
-        centreNom: nomCentre,
-        type: pl.label,
-        dateDebut: now.toLocaleDateString('fr-FR'),
-        dateFin: planKey === 'DEMO' ? new Date(now.getTime() + 7*86400000).toLocaleDateString('fr-FR') : exp.toLocaleDateString('fr-FR'),
+        licenceKey:    data.licenceKey,
+        pinFormateur:  data.pinFormateur || null,   // ← PIN renvoyé par l'API
+        centreNom:     nomCentre,
+        type:          pl.label,
+        dateDebut:     now.toLocaleDateString('fr-FR'),
+        dateFin:       exp.toLocaleDateString('fr-FR'),
         maxFormateurs: pl.maxF,
         maxStagiaires: pl.maxS,
-        emailEnvoye: !data.warning,
-        warning: data.warning || null
+        emailEnvoye:   !data.warning,
+        warning:       data.warning || null,
       });
+ 
       loadHistory();
     } else {
       alert(`Erreur: ${data.error || 'Erreur inconnue'}`);
     }
-  } catch(err) {
+  } catch (err) {
     alert('Erreur serveur — vérifiez que le serveur est accessible');
     console.error(err);
   } finally {
@@ -472,17 +475,39 @@ document.getElementById('form-generate').addEventListener('submit', async (e) =>
 
 function showResult(lic) {
   document.getElementById('license-key').textContent = lic.licenceKey;
+ 
+  // Bloc PIN (affiché uniquement pour les licences INDÉPENDANT)
+  const pinHtml = lic.pinFormateur ? `
+    <div style="background:#f3effe;border:2px solid #d8caf0;border-radius:10px;
+                padding:16px 20px;text-align:center;margin:12px 0">
+      <div style="font-size:11px;font-weight:700;color:#7b5ea7;
+                  text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+        🔐 Code PIN formateur
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:32px;font-weight:700;
+                  color:#7b5ea7;letter-spacing:8px">${lic.pinFormateur}</div>
+      <div style="font-size:11px;color:#8c8078;margin-top:6px">
+        Communiqué par email · À conserver par le formateur
+      </div>
+    </div>` : '';
+ 
   document.getElementById('result-details').innerHTML = `
+    ${pinHtml}
     <div class="detail-row"><span class="key">Centre</span><span class="val">${lic.centreNom}</span></div>
     <div class="detail-row"><span class="key">Plan</span><span class="val">${lic.type}</span></div>
     <div class="detail-row"><span class="key">Date début</span><span class="val">${lic.dateDebut}</span></div>
     <div class="detail-row"><span class="key">Date fin</span><span class="val">${lic.dateFin}</span></div>
     <div class="detail-row"><span class="key">Max Formateurs</span><span class="val">${lic.maxFormateurs}</span></div>
     <div class="detail-row"><span class="key">Max Stagiaires</span><span class="val">${lic.maxStagiaires}</span></div>
-    <div class="detail-row"><span class="key">Email envoyé</span><span class="val" style="color:${lic.emailEnvoye?'var(--green)':'var(--gold)'}">${lic.emailEnvoye ? '✅ Oui' : '⚠️ ' + (lic.warning||'Vérifier')}</span></div>
+    <div class="detail-row"><span class="key">Email envoyé</span>
+      <span class="val" style="color:${lic.emailEnvoye ? 'var(--green)' : 'var(--gold)'}">
+        ${lic.emailEnvoye ? '✅ Oui' : '⚠️ ' + (lic.warning || 'Vérifier')}
+      </span>
+    </div>
   `;
+ 
   document.getElementById('result').classList.add('show');
-  document.getElementById('result').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function copyKey() {
