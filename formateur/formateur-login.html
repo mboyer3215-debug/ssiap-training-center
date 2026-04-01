@@ -13,6 +13,7 @@
   --terra:#c25a3a;--terra-bg:#fdf0eb;
   --green:#2e7d52;--green-bg:#e8f5ee;
   --red:#c0392b;--red-bg:#fdecea;
+  --indep:#7b5ea7;--indep-bg:#f3effe;--indep-mid:#d8caf0;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:grid;grid-template-columns:1fr 1.2fr}
@@ -31,35 +32,24 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
 
 .right{display:flex;align-items:center;justify-content:center;padding:48px 40px;overflow-y:auto}
 .form-box{width:100%;max-width:430px}
-.form-header{margin-bottom:26px}
+.form-header{margin-bottom:22px}
 .form-title{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:5px}
 .form-sub{font-size:13px;color:var(--muted);line-height:1.5}
 
 .form-label{display:block;margin-bottom:7px;font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.6px}
 
-/* ── SELECT ── */
-.centre-group{margin-bottom:22px}
-.select-wrap{position:relative}
-.select-wrap select{
-  width:100%;padding:13px 42px 13px 16px;
-  border:1.5px solid var(--border);border-radius:10px;
-  font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;
-  color:var(--text);background:var(--surface);
-  appearance:none;outline:none;cursor:pointer;transition:.15s
-}
-.select-wrap select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg)}
-.select-wrap select option[value=""]{color:var(--muted)}
-.select-arrow{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--muted);pointer-events:none}
-.select-status{height:16px;margin-top:5px}
-.select-loading{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;display:none}
-.select-loading.show{display:flex}
-.spinner{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.centre-confirm{display:none;margin-top:7px;padding:7px 11px;background:var(--blue-bg);border:1px solid var(--blue-mid);border-radius:7px;font-size:11px;color:var(--blue);font-weight:600;align-items:center;gap:6px}
-.centre-confirm.show{display:flex}
+/* ── ÉTAPE INDICATOR ── */
+.step-flow{display:flex;align-items:center;gap:8px;margin-bottom:22px}
+.step{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.step-num{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--muted);flex-shrink:0;transition:.3s}
+.step.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff}
+.step.active{color:var(--text)}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff}
+.step.done{color:var(--green)}
+.step-sep{flex:1;height:1px;background:var(--border);min-width:16px}
 
 /* ── PIN DISPLAY ── */
-.pin-section{margin-bottom:18px}
+.pin-section{margin-bottom:20px}
 .pin-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .pin-badge{font-size:10px;font-weight:700;color:var(--muted);background:var(--subtle);padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace}
 
@@ -74,12 +64,13 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
 .pd.filled{background:var(--blue-bg);border-color:var(--blue);font-size:24px;color:var(--blue)}
 .pd.active{border-color:var(--blue);border-width:2.5px;box-shadow:0 0 0 3px var(--blue-bg)}
 .pd.error{background:var(--red-bg);border-color:var(--red);animation:shake .35s}
+.pd.done{background:var(--green-bg);border-color:var(--green);font-size:22px;color:var(--green)}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 
 /* ── CLAVIER ── */
 .pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:270px;margin:0 auto}
 .pk{
-  padding:15px 5px;border-radius:10px;
+  padding:14px 5px;border-radius:10px;
   border:1.5px solid var(--border);background:var(--surface);
   font-family:'DM Mono',monospace;font-size:18px;font-weight:700;
   color:var(--text);cursor:pointer;text-align:center;
@@ -94,12 +85,47 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
 .pk.clr:hover{color:var(--red);border-color:var(--red)}
 .pk.zero{grid-column:2}
 
+/* ── SÉPARATEUR ── */
+.section-sep{display:flex;align-items:center;gap:10px;margin:18px 0 16px}
+.section-sep-line{flex:1;height:1px;background:var(--border)}
+.section-sep-txt{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+
+/* ── SELECT ── */
+.centre-group{margin-bottom:18px}
+.select-wrap{position:relative}
+.select-wrap select{
+  width:100%;padding:13px 42px 13px 16px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;
+  color:var(--text);background:var(--surface);
+  appearance:none;outline:none;cursor:pointer;transition:.15s
+}
+.select-wrap select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg)}
+.select-wrap select:disabled{opacity:.55;cursor:not-allowed;background:var(--subtle)}
+.select-wrap select option[value=""]{color:var(--muted)}
+.select-arrow{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--muted);pointer-events:none}
+.select-status{min-height:24px;margin-top:6px}
+.select-loading{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.select-loading.hidden{display:none}
+.spinner{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── BADGES CENTRE CONFIRMÉ ── */
+.centre-confirm{display:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:8px}
+.centre-confirm.show{display:flex}
+.centre-confirm.normal{background:var(--blue-bg);border:1px solid var(--blue-mid);color:var(--blue)}
+.centre-confirm.indep{background:var(--indep-bg);border:1px solid var(--indep-mid);color:var(--indep)}
+
+/* ── PIN REQUIS (hint quand centre choisi sans PIN) ── */
+.pin-required-hint{display:none;margin-top:6px;padding:7px 11px;background:var(--terra-bg);border:1px solid rgba(194,90,58,.2);border-radius:7px;font-size:11px;color:var(--terra);font-weight:600;align-items:center;gap:6px}
+.pin-required-hint.show{display:flex}
+
 /* ── BTN ── */
 .btn-conn{
   width:100%;padding:14px;border-radius:10px;border:none;
   background:var(--blue);color:#fff;
   font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
-  cursor:pointer;transition:.15s;margin-top:6px;
+  cursor:pointer;transition:.15s;margin-top:4px;
   display:flex;align-items:center;justify-content:center;gap:8px
 }
 .btn-conn:hover:not(:disabled){background:var(--blue-d)}
@@ -134,17 +160,17 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
   <div class="left-sub">Gérez vos sessions et accompagnez vos stagiaires vers la certification SSIAP</div>
   <div class="info-cards">
     <div class="info-card">
+      <div class="ic-icon">🔐</div>
+      <div class="ic-text">
+        <strong>Votre code PIN</strong>
+        Saisissez d'abord votre PIN à 6 chiffres, puis sélectionnez votre centre
+      </div>
+    </div>
+    <div class="info-card">
       <div class="ic-icon">🏢</div>
       <div class="ic-text">
         <strong>Multi-centre</strong>
         Intervenez dans plusieurs centres avec un PIN différent par centre
-      </div>
-    </div>
-    <div class="info-card">
-      <div class="ic-icon">🔐</div>
-      <div class="ic-text">
-        <strong>PIN à 6 chiffres</strong>
-        Communiqué par votre responsable de centre lors de votre création
       </div>
     </div>
   </div>
@@ -154,39 +180,38 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
   <div class="form-box">
     <div class="form-header">
       <div class="form-title">Connexion Formateur</div>
-      <div class="form-sub">Choisissez votre centre puis saisissez votre code PIN à 6 chiffres</div>
+      <div class="form-sub">Saisissez votre PIN, puis sélectionnez votre centre de formation</div>
+    </div>
+
+    <!-- ÉTAPES -->
+    <div class="step-flow">
+      <div class="step active" id="step1">
+        <div class="step-num">1</div>
+        <span>Code PIN</span>
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step2">
+        <div class="step-num">2</div>
+        <span>Centre</span>
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <span>Connexion</span>
+      </div>
     </div>
 
     <div class="alert" id="alert"></div>
 
-    <!-- SÉLECTION CENTRE -->
-    <div class="centre-group">
-      <label class="form-label">Centre de formation</label>
-      <div class="select-wrap">
-        <select id="sel-centre" onchange="onCentreChange()" disabled>
-          <option value="">Chargement…</option>
-        </select>
-        <span class="select-arrow">▼</span>
-      </div>
-      <div class="select-status">
-        <div class="select-loading show" id="sel-load">
-          <div class="spinner"></div> Chargement des centres…
-        </div>
-        <div class="centre-confirm" id="centre-confirm">
-          <span>🏢</span><span id="centre-confirm-text"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- PIN -->
+    <!-- ① PIN -->
     <div class="pin-section">
       <div class="pin-label-row">
-        <label class="form-label" style="margin-bottom:0">Code PIN</label>
+        <label class="form-label" style="margin-bottom:0">① Code PIN</label>
         <span class="pin-badge">6 CHIFFRES</span>
       </div>
 
       <div class="pin-dots" id="pin-dots">
-        <div class="pd" id="pd0">·</div>
+        <div class="pd active" id="pd0">·</div>
         <div class="pd" id="pd1">·</div>
         <div class="pd" id="pd2">·</div>
         <div class="pd" id="pd3">·</div>
@@ -210,10 +235,39 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
       </div>
     </div>
 
-    <button class="btn-conn" id="btn-conn" onclick="login()" disabled>
-      <span id="btn-txt">Sélectionnez un centre</span>
-    </button>
+    <!-- SÉPARATEUR -->
+    <div class="section-sep">
+      <div class="section-sep-line"></div>
+      <div class="section-sep-txt">② puis choisissez votre centre</div>
+      <div class="section-sep-line"></div>
+    </div>
 
+    <!-- ② SÉLECTION CENTRE -->
+    <div class="centre-group">
+      <label class="form-label">Centre de formation</label>
+      <div class="select-wrap">
+        <select id="sel-centre" onchange="onCentreChange()" disabled>
+          <option value="">Chargement…</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="select-status">
+        <div class="select-loading" id="sel-load">
+          <div class="spinner"></div>&nbsp;Chargement des centres…
+        </div>
+        <div class="centre-confirm" id="centre-confirm">
+          <span id="centre-confirm-icon">🏢</span>
+          <span id="centre-confirm-text"></span>
+        </div>
+        <div class="pin-required-hint" id="pin-hint">
+          ⚠️ Saisissez d'abord votre code PIN ci-dessus
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-conn" id="btn-conn" onclick="login()" disabled>
+      <span id="btn-txt">Saisissez votre PIN</span>
+    </button>
 
   </div>
 </div>
@@ -225,6 +279,7 @@ const API = window.location.hostname === 'localhost'
 
 let pin = '';
 let centreId = '';
+let centreIsIndep = false;
 
 /* ═══ CHARGEMENT CENTRES ═══ */
 async function loadCentres() {
@@ -234,7 +289,7 @@ async function loadCentres() {
     const data = await r.json();
     const list = (data.centers || []).filter(c => c.status !== 'inactive');
 
-    document.getElementById('sel-load').classList.remove('show');
+    document.getElementById('sel-load').classList.add('hidden');
 
     if (!list.length) {
       sel.innerHTML = '<option value="">Aucun centre disponible</option>';
@@ -242,23 +297,29 @@ async function loadCentres() {
       return;
     }
 
-    // ⚠️ On affiche le NOM du centre, jamais l'ID
     sel.innerHTML = '<option value="">— Choisissez votre centre —</option>'
       + list.map(c => {
-    const nom = c.nom || c.info?.nom || 'Centre sans nom';
-    const label = c.license?.type === 'INDEPENDANT' ? '👤 Formateur indépendant' : nom;
-    return `<option value="${c.centerId}">${label}</option>`;
-  }).join('');
+          const isIndep = c.license?.type === 'INDEPENDANT' || c.license?.type === 'INDÉPENDANT';
+          const nom = c.nom || c.info?.nom || 'Centre sans nom';
+          // Mode indépendant : afficher le nom du formateur indépendant
+          if (isIndep) {
+            const prenomNom = [c.info?.prenom, c.info?.nom_formateur || nom].filter(Boolean).join(' ');
+            const label = prenomNom || nom;
+            return `<option value="${c.centerId}" data-indep="1">👤 ${label} — Indépendant</option>`;
+          }
+          return `<option value="${c.centerId}">${nom}</option>`;
+        }).join('');
+
     sel.disabled = false;
 
-    // Un seul centre → pré-sélectionner directement
+    // Un seul centre → pré-sélectionner
     if (list.length === 1) {
       sel.value = list[0].centerId;
       onCentreChange();
     }
 
   } catch {
-    document.getElementById('sel-load').classList.remove('show');
+    document.getElementById('sel-load').classList.add('hidden');
     sel.innerHTML = '<option value="">⚠️ Erreur — réessayez</option>';
     setTimeout(loadCentres, 4000);
   }
@@ -267,16 +328,25 @@ async function loadCentres() {
 function onCentreChange() {
   const sel  = document.getElementById('sel-centre');
   centreId   = sel.value;
-  const nom  = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : '';
-  const conf = document.getElementById('centre-confirm');
+  const opt  = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
+  const nom  = opt ? opt.text : '';
+  centreIsIndep = opt ? (opt.dataset.indep === '1') : false;
+
+  const conf    = document.getElementById('centre-confirm');
+  const pinHint = document.getElementById('pin-hint');
+
+  pinHint.classList.remove('show');
 
   if (centreId) {
     document.getElementById('centre-confirm-text').textContent = nom;
-    conf.classList.add('show');
+    document.getElementById('centre-confirm-icon').textContent = centreIsIndep ? '👤' : '🏢';
+    conf.className = 'centre-confirm show ' + (centreIsIndep ? 'indep' : 'normal');
+    // Si PIN pas encore saisi → montrer le hint
+    if (pin.length < 6) pinHint.classList.add('show');
   } else {
     conf.classList.remove('show');
   }
-  raz();
+  sync();
 }
 
 /* ═══ CLAVIER PIN ═══ */
@@ -285,7 +355,6 @@ function k(d) {
   pin += d;
   refresh();
   sync();
-  // Auto-submit quand 6 chiffres ET centre choisi
   if (pin.length === 6 && centreId) setTimeout(login, 150);
 }
 
@@ -303,27 +372,51 @@ function raz() {
 }
 
 function refresh() {
+  const complete = pin.length === 6;
   for (let i = 0; i < 6; i++) {
     const el = document.getElementById(`pd${i}`);
-    el.classList.remove('filled','active','error');
+    el.classList.remove('filled','active','error','done');
     if (i < pin.length) {
       el.textContent = '●';
-      el.classList.add('filled');
+      el.classList.add(complete ? 'done' : 'filled');
     } else {
       el.textContent = '·';
-      if (i === pin.length) el.classList.add('active');
+      if (i === pin.length && !complete) el.classList.add('active');
     }
+  }
+  // Masquer le hint PIN si PIN complet
+  if (complete) document.getElementById('pin-hint').classList.remove('show');
+
+  // Étapes visuelles
+  const s1 = document.getElementById('step1');
+  const s2 = document.getElementById('step2');
+  const s3 = document.getElementById('step3');
+  if (complete) {
+    s1.className = 'step done';
+    s2.className = 'step active';
+    s3.className = 'step';
+  } else {
+    s1.className = 'step active';
+    s2.className = 'step';
+    s3.className = 'step';
+  }
+  if (complete && centreId) {
+    s2.className = 'step done';
+    s3.className = 'step active';
   }
 }
 
-function shake() {
+function doShake() {
   for (let i = 0; i < 6; i++) {
     const el = document.getElementById(`pd${i}`);
-    el.classList.remove('filled');
+    el.classList.remove('filled','done');
     el.classList.add('error');
     el.textContent = '✕';
   }
-  setTimeout(() => { raz(); for(let i=0;i<6;i++) document.getElementById(`pd${i}`).classList.remove('error'); }, 900);
+  setTimeout(() => {
+    raz();
+    for (let i=0;i<6;i++) document.getElementById(`pd${i}`).classList.remove('error');
+  }, 900);
 }
 
 function sync() {
@@ -331,9 +424,11 @@ function sync() {
   const txt = document.getElementById('btn-txt');
   const ok  = centreId && pin.length === 6;
   btn.disabled = !ok;
-  if (!centreId)        txt.textContent = 'Sélectionnez un centre';
-  else if (pin.length < 6) txt.textContent = `PIN : ${pin.length}/6 chiffres`;
-  else                  txt.textContent = 'Se connecter →';
+
+  if (!centreId && pin.length < 6) txt.textContent = 'Saisissez votre PIN';
+  else if (pin.length < 6)          txt.textContent = `PIN : ${pin.length}/6 chiffres`;
+  else if (!centreId)               txt.textContent = 'Choisissez votre centre';
+  else                              txt.textContent = 'Se connecter →';
 }
 
 /* ═══ LOGIN ═══ */
@@ -353,7 +448,7 @@ async function login() {
 
     if (d.success) {
       const fData = JSON.stringify({ formateurId:d.formateurId, nom:d.nom, prenom:d.prenom, email:d.email||'', centerId:d.centerId, niveaux:d.niveaux||[] });
-      const cData = JSON.stringify({ centerId:d.centerId, nom:d.centerNom||'' });
+      const cData = JSON.stringify({ centerId:d.centerId, nom:d.centerNom||'', isIndep: centreIsIndep });
       localStorage.setItem('ssiap_formateur_token', d.token);
       localStorage.setItem('ssiap_formateur',       fData);
       localStorage.setItem('ssiap_formateur_center',cData);
@@ -361,14 +456,16 @@ async function login() {
       sessionStorage.setItem('ssiap_formateur',       fData);
       sessionStorage.setItem('ssiap_formateur_center',cData);
 
-      showAlert('success', `✅ Bienvenue ${d.prenom} ${d.nom} — ${d.centerNom||''}  !`);
+      showAlert('success', `✅ Bienvenue ${d.prenom} ${d.nom}${d.centerNom ? ' — ' + d.centerNom : ''} !`);
+      // Étape 3 : done
+      document.getElementById('step3').className = 'step done';
       setTimeout(() => window.location.href = 'formateur-dashboard.html', 750);
     } else {
-      shake();
+      doShake();
       showAlert('error', '❌ ' + (d.error || d.message || 'PIN incorrect pour ce centre'));
     }
   } catch {
-    shake();
+    doShake();
     showAlert('error', '⚠️ Serveur inaccessible — vérifiez votre connexion');
   } finally {
     btn.disabled = false;
