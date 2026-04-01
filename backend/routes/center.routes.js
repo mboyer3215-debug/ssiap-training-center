@@ -25,41 +25,150 @@ function getMailer() {
 // ROUTES PUBLIQUES (pas de JWT requis)
 // ══════════════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════════════════════════
+// PATCH center.routes.js — Route POST /register
+// Remplace la route existante /register par celle-ci.
+//
+// Changements :
+//  1. Lit licenseData.type OU licenseData.plan pour compatibilité les deux sources
+//     (license.routes.js stocke `type`, stripe.routes.js stockait `plan`)
+//  2. Pour les licences INDÉPENDANT : crée automatiquement un formateur
+//     avec le pinHash stocké dans Firebase lors de la génération de licence.
+// ══════════════════════════════════════════════════════════════════════════
+
 router.post('/register', async (req, res) => {
   const { licenseKey, nom, email, password, telephone, ville } = req.body;
   if (!licenseKey || !nom || !email || !password)
     return res.status(400).json({ success: false, error: 'Champs requis : licenseKey, nom, email, password' });
   if (password.length < 8)
     return res.status(400).json({ success: false, error: 'Mot de passe minimum 8 caractères' });
+
   try {
-    const licSnapshot = await db.ref(`licenses/${licenseKey}`).once('value');
-    const licenseData = licSnapshot.val();
-    if (!licenseData) return res.status(400).json({ success: false, error: 'Clé de licence invalide' });
-    if (licenseData.used && licenseData.centerId) return res.status(400).json({ success: false, error: 'Cette clé de licence est déjà utilisée' });
-    if (licenseData.expiresAt && licenseData.expiresAt < Date.now()) return res.status(400).json({ success: false, error: 'Cette clé de licence a expiré' });
+    // ── Lire la licence (nœud `licences/` pour Stripe, `licenses/` pour license.routes) ──
+    let licenseData = null;
+    let licenceNode = null;
+
+    // Essai 1 : nœud `licences` (stripe.routes.js)
+    const snapNew = await db.ref(`licences/${licenseKey}`).once('value');
+    if (snapNew.exists()) {
+      licenseData = snapNew.val();
+      licenceNode = 'licences';
+    } else {
+      // Essai 2 : nœud `licenses` (license.routes.js)
+      const snapOld = await db.ref(`licenses/${licenseKey}`).once('value');
+      if (snapOld.exists()) {
+        licenseData = snapOld.val();
+        licenceNode = 'licenses';
+      }
+    }
+
+    if (!licenseData)
+      return res.status(400).json({ success: false, error: 'Clé de licence invalide' });
+    if (licenseData.used && licenseData.centerId)
+      return res.status(400).json({ success: false, error: 'Cette clé de licence est déjà utilisée' });
+    if (licenseData.expiresAt && new Date(licenseData.expiresAt).getTime() < Date.now())
+      return res.status(400).json({ success: false, error: 'Cette clé de licence a expiré' });
 
     const emailCheck = await db.ref('centers').orderByChild('info/email').equalTo(email).once('value');
-    if (emailCheck.exists()) return res.status(400).json({ success: false, error: 'Cet email est déjà utilisé' });
+    if (emailCheck.exists())
+      return res.status(400).json({ success: false, error: 'Cet email est déjà utilisé' });
+
+    // ── Normalisation du type de licence ──
+    // stripe.routes.js stocke `plan` (lowercase) et `type` (label normalisé)
+    // license.routes.js stocke `type` (uppercase)
+    const rawType     = licenseData.type || licenseData.plan || 'DEMO';
+    const licenceType = rawType.toUpperCase()
+      .replace('INDÉPENDANT', 'INDEPENDANT')  // normalise accent
+      .replace('INDEPENDANT', 'INDEPENDANT');
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const centerId = licenseData.centerId || `center_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    const centerId     = licenseData.centerId
+      || `center_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 
+    const maxFormateurs = licenseData.maxFormateurs || 1;
+    const maxStagiaires = licenseData.maxStagiaires || licenseData.maxStagiaires || 10;
+
+    // ── Créer le centre ──
     await db.ref(`centers/${centerId}`).set({
       centerId,
-      info:    { nom, email, telephone: telephone || '', ville: ville || '', createdAt: Date.now() },
+      info: {
+        nom, email,
+        telephone: telephone || '',
+        ville:     ville     || '',
+        createdAt: Date.now(),
+        isIndependant: licenceType === 'INDEPENDANT',
+      },
       auth:    { email, passwordHash, createdAt: Date.now(), lastLogin: null },
-      license: { key: licenseKey, type: licenseData.type || 'DEMO', expiresAt: licenseData.expiresAt || null, maxFormateurs: licenseData.maxFormateurs || 1, maxStagiaires: licenseData.maxStagiaires || 10, activatedAt: Date.now() },
-      stats:   { formateurs: 0, stagiaires: 0, sessions: 0 },
-      status:  'active'
+      license: {
+        key:           licenseKey,
+        type:          licenceType,
+        expiresAt:     licenseData.expiresAt || null,
+        maxFormateurs,
+        maxStagiaires,
+        activatedAt:   Date.now(),
+      },
+      stats:  { formateurs: 0, stagiaires: 0, sessions: 0 },
+      status: 'active',
     });
-    await db.ref(`licenses/${licenseKey}`).update({ used: true, centerId, usedAt: Date.now(), centerNom: nom, centerEmail: email });
 
+    // ── Marquer la licence comme utilisée ──
+    await db.ref(`${licenceNode}/${licenseKey}`).update({
+      used:        true,
+      centerId,
+      usedAt:      Date.now(),
+      centerNom:   nom,
+      centerEmail: email,
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // AUTO-CRÉATION FORMATEUR INDÉPENDANT
+    // Si la licence est de type INDÉPENDANT et qu'un pinHash a été
+    // généré lors de l'activation (stripe.routes.js), on crée
+    // automatiquement le formateur unique du centre.
+    // ══════════════════════════════════════════════════════════════
+    if (licenceType === 'INDEPENDANT' && licenseData.pinHash) {
+      const formateurId = `fmt_indep_${centerId}`;
+      await db.ref(`centers/${centerId}/formateurs/${formateurId}`).set({
+        formateurId,
+        nom:           nom,          // nom du centre = nom du formateur indépendant
+        prenom:        'Formateur',
+        email:         email,
+        pinHash:       licenseData.pinHash,
+        niveaux:       [1, 2, 3],
+        isIndependant: true,
+        centerId,
+        createdAt:     Date.now(),
+        status:        'active',
+      });
+
+      // Mettre à jour le compteur formateurs
+      await db.ref(`centers/${centerId}/stats/formateurs`).set(1);
+
+      console.log(`👤 Formateur indépendant créé automatiquement : ${formateurId} pour ${centerId}`);
+    }
+
+    // ── Email de bienvenue (simple confirmation) ──
     try {
       const mailer = getMailer();
-      await mailer.sendMail({ from: `"SSIAP Training" <${process.env.SMTP_USER}>`, to: email, subject: '✅ Votre compte SSIAP Training est créé', html: `<p>Bienvenue ${nom} ! Votre compte a été créé. ID : ${centerId}</p>` });
-    } catch (e) { console.log('Email non envoyé:', e.message); }
+      await mailer.sendMail({
+        from:    `"SSIAP Training" <${process.env.SMTP_USER}>`,
+        to:      email,
+        subject: '✅ Votre compte SSIAP Training est activé',
+        html:    `<p>Bienvenue ${nom} ! Votre compte a été créé avec succès.<br>
+                  Identifiant centre : <strong>${centerId}</strong></p>`,
+      });
+    } catch (e) { console.log('Email confirmation non envoyé:', e.message); }
 
-    res.json({ success: true, centerId, nom, email, licenseType: licenseData.type || 'DEMO', message: 'Compte créé avec succès' });
+    res.json({
+      success:        true,
+      centerId,
+      nom,
+      email,
+      licenceType,
+      isIndependant:  licenceType === 'INDEPENDANT',
+      message:        'Compte créé avec succès',
+    });
+
   } catch (err) {
     console.error('Erreur register:', err);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
