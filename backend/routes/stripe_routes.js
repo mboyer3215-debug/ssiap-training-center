@@ -3,42 +3,50 @@
 const express  = require('express');
 const router   = express.Router();
 const Stripe   = require('stripe');
-const bcrypt   = require('bcryptjs');
 const crypto   = require('crypto');
 const admin    = require('firebase-admin');
+
+// ⚠️  bcryptjs doit être dans package.json : "bcryptjs": "^2.4.3"
+let bcrypt;
+try {
+  bcrypt = require('bcryptjs');
+  console.log('✅ bcryptjs chargé dans stripe.routes');
+} catch (e) {
+  console.error('❌ bcryptjs MANQUANT dans stripe.routes — PIN INDÉPENDANT impossible :', e.message);
+}
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const PLANS = {
   independant: {
-    priceId: 'price_1TB190GBD0GNj9cdfwvGx3vb',
-    label: 'INDÉPENDANT',
-    prix: '99 €/mois',
-    maxCentres: 1,
+    priceId:       'price_1TB190GBD0GNj9cdfwvGx3vb',
+    label:         'INDÉPENDANT',
+    prix:          '99 €/mois',
+    maxCentres:    1,
     maxFormateurs: 1,
     maxStagiaires: 20,
   },
   starter: {
-    priceId: 'price_1TB16WGBD0GNj9cdCk1bfJ7N',
-    label: 'STARTER',
-    prix: '199 €/mois',
-    maxCentres: 1,
+    priceId:       'price_1TB16WGBD0GNj9cdCk1bfJ7N',
+    label:         'STARTER',
+    prix:          '199 €/mois',
+    maxCentres:    1,
     maxFormateurs: 10,
     maxStagiaires: 150,
   },
   pro: {
-    priceId: 'price_1TB17SGBD0GNj9cdlHWwsjrL',
-    label: 'PRO',
-    prix: '299 €/mois',
-    maxCentres: 10,
+    priceId:       'price_1TB17SGBD0GNj9cdlHWwsjrL',
+    label:         'PRO',
+    prix:          '299 €/mois',
+    maxCentres:    10,
     maxFormateurs: 20,
     maxStagiaires: 300,
   },
   entreprise: {
-    priceId: 'price_1TB18lGBD0GNj9cdDYmDGy8M',
-    label: 'ENTREPRISE',
-    prix: '3 999 €/an',
-    maxCentres: 999,
+    priceId:       'price_1TB18lGBD0GNj9cdDYmDGy8M',
+    label:         'ENTREPRISE',
+    prix:          '3 999 €/an',
+    maxCentres:    999,
     maxFormateurs: 999,
     maxStagiaires: 9999,
   },
@@ -52,13 +60,16 @@ function generateLicenceKey(planKey) {
 }
 
 function generatePin() {
-  return String(parseInt(crypto.randomBytes(3).toString('hex'), 16) % 1_000_000)
-    .padStart(6, '0');
+  // PIN 6 chiffres cryptographiquement sûr
+  const buf = crypto.randomBytes(4);
+  const num = buf.readUInt32BE(0) % 1000000;
+  return String(num).padStart(6, '0');
 }
 
 // ─── MAILER Mailgun EU ─────────────────────────────────────────────────────
 async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur, loginUrl }) {
   const isIndep = !!pinFormateur;
+  console.log(`📧 sendWelcomeEmail → isIndep=${isIndep} pin=${pinFormateur || 'N/A'} to=${to}`);
 
   const pinBlock = isIndep ? `
     <div style="background:#f3effe;border:2px solid #c8b4f0;border-radius:10px;
@@ -87,7 +98,7 @@ async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur,
         <li>Cliquez sur <strong>"Accéder à mon espace formateur"</strong> ci-dessous</li>
         <li>Saisissez votre <strong>code PIN à 6 chiffres</strong></li>
         <li>Cliquez sur <em>"Première connexion ? Activez votre licence"</em></li>
-        <li>Entrez votre <strong>clé de licence</strong> <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px">${licenceKey}</code></li>
+        <li>Entrez votre clé : <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px">${licenceKey}</code></li>
         <li>✅ Votre compte est activé !</li>
       </ol>
     </div>` : '';
@@ -100,7 +111,7 @@ async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur,
       <li>Stagiaires actifs : <strong>${plan.maxStagiaires}</strong></li>
     </ul>` : '';
 
-  const ctaLabel = isIndep ? 'Accéder à mon espace formateur →' : 'Accéder à ma plateforme →';
+  const ctaLabel  = isIndep ? 'Accéder à mon espace formateur →' : 'Accéder à ma plateforme →';
 
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto">
@@ -118,7 +129,9 @@ async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur,
             <code style="font-family:'Courier New',monospace;font-size:18px;font-weight:700;color:#1a3a5c;letter-spacing:2px">${licenceKey}</code>
           </div>
           <p style="font-size:12px;color:#6b7280;margin:8px 0 0">
-            ${isIndep ? 'Conservez cette clé — elle sera demandée lors de votre première connexion.' : 'Utilisez cette clé lors de votre inscription sur la plateforme.'}
+            ${isIndep
+              ? 'Conservez cette clé — elle sera demandée lors de votre première connexion.'
+              : 'Utilisez cette clé lors de votre inscription sur la plateforme.'}
           </p>
         </div>
 
@@ -126,7 +139,9 @@ async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur,
         ${instructionsIndep}
         ${limitesPlan}
 
-        <a href="${loginUrl}" style="display:inline-block;background:#1a3a5c;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;font-size:15px">
+        <a href="${loginUrl}"
+           style="display:inline-block;background:#1a3a5c;color:#fff;padding:14px 28px;
+                  border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;font-size:15px">
           ${ctaLabel}
         </a>
 
@@ -144,36 +159,40 @@ async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur,
   formData.append('subject', `✅ Votre licence SSIAP Training ${plan.label} est active`);
   formData.append('html',    html);
 
-  // ⚠️  EU endpoint — cohérent avec center.routes.js
-  const response = await fetch(
-    `https://api.eu.mailgun.net/v3/${process.env.MAILGUN_DOMAIN}/messages`,
-    {
-      method:  'POST',
-      headers: {
-        Authorization:  'Basic ' + Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString('base64'),
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    }
-  );
+  const mgUrl  = `https://api.eu.mailgun.net/v3/${process.env.MAILGUN_DOMAIN}/messages`;
+  console.log(`📬 Mailgun EU → ${mgUrl}`);
+
+  const response = await fetch(mgUrl, {
+    method:  'POST',
+    headers: {
+      Authorization:  'Basic ' + Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString('base64'),
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: formData.toString(),
+  });
 
   if (!response.ok) {
     const errTxt = await response.text();
     throw new Error(`Mailgun EU error: ${errTxt}`);
   }
-  console.log(`📧 Email ${plan.label} envoyé à ${to} [PIN: ${pinFormateur ? 'OUI' : 'N/A'}]`);
+  console.log(`✅ Email ${plan.label} envoyé à ${to} [PIN: ${pinFormateur ? 'INCLUS' : 'N/A'}]`);
 }
 
 // ─── createLicenceInFirebase ────────────────────────────────────────────────
 async function createLicenceInFirebase({ planKey, nomCentre, email, plan, source = 'stripe' }) {
   const db         = admin.database();
-  const licenceKey = generateLicenceKey(planKey);
+  // Normaliser en minuscules pour éviter tout problème de casse
+  const planKeyNorm = (planKey || '').toLowerCase().trim();
+
+  console.log(`🎫 createLicenceInFirebase → planKeyNorm="${planKeyNorm}" source=${source}`);
+
+  const licenceKey = generateLicenceKey(planKeyNorm);
   const now        = new Date().toISOString();
 
   const licenceData = {
     key:           licenceKey,
     type:          plan.label,
-    plan:          planKey,
+    plan:          planKeyNorm,
     nomCentre,
     email,
     source,
@@ -183,46 +202,58 @@ async function createLicenceInFirebase({ planKey, nomCentre, email, plan, source
     maxFormateurs: plan.maxFormateurs,
     maxStagiaires: plan.maxStagiaires,
     createdAt:     now,
-    expiresAt:     planKey === 'entreprise'
+    expiresAt:     planKeyNorm === 'entreprise'
       ? new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString()
       : null,
   };
 
   let pinClear = null;
-  if (planKey === 'independant') {
+
+  // ── PIN pour les licences INDÉPENDANT ──────────────────────────────────
+  if (planKeyNorm === 'independant') {
+    if (!bcrypt) {
+      throw new Error('bcryptjs non disponible — impossible de générer le PIN INDÉPENDANT. Vérifiez package.json.');
+    }
     pinClear = generatePin();
+    console.log(`🔐 PIN généré : ${pinClear} (sera hashé)`);
     licenceData.pinHash       = await bcrypt.hash(pinClear, 10);
     licenceData.isIndependant = true;
     licenceData.pinGenerated  = true;
-    console.log(`🔐 PIN généré pour licence INDÉPENDANT ${licenceKey}`);
+    console.log(`✅ pinHash créé pour licence INDÉPENDANT ${licenceKey}`);
+  } else {
+    console.log(`ℹ️  Plan "${planKeyNorm}" → pas de PIN formateur`);
   }
 
   await db.ref(`licences/${licenceKey}`).set(licenceData);
+  console.log(`💾 Licence ${licenceKey} écrite dans Firebase`);
+
   return { licenceKey, pinClear };
 }
 
-// ─── ROUTE 1 : Checkout ────────────────────────────────────────────────────
+// ─── ROUTE 1 : Checkout Stripe ─────────────────────────────────────────────
 router.post('/checkout', async (req, res) => {
   try {
     const { planKey, nomCentre, email } = req.body;
-    const plan = PLANS[planKey];
+    const plan = PLANS[(planKey || '').toLowerCase()];
     if (!plan) return res.status(400).json({ error: 'Plan inconnu' });
     const session = await stripe.checkout.sessions.create({
-      mode: 'subscription', payment_method_types: ['card'],
-      customer_email: email,
-      line_items: [{ price: plan.priceId, quantity: 1 }],
-      metadata: { planKey, nomCentre, email },
+      mode:                 'subscription',
+      payment_method_types: ['card'],
+      customer_email:       email,
+      line_items:           [{ price: plan.priceId, quantity: 1 }],
+      metadata:             { planKey: (planKey || '').toLowerCase(), nomCentre, email },
       success_url: `${process.env.APP_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${process.env.APP_URL || 'https://formation.mib-prevention.fr'}/#pricing`,
       locale: 'fr',
     });
     res.json({ url: session.url });
   } catch (err) {
+    console.error('Stripe checkout error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── ROUTE 2 : Webhook ─────────────────────────────────────────────────────
+// ─── ROUTE 2 : Webhook Stripe ──────────────────────────────────────────────
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -231,54 +262,83 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  if (event.type === 'checkout.session.completed')    await activateLicence(event.data.object);
-  if (event.type === 'customer.subscription.deleted') await deactivateLicence(event.data.object.metadata?.licenceKey);
+  if (event.type === 'checkout.session.completed')
+    await activateLicence(event.data.object);
+  if (event.type === 'customer.subscription.deleted')
+    await deactivateLicence(event.data.object.metadata?.licenceKey);
   res.json({ received: true });
 });
 
-// ─── ROUTE 3 : Session ─────────────────────────────────────────────────────
+// ─── ROUTE 3 : Vérifier session après paiement ─────────────────────────────
 router.get('/session/:sessionId', async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
-    res.json({ status: session.payment_status, email: session.customer_email, plan: PLANS[session.metadata?.planKey]?.label });
+    res.json({
+      status: session.payment_status,
+      email:  session.customer_email,
+      plan:   PLANS[(session.metadata?.planKey || '').toLowerCase()]?.label,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── ROUTE 4 : Activation manuelle ────────────────────────────────────────
+// ─── ROUTE 4 : Activation manuelle (virement / admin) ─────────────────────
+// POST /api/stripe/activate-manual
+// Body : { planKey, nomCentre, email, adminKey }
 router.post('/activate-manual', async (req, res) => {
   try {
     const { planKey, nomCentre, email, adminKey } = req.body;
-    if (adminKey !== process.env.ADMIN_SECRET_KEY)
-      return res.status(403).json({ error: 'Non autorisé' });
-    const plan = PLANS[planKey];
-    if (!plan) return res.status(400).json({ error: 'Plan inconnu' });
 
-    const { licenceKey, pinClear } = await createLicenceInFirebase({ planKey, nomCentre, email, plan, source: 'virement' });
+    console.log(`\n🛠  activate-manual → planKey="${planKey}" nomCentre="${nomCentre}" email="${email}"`);
+
+    if (adminKey !== process.env.ADMIN_SECRET_KEY) {
+      console.warn('⛔ Clé admin incorrecte');
+      return res.status(403).json({ error: 'Non autorisé' });
+    }
+
+    const planKeyNorm = (planKey || '').toLowerCase().trim();
+    const plan = PLANS[planKeyNorm];
+    if (!plan) {
+      console.error(`❌ Plan inconnu : "${planKeyNorm}". Plans disponibles : ${Object.keys(PLANS).join(', ')}`);
+      return res.status(400).json({ error: `Plan inconnu : ${planKeyNorm}` });
+    }
+
+    console.log(`✅ Plan trouvé : ${plan.label}`);
+
+    const { licenceKey, pinClear } = await createLicenceInFirebase({
+      planKey: planKeyNorm, nomCentre, email, plan, source: 'virement',
+    });
 
     const baseUrl  = process.env.APP_URL || 'https://ssiap-training-center.onrender.com';
-    const loginUrl = planKey === 'independant'
-      ? `${baseUrl}/center/formateur-login.html`   // ← INDÉPENDANT → page formateur
-      : `${baseUrl}/center/center-login.html`;     // ← autres → page centre
+    const loginUrl = planKeyNorm === 'independant'
+      ? `${baseUrl}/center/formateur-login.html`
+      : `${baseUrl}/center/center-login.html`;
+
+    console.log(`🔗 loginUrl = ${loginUrl}`);
+    console.log(`📌 pinClear = ${pinClear || 'null (non indépendant)'}`);
 
     await sendWelcomeEmail({ to: email, nomCentre, plan, licenceKey, pinFormateur: pinClear, loginUrl });
 
     const resp = { success: true, licenceKey };
     if (pinClear) resp.pinFormateur = pinClear;
+
+    console.log(`✅ activate-manual terminé → licenceKey=${licenceKey} PIN=${pinClear ? 'OUI' : 'NON'}\n`);
     res.json(resp);
+
   } catch (err) {
-    console.error('activate-manual error:', err);
+    console.error('❌ activate-manual ERREUR :', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── ROUTE 5 : Vérifier licence ────────────────────────────────────────────
+// ─── ROUTE 5 : Vérifier une licence ────────────────────────────────────────
 router.get('/licence/:key', async (req, res) => {
   try {
     const snap = await admin.database().ref(`licences/${req.params.key}`).once('value');
     if (!snap.exists()) return res.status(404).json({ error: 'Licence non trouvée' });
-    const { pinHash: _, ...safe } = snap.val();
+    const data = snap.val();
+    const { pinHash: _, ...safe } = data;
     res.json(safe);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -288,18 +348,29 @@ router.get('/licence/:key', async (req, res) => {
 // ─── HELPERS INTERNES ──────────────────────────────────────────────────────
 async function activateLicence(session) {
   try {
-    const { planKey, nomCentre, email } = session.metadata || {};
-    const plan = PLANS[planKey];
-    if (!plan) return;
-    const { licenceKey, pinClear } = await createLicenceInFirebase({ planKey, nomCentre, email, plan, source: 'stripe' });
+    const rawPlanKey  = session.metadata?.planKey || '';
+    const planKeyNorm = rawPlanKey.toLowerCase().trim();
+    const nomCentre   = session.metadata?.nomCentre || 'Votre centre';
+    const email       = session.metadata?.email || session.customer_email;
+    const plan        = PLANS[planKeyNorm];
+    if (!plan) {
+      console.error(`Webhook: plan inconnu "${planKeyNorm}"`);
+      return;
+    }
+
+    const { licenceKey, pinClear } = await createLicenceInFirebase({
+      planKey: planKeyNorm, nomCentre, email, plan, source: 'stripe',
+    });
+
     const baseUrl  = process.env.APP_URL || 'https://ssiap-training-center.onrender.com';
-    const loginUrl = planKey === 'independant'
+    const loginUrl = planKeyNorm === 'independant'
       ? `${baseUrl}/center/formateur-login.html`
       : `${baseUrl}/center/center-login.html`;
-    await sendWelcomeEmail({ to: email || session.customer_email, nomCentre: nomCentre || 'Votre centre', plan, licenceKey, pinFormateur: pinClear, loginUrl });
-    console.log(`✅ Stripe: licence ${licenceKey} activée (${plan.label})`);
+
+    await sendWelcomeEmail({ to: email, nomCentre, plan, licenceKey, pinFormateur: pinClear, loginUrl });
+    console.log(`✅ Stripe webhook: licence ${licenceKey} activée (${plan.label})`);
   } catch (err) {
-    console.error('activateLicence error:', err.message);
+    console.error('Erreur activateLicence:', err.message);
   }
 }
 
@@ -307,8 +378,9 @@ async function deactivateLicence(licenceKey) {
   if (!licenceKey) return;
   try {
     await admin.database().ref(`licences/${licenceKey}/actif`).set(false);
+    console.log(`⛔ Licence désactivée : ${licenceKey}`);
   } catch (err) {
-    console.error('deactivateLicence error:', err.message);
+    console.error('Erreur deactivateLicence:', err.message);
   }
 }
 
