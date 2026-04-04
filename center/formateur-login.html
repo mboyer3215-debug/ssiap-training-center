@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion Formateur — SSIAP Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2e5c8a;--blue-d:#254d78;--blue-bg:#e8f0f8;--blue-mid:#c5d8ee;
+  --bg:#f7f4f0;--surface:#fff;--border:#e8e2db;--border2:#d4ccc4;
+  --text:#1e1a17;--muted:#8c8078;--subtle:#f0ece7;
+  --terra:#c25a3a;--terra-bg:#fdf0eb;
+  --green:#2e7d52;--green-bg:#e8f5ee;
+  --red:#c0392b;--red-bg:#fdecea;
+  --indep:#7b5ea7;--indep-bg:#f3effe;--indep-mid:#d8caf0;--indep-light:#f8f5ff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;display:grid;grid-template-columns:1fr 1.2fr}
+
+.left{background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 44px;position:relative;overflow:hidden}
+.left::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.05);top:-120px;right:-120px}
+.left::after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04);bottom:-80px;left:-80px}
+.left-logo{font-size:52px;margin-bottom:20px;position:relative;z-index:1}
+.left-title{font-family:'Lora',serif;font-size:28px;font-weight:700;color:#fff;text-align:center;margin-bottom:10px;position:relative;z-index:1}
+.left-sub{font-size:13px;color:rgba(255,255,255,.72);text-align:center;line-height:1.7;max-width:270px;position:relative;z-index:1;margin-bottom:30px}
+.info-cards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:272px;position:relative;z-index:1}
+.info-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:13px 15px;display:flex;align-items:flex-start;gap:11px}
+.ic-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.ic-text{font-size:11.5px;color:rgba(255,255,255,.85);line-height:1.55}
+.ic-text strong{color:#fff;display:block;margin-bottom:2px;font-size:12px}
+
+.right{display:flex;align-items:center;justify-content:center;padding:48px 40px;overflow-y:auto}
+.form-box{width:100%;max-width:430px}
+.form-header{margin-bottom:22px}
+.form-title{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:5px}
+.form-sub{font-size:13px;color:var(--muted);line-height:1.5}
+.form-label{display:block;margin-bottom:7px;font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.6px}
+
+/* ── ÉTAPES ── */
+.step-flow{display:flex;align-items:center;gap:8px;margin-bottom:22px}
+.step{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.step-num{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--muted);flex-shrink:0;transition:.3s}
+.step.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff}
+.step.active{color:var(--text)}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff}
+.step.done{color:var(--green)}
+.step-sep{flex:1;height:1px;background:var(--border);min-width:16px}
+
+/* ── PIN ── */
+.pin-section{margin-bottom:20px}
+.pin-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pin-badge{font-size:10px;font-weight:700;color:var(--muted);background:var(--subtle);padding:3px 9px;border-radius:20px;font-family:'DM Mono',monospace}
+.pin-dots{display:flex;gap:7px;justify-content:center;margin-bottom:16px}
+.pd{width:46px;height:54px;background:var(--subtle);border:2px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--border2);transition:.15s;flex-shrink:0;font-family:'DM Mono',monospace}
+.pd.filled{background:var(--blue-bg);border-color:var(--blue);font-size:24px;color:var(--blue)}
+.pd.active{border-color:var(--blue);border-width:2.5px;box-shadow:0 0 0 3px var(--blue-bg)}
+.pd.error{background:var(--red-bg);border-color:var(--red);animation:shake .35s}
+.pd.done{background:var(--green-bg);border-color:var(--green);font-size:22px;color:var(--green)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+
+/* ── CLAVIER ── */
+.pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:270px;margin:0 auto}
+.pk{padding:14px 5px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);cursor:pointer;text-align:center;transition:.12s;user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.pk:hover{background:var(--subtle);border-color:var(--blue-mid);transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.09)}
+.pk:active{transform:scale(.95);background:var(--blue-bg);border-color:var(--blue)}
+.pk.del{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--muted)}
+.pk.del:hover{color:var(--red);border-color:var(--red)}
+.pk.clr{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;color:var(--muted)}
+.pk.clr:hover{color:var(--red);border-color:var(--red)}
+.pk.zero{grid-column:2}
+
+/* ── SÉPARATEUR ── */
+.section-sep{display:flex;align-items:center;gap:10px;margin:18px 0 16px}
+.section-sep-line{flex:1;height:1px;background:var(--border)}
+.section-sep-txt{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+
+/* ── SELECT CENTRE ── */
+.centre-group{margin-bottom:18px}
+.select-wrap{position:relative}
+.select-wrap select{width:100%;padding:13px 42px 13px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);background:var(--surface);appearance:none;outline:none;cursor:pointer;transition:.15s}
+.select-wrap select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg)}
+.select-wrap select:disabled{opacity:.55;cursor:not-allowed;background:var(--subtle)}
+.select-arrow{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--muted);pointer-events:none}
+.select-loading{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;min-height:20px;margin-top:5px}
+.select-loading.hidden{display:none}
+.spinner{width:11px;height:11px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.centre-confirm{display:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;align-items:center;gap:8px}
+.centre-confirm.show{display:flex}
+.centre-confirm.normal{background:var(--blue-bg);border:1px solid var(--blue-mid);color:var(--blue)}
+.centre-confirm.indep{background:var(--indep-bg);border:1px solid var(--indep-mid);color:var(--indep)}
+.pin-required-hint{display:none;margin-top:6px;padding:7px 11px;background:var(--terra-bg);border:1px solid rgba(194,90,58,.2);border-radius:7px;font-size:11px;color:var(--terra);font-weight:600;align-items:center;gap:6px}
+.pin-required-hint.show{display:flex}
+
+/* ── BLOC PREMIÈRE CONNEXION ── */
+.first-login-trigger{display:none;margin-top:14px}
+.first-login-trigger.show{display:block}
+.first-login-btn{width:100%;padding:11px;border-radius:9px;border:1.5px dashed var(--indep-mid);background:var(--indep-light);color:var(--indep);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;text-align:center}
+.first-login-btn:hover{background:var(--indep-bg);border-color:var(--indep)}
+
+.first-login-panel{display:none;margin-top:12px;background:var(--indep-light);border:2px solid var(--indep-mid);border-radius:12px;padding:18px;animation:fadeIn .25s ease}
+.first-login-panel.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.flp-title{font-size:13px;font-weight:700;color:var(--indep);margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.flp-sub{font-size:11.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.flp-input-wrap{position:relative}
+.flp-input{width:100%;padding:12px 16px;border:1.5px solid var(--indep-mid);border-radius:9px;font-size:13px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px;color:var(--text);background:var(--surface);outline:none;transition:.15s;text-transform:uppercase}
+.flp-input:focus{border-color:var(--indep);box-shadow:0 0 0 3px var(--indep-bg)}
+.flp-input::placeholder{font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);font-size:13px}
+.btn-activate{width:100%;padding:13px;border-radius:10px;border:none;background:var(--indep);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-activate:hover:not(:disabled){background:#6a4e96}
+.btn-activate:disabled{opacity:.4;cursor:not-allowed}
+.flp-close{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;cursor:pointer;text-decoration:underline}
+.flp-close:hover{color:var(--red)}
+
+/* ── BTN CONNEXION ── */
+.btn-conn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-conn:hover:not(:disabled){background:var(--blue-d)}
+.btn-conn:disabled{opacity:.38;cursor:not-allowed}
+
+/* ── ALERT ── */
+.alert{padding:11px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;display:none;line-height:1.5}
+.alert.show{display:block}
+.alert.error{background:var(--red-bg);border:1px solid rgba(192,57,43,.25);color:var(--red)}
+.alert.success{background:var(--green-bg);border:1px solid rgba(46,125,82,.25);color:var(--green)}
+.alert.info{background:var(--blue-bg);border:1px solid rgba(46,92,138,.2);color:var(--blue)}
+
+@media(max-width:800px){
+  body{grid-template-columns:1fr}
+  .left{padding:28px 20px;min-height:auto}
+  .left-title{font-size:20px}
+  .info-cards{flex-direction:row;max-width:100%}
+  .info-card{flex:1}
+  .right{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="left">
+  <div class="left-logo">👨‍🏫</div>
+  <div class="left-title">Espace Formateur</div>
+  <div class="left-sub">Gérez vos sessions et accompagnez vos stagiaires vers la certification SSIAP</div>
+  <div class="info-cards">
+    <div class="info-card">
+      <div class="ic-icon">🔐</div>
+      <div class="ic-text">
+        <strong>Votre code PIN</strong>
+        Saisissez d'abord votre PIN à 6 chiffres, puis sélectionnez votre centre
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="ic-icon">🆕</div>
+      <div class="ic-text">
+        <strong>Première connexion ?</strong>
+        Indépendant ? Activez votre compte avec votre clé de licence
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="form-box">
+    <div class="form-header">
+      <div class="form-title">Connexion Formateur</div>
+      <div class="form-sub">Saisissez votre PIN, puis sélectionnez votre centre</div>
+    </div>
+
+    <!-- ÉTAPES -->
+    <div class="step-flow">
+      <div class="step active" id="step1"><div class="step-num">1</div><span>Code PIN</span></div>
+      <div class="step-sep"></div>
+      <div class="step" id="step2"><div class="step-num">2</div><span>Centre</span></div>
+      <div class="step-sep"></div>
+      <div class="step" id="step3"><div class="step-num">3</div><span>Connexion</span></div>
+    </div>
+
+    <div class="alert" id="alert"></div>
+
+    <!-- ① PIN -->
+    <div class="pin-section">
+      <div class="pin-label-row">
+        <label class="form-label" style="margin-bottom:0">① Code PIN</label>
+        <span class="pin-badge">6 CHIFFRES</span>
+      </div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pd active" id="pd0">·</div>
+        <div class="pd" id="pd1">·</div>
+        <div class="pd" id="pd2">·</div>
+        <div class="pd" id="pd3">·</div>
+        <div class="pd" id="pd4">·</div>
+        <div class="pd" id="pd5">·</div>
+      </div>
+      <div class="pinpad">
+        <div class="pk" onclick="k('1')">1</div>
+        <div class="pk" onclick="k('2')">2</div>
+        <div class="pk" onclick="k('3')">3</div>
+        <div class="pk" onclick="k('4')">4</div>
+        <div class="pk" onclick="k('5')">5</div>
+        <div class="pk" onclick="k('6')">6</div>
+        <div class="pk" onclick="k('7')">7</div>
+        <div class="pk" onclick="k('8')">8</div>
+        <div class="pk" onclick="k('9')">9</div>
+        <div class="pk clr" onclick="raz()">RAZ</div>
+        <div class="pk zero" onclick="k('0')">0</div>
+        <div class="pk del" onclick="sup()">⌫</div>
+      </div>
+    </div>
+
+    <!-- SÉPARATEUR -->
+    <div class="section-sep">
+      <div class="section-sep-line"></div>
+      <div class="section-sep-txt">② puis choisissez votre centre</div>
+      <div class="section-sep-line"></div>
+    </div>
+
+    <!-- ② SÉLECTION CENTRE -->
+    <div class="centre-group">
+      <label class="form-label">Centre de formation</label>
+      <div class="select-wrap">
+        <select id="sel-centre" onchange="onCentreChange()" disabled>
+          <option value="">Chargement…</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="select-status">
+        <div class="select-loading" id="sel-load">
+          <div class="spinner"></div>&nbsp;Chargement des centres…
+        </div>
+        <div class="centre-confirm" id="centre-confirm">
+          <span id="centre-confirm-icon">🏢</span>
+          <span id="centre-confirm-text"></span>
+        </div>
+        <div class="pin-required-hint" id="pin-hint">
+          ⚠️ Saisissez d'abord votre code PIN ci-dessus
+        </div>
+      </div>
+    </div>
+
+    <!-- Bouton connexion normale -->
+    <button class="btn-conn" id="btn-conn" onclick="login()" disabled>
+      <span id="btn-txt">Saisissez votre PIN</span>
+    </button>
+
+    <!-- ── PREMIÈRE CONNEXION INDÉPENDANT ── -->
+    <div class="first-login-trigger" id="first-login-trigger">
+      <button class="first-login-btn" onclick="toggleFirstLogin()">
+        🆕 Première connexion ? Activez votre licence indépendant
+      </button>
+    </div>
+
+    <div class="first-login-panel" id="first-login-panel">
+      <div class="flp-title">🔑 Activation — Formateur Indépendant</div>
+      <div class="flp-sub">
+        Entrez votre clé de licence reçue par email.<br>
+        Votre PIN <strong>doit déjà être saisi</strong> ci-dessus.
+      </div>
+      <div class="flp-input-wrap">
+        <input type="text" class="flp-input" id="flp-key"
+               placeholder="MIB-IND-XXXXXXXXXXXXXXXX"
+               maxlength="24"
+               oninput="onKeyInput()"
+               onkeydown="if(event.key==='Enter') activate()">
+      </div>
+      <button class="btn-activate" id="btn-activate" onclick="activate()" disabled>
+        <span id="btn-activate-txt">🚀 Activer et me connecter</span>
+      </button>
+      <div class="flp-close" onclick="toggleFirstLogin()">Annuler</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000/api'
+  : 'https://ssiap-training-center.onrender.com/api';
+
+let pin = '';
+let centreId = '';
+let centreIsIndep = false;
+let firstLoginOpen = false;
+
+/* ═══ CHARGEMENT CENTRES ═══ */
+async function loadCentres() {
+  const sel = document.getElementById('sel-centre');
+  try {
+    const r    = await fetch(`${API}/center/list`);
+    const data = await r.json();
+    const list = (data.centers || []).filter(c => c.status !== 'inactive');
+
+    document.getElementById('sel-load').classList.add('hidden');
+
+    if (!list.length) {
+      sel.innerHTML = '<option value="">Aucun centre enregistré</option>';
+      return;
+    }
+
+    sel.innerHTML = '<option value="">— Choisissez votre centre —</option>'
+      + list.map(c => {
+          const isIndep = (c.license?.type || '').toUpperCase().includes('INDEPENDANT')
+                       || (c.license?.type || '').toUpperCase().includes('INDÉPENDANT');
+          const nom = c.nom || c.info?.nom || 'Centre sans nom';
+          if (isIndep) {
+            return `<option value="${c.centerId}" data-indep="1">👤 ${nom} — Indépendant</option>`;
+          }
+          return `<option value="${c.centerId}">${nom}</option>`;
+        }).join('');
+    sel.disabled = false;
+
+    if (list.length === 1) { sel.value = list[0].centerId; onCentreChange(); }
+  } catch {
+    document.getElementById('sel-load').classList.add('hidden');
+    sel.innerHTML = '<option value="">⚠️ Erreur — réessayez</option>';
+    setTimeout(loadCentres, 4000);
+  }
+}
+
+function onCentreChange() {
+  const sel  = document.getElementById('sel-centre');
+  centreId   = sel.value;
+  const opt  = sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
+  const nom  = opt ? opt.text : '';
+  centreIsIndep = opt ? (opt.dataset.indep === '1') : false;
+
+  const conf    = document.getElementById('centre-confirm');
+  const pinHint = document.getElementById('pin-hint');
+  pinHint.classList.remove('show');
+
+  if (centreId) {
+    document.getElementById('centre-confirm-text').textContent = nom;
+    document.getElementById('centre-confirm-icon').textContent = centreIsIndep ? '👤' : '🏢';
+    conf.className = 'centre-confirm show ' + (centreIsIndep ? 'indep' : 'normal');
+    if (pin.length < 6) pinHint.classList.add('show');
+  } else {
+    conf.classList.remove('show');
+  }
+  sync();
+}
+
+/* ═══ CLAVIER PIN ═══ */
+function k(d) {
+  if (pin.length >= 6) return;
+  pin += d;
+  refresh();
+  sync();
+  if (pin.length === 6 && centreId) setTimeout(login, 150);
+}
+function sup() { if (!pin) return; pin = pin.slice(0,-1); refresh(); sync(); }
+function raz() { pin = ''; refresh(); sync(); }
+
+function refresh() {
+  const complete = pin.length === 6;
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById(`pd${i}`);
+    el.classList.remove('filled','active','error','done');
+    if (i < pin.length) {
+      el.textContent = '●';
+      el.classList.add(complete ? 'done' : 'filled');
+    } else {
+      el.textContent = '·';
+      if (i === pin.length && !complete) el.classList.add('active');
+    }
+  }
+  if (complete) document.getElementById('pin-hint').classList.remove('show');
+
+  // Étapes visuelles
+  const s1 = document.getElementById('step1');
+  const s2 = document.getElementById('step2');
+  const s3 = document.getElementById('step3');
+  if (complete && centreId) { s1.className='step done'; s2.className='step done'; s3.className='step active'; }
+  else if (complete)         { s1.className='step done'; s2.className='step active'; s3.className='step'; }
+  else                       { s1.className='step active'; s2.className='step'; s3.className='step'; }
+
+  // Afficher le bouton "Première connexion" dès que PIN complet
+  const trigger = document.getElementById('first-login-trigger');
+  if (complete) trigger.classList.add('show');
+  else          trigger.classList.remove('show');
+
+  // Mettre à jour le bouton d'activation
+  updateActivateBtn();
+}
+
+function doShake() {
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById(`pd${i}`);
+    el.classList.remove('filled','done');
+    el.classList.add('error');
+    el.textContent = '✕';
+  }
+  setTimeout(() => { raz(); for (let i=0;i<6;i++) document.getElementById(`pd${i}`).classList.remove('error'); }, 900);
+}
+
+function sync() {
+  const btn = document.getElementById('btn-conn');
+  const txt = document.getElementById('btn-txt');
+  const ok  = centreId && pin.length === 6;
+  btn.disabled = !ok;
+  if (!centreId && pin.length < 6) txt.textContent = 'Saisissez votre PIN';
+  else if (pin.length < 6)          txt.textContent = `PIN : ${pin.length}/6 chiffres`;
+  else if (!centreId)               txt.textContent = 'Choisissez votre centre';
+  else                              txt.textContent = 'Se connecter →';
+}
+
+/* ═══ PREMIÈRE CONNEXION ═══ */
+function toggleFirstLogin() {
+  firstLoginOpen = !firstLoginOpen;
+  const panel = document.getElementById('first-login-panel');
+  if (firstLoginOpen) {
+    panel.classList.add('show');
+    document.getElementById('flp-key').focus();
+  } else {
+    panel.classList.remove('show');
+    document.getElementById('flp-key').value = '';
+    updateActivateBtn();
+  }
+}
+
+function onKeyInput() {
+  const val = document.getElementById('flp-key').value.trim().toUpperCase();
+  document.getElementById('flp-key').value = val;
+  updateActivateBtn();
+}
+
+function updateActivateBtn() {
+  const key = (document.getElementById('flp-key')?.value || '').trim();
+  const btn = document.getElementById('btn-activate');
+  // Activer si PIN 6 chiffres ET clé licence non vide
+  btn.disabled = !(pin.length === 6 && key.length > 0);
+}
+
+async function activate() {
+  const licenceKey = document.getElementById('flp-key').value.trim().toUpperCase();
+  if (!licenceKey || pin.length !== 6) return;
+
+  const btn = document.getElementById('btn-activate');
+  btn.disabled = true;
+  document.getElementById('btn-activate-txt').textContent = '⏳ Activation…';
+
+  try {
+    const r = await fetch(`${API}/formateur/activate-independant`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ licenceKey, pin }),
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      // Même stockage que le login normal
+      const fData = JSON.stringify({
+        formateurId: d.formateurId, nom: d.nom, prenom: d.prenom,
+        email: d.email || '', centerId: d.centerId, niveaux: d.niveaux || [],
+      });
+      const cData = JSON.stringify({ centerId: d.centerId, nom: d.centerNom || '', isIndep: true });
+      localStorage.setItem('ssiap_formateur_token',  d.token);
+      localStorage.setItem('ssiap_formateur',        fData);
+      localStorage.setItem('ssiap_formateur_center', cData);
+      sessionStorage.setItem('ssiap_formateur_token',  d.token);
+      sessionStorage.setItem('ssiap_formateur',        fData);
+      sessionStorage.setItem('ssiap_formateur_center', cData);
+
+      showAlert('success', `🎉 Bienvenue ${d.nom} ! Votre licence est activée.`);
+      document.getElementById('step3').className = 'step done';
+      setTimeout(() => window.location.href = 'formateur-dashboard.html', 900);
+    } else {
+      // Si déjà activé → suggérer login normal
+      if (d.alreadyActivated) {
+        showAlert('info', `ℹ️ Cette licence est déjà activée. Sélectionnez votre centre dans la liste et connectez-vous avec votre PIN.`);
+        document.getElementById('first-login-panel').classList.remove('show');
+        firstLoginOpen = false;
+        loadCentres(); // Recharger la liste
+      } else {
+        showAlert('error', '❌ ' + (d.error || 'Erreur d\'activation'));
+        doShake();
+      }
+    }
+  } catch {
+    showAlert('error', '⚠️ Serveur inaccessible — vérifiez votre connexion');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btn-activate-txt').textContent = '🚀 Activer et me connecter';
+    updateActivateBtn();
+  }
+}
+
+/* ═══ LOGIN NORMAL ═══ */
+async function login() {
+  if (!centreId || pin.length !== 6) return;
+  const btn = document.getElementById('btn-conn');
+  btn.disabled = true;
+  document.getElementById('btn-txt').textContent = '⏳ Vérification…';
+
+  try {
+    const r = await fetch(`${API}/formateur/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ centerId: centreId, pin }),
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      const fData = JSON.stringify({ formateurId:d.formateurId, nom:d.nom, prenom:d.prenom, email:d.email||'', centerId:d.centerId, niveaux:d.niveaux||[] });
+      const cData = JSON.stringify({ centerId:d.centerId, nom:d.centerNom||'', isIndep: centreIsIndep });
+      localStorage.setItem('ssiap_formateur_token', d.token);
+      localStorage.setItem('ssiap_formateur',       fData);
+      localStorage.setItem('ssiap_formateur_center',cData);
+      sessionStorage.setItem('ssiap_formateur_token', d.token);
+      sessionStorage.setItem('ssiap_formateur',       fData);
+      sessionStorage.setItem('ssiap_formateur_center',cData);
+      showAlert('success', `✅ Bienvenue ${d.prenom} ${d.nom}${d.centerNom ? ' — ' + d.centerNom : ''} !`);
+      document.getElementById('step3').className = 'step done';
+      setTimeout(() => window.location.href = 'formateur-dashboard.html', 750);
+    } else {
+      doShake();
+      showAlert('error', '❌ ' + (d.error || d.message || 'PIN incorrect pour ce centre'));
+    }
+  } catch {
+    doShake();
+    showAlert('error', '⚠️ Serveur inaccessible — vérifiez votre connexion');
+  } finally {
+    btn.disabled = false;
+    sync();
+  }
+}
+
+function showAlert(type, msg) {
+  const el = document.getElementById('alert');
+  el.innerHTML = msg;
+  el.className = `alert ${type} show`;
+}
+
+// Clavier physique
+document.addEventListener('keydown', e => {
+  // Ne pas intercepter si focus sur le champ clé de licence
+  if (e.target.id === 'flp-key') return;
+  if (e.target.tagName === 'SELECT') return;
+  if (e.key >= '0' && e.key <= '9') k(e.key);
+  else if (e.key === 'Backspace') sup();
+  else if (e.key === 'Escape') { raz(); if (firstLoginOpen) toggleFirstLogin(); }
+  else if (e.key === 'Enter' && pin.length===6 && centreId && !firstLoginOpen) login();
+});
+
+loadCentres();
+refresh();
+sync();
+</script>
+</body>
+</html>
