@@ -358,8 +358,16 @@ function fetchTO(url, ms) {
   ms = ms || 8000;
   var ctrl = new AbortController();
   var tid = setTimeout(function(){ ctrl.abort(); }, ms);
-  return fetch(url, {signal: ctrl.signal}).finally(function(){ clearTimeout(tid); });
+  var options = Object.assign({}, opts || {}, { signal: ctrl.signal });
+  return fetch(url, options).finally(function(){ clearTimeout(tid); });
 }
+Puis dans loadNiveau, les deux appels deviennent :
+js// Essai 1
+var r = await fetchTO(API+'/admin/questions/'+niveau, 8000, { headers: authHeaders() });
+
+// Essai 2  
+var r2 = await fetchTO(API+'/entrainement/questions/'+niveau, 8000, { headers: authHeaders() });
+Ces deux modifications dans GitHub suffisent — les questions se chargeront correctement.
 
 // Normalise une question quelle que soit sa structure Firebase
 function normalizeQ(id, d) {
@@ -387,7 +395,7 @@ async function loadNiveau(niveau) {
 
   // Essai 1 : endpoint admin dédié
   try {
-    var r = await fetchTO(API+'/admin/questions/'+niveau);
+    var r = await fetch(API+'/admin/questions/'+niveau, { headers: authHeaders() });
     if (r && r.ok) {
       var ct = r.headers.get('content-type')||'';
       if (ct.includes('json')) {
