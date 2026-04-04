@@ -1,386 +1,561 @@
-// stripe.routes.js — MIB PREVENTION / SSIAP Training
-
+// backend/routes/formateur.routes.js
 const express = require('express');
 const router  = express.Router();
-const Stripe  = require('stripe');
 const crypto  = require('crypto');
-const bcrypt  = require('bcrypt');      // ← natif v6 (pas bcryptjs)
+const bcrypt  = require('bcryptjs');  // pure JS — pas de compilation native requise
+const jwt     = require('jsonwebtoken');
 const admin   = require('firebase-admin');
+const db      = admin.database();
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+// ── Config Mailgun ──────────────────────────────────────────
+const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
+const MAILGUN_DOMAIN  = process.env.MAILGUN_DOMAIN;
+const MAILGUN_FROM    = process.env.MAILGUN_FROM || `SSIAP Training <noreply@${MAILGUN_DOMAIN}>`;
+const APP_URL         = process.env.APP_URL || 'https://ssiap-training-center.onrender.com';
 
-// ─── PLANS ─────────────────────────────────────────────────────────────────
-const PLANS = {
-  independant: {
-    priceId:       'price_1TB190GBD0GNj9cdfwvGx3vb',
-    label:         'INDÉPENDANT',
-    prix:          '99 €/mois',
-    maxCentres:    1,
-    maxFormateurs: 1,
-    maxStagiaires: 20,
-  },
-  starter: {
-    priceId:       'price_1TB16WGBD0GNj9cdCk1bfJ7N',
-    label:         'STARTER',
-    prix:          '199 €/mois',
-    maxCentres:    1,
-    maxFormateurs: 10,
-    maxStagiaires: 150,
-  },
-  pro: {
-    priceId:       'price_1TB17SGBD0GNj9cdlHWwsjrL',
-    label:         'PRO',
-    prix:          '299 €/mois',
-    maxCentres:    10,
-    maxFormateurs: 20,
-    maxStagiaires: 300,
-  },
-  entreprise: {
-    priceId:       'price_1TB18lGBD0GNj9cdDYmDGy8M',
-    label:         'ENTREPRISE',
-    prix:          '3 999 €/an',
-    maxCentres:    999,
-    maxFormateurs: 999,
-    maxStagiaires: 9999,
-  },
-};
-
-// ─── HELPERS ───────────────────────────────────────────────────────────────
-function generateLicenceKey(planKey) {
-  const prefix = planKey.substring(0, 3).toUpperCase();
-  const rand   = crypto.randomBytes(8).toString('hex').toUpperCase();
-  return `MIB-${prefix}-${rand}`;
-}
-
-function generatePin() {
-  // PIN 6 chiffres via 4 octets → mod 1 000 000 → padding zéros
-  const num = crypto.randomBytes(4).readUInt32BE(0) % 1000000;
-  return String(num).padStart(6, '0');
-}
-
-// ─── MAILER Mailgun EU ─────────────────────────────────────────────────────
-async function sendWelcomeEmail({ to, nomCentre, plan, licenceKey, pinFormateur, loginUrl }) {
-  const isIndep = !!pinFormateur;
-
-  console.log(`[sendWelcomeEmail] to=${to} | isIndep=${isIndep} | pin=${pinFormateur || 'N/A'} | url=${loginUrl}`);
-
-  // Bloc PIN violet — affiché SEULEMENT pour INDÉPENDANT
-  const pinBlock = isIndep ? `
-    <div style="background:#f3effe;border:2px solid #c8b4f0;border-radius:10px;
-                padding:20px;margin:20px 0;text-align:center">
-      <p style="margin:0 0 12px;font-size:14px;color:#1e1a17;font-weight:bold">
-        🔐 Votre code PIN formateur
-      </p>
-      <div style="background:#fff;border:1px solid #d8caf0;border-radius:8px;
-                  padding:14px;display:inline-block;min-width:200px">
-        <span style="font-family:'Courier New',monospace;font-size:38px;font-weight:900;
-                     color:#7b5ea7;letter-spacing:10px;display:block">${pinFormateur}</span>
-      </div>
-      <p style="font-size:12px;color:#8c8078;margin:12px 0 0;line-height:1.6">
-        ⚠️ Code <strong>confidentiel</strong> — utilisez-le à chaque connexion.<br>
-        Conservez-le : il ne vous sera communiqué qu'une seule fois.
-      </p>
-    </div>` : '';
-
-  const instructionsIndep = isIndep ? `
-    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;
-                padding:16px;margin:16px 0">
-      <p style="margin:0 0 8px;font-size:14px;color:#1e40af;font-weight:bold">
-        📋 Étapes pour activer votre compte :
-      </p>
-      <ol style="margin:0;padding-left:20px;font-size:13px;color:#374151;line-height:2.2">
-        <li>Cliquez sur <strong>"Accéder à mon espace formateur"</strong> ci-dessous</li>
-        <li>Saisissez votre <strong>code PIN à 6 chiffres</strong></li>
-        <li>Cliquez sur <em>"Première connexion ? Activez votre licence"</em></li>
-        <li>Entrez votre clé :
-          <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:11px">${licenceKey}</code>
-        </li>
-        <li>✅ Votre compte est activé !</li>
-      </ol>
-    </div>` : '';
-
-  const limitesPlan = !isIndep ? `
-    <p style="font-size:14px;color:#374151"><strong>Limites de votre plan :</strong></p>
-    <ul style="font-size:14px;color:#374151;line-height:2">
-      <li>Centres : <strong>${plan.maxCentres}</strong></li>
-      <li>Formateurs : <strong>${plan.maxFormateurs}</strong></li>
-      <li>Stagiaires actifs : <strong>${plan.maxStagiaires}</strong></li>
-    </ul>` : '';
-
-  const ctaLabel = isIndep ? 'Accéder à mon espace formateur →' : 'Accéder à ma plateforme →';
-
-  const html = `
-  <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto">
-    <div style="background:#1a3a5c;padding:24px;text-align:center;border-radius:10px 10px 0 0">
-      <h1 style="color:#fff;margin:0;font-size:22px">🔒 SSIAP Training</h1>
-      <p style="color:#90cdf4;margin:8px 0 0;font-size:13px">MIB PRÉVENTION</p>
-    </div>
-    <div style="padding:32px;background:#f8fafc;border:1px solid #e2e8f0;
-                border-top:none;border-radius:0 0 10px 10px">
-
-      <h2 style="color:#1a3a5c;margin-top:0">Bienvenue, ${nomCentre} !</h2>
-      <p style="color:#374151">
-        Votre abonnement <strong>${plan.label} — ${plan.prix}</strong> est actif.
-      </p>
-
-      <!-- Clé de licence -->
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:20px;margin:20px 0">
-        <p style="margin:0 0 10px;font-size:14px;color:#1e1a17">
-          <strong>🔑 Votre clé de licence :</strong>
-        </p>
-        <div style="background:#f1f5f9;padding:14px 18px;border-radius:6px;
-                    text-align:center;border:1px solid #cbd5e1">
-          <code style="font-family:'Courier New',monospace;font-size:18px;
-                       font-weight:700;color:#1a3a5c;letter-spacing:2px">${licenceKey}</code>
-        </div>
-        <p style="font-size:12px;color:#6b7280;margin:8px 0 0">
-          ${isIndep
-            ? 'Conservez cette clé — elle sera demandée lors de votre première connexion.'
-            : 'Utilisez cette clé lors de votre inscription sur la plateforme.'}
-        </p>
-      </div>
-
-      ${pinBlock}
-      ${instructionsIndep}
-      ${limitesPlan}
-
-      <a href="${loginUrl}"
-         style="display:inline-block;background:#1a3a5c;color:#fff;padding:14px 28px;
-                border-radius:8px;text-decoration:none;font-weight:bold;
-                margin-top:16px;font-size:15px">
-        ${ctaLabel}
-      </a>
-
-      <hr style="margin:32px 0;border:none;border-top:1px solid #e2e8f0">
-      <p style="color:#6b7280;font-size:13px">
-        Besoin d'aide ?
-        <a href="mailto:contact@mib-prevention.fr" style="color:#c25a3a">contact@mib-prevention.fr</a><br>
-        MIB PRÉVENTION — Plateforme SSIAP Training
-      </p>
-    </div>
-  </div>`;
-
-  const formData = new URLSearchParams();
-  formData.append('from',    'MIB PRÉVENTION <contact@mib-prevention.fr>');
-  formData.append('to',      to);
-  formData.append('subject', `✅ Votre licence SSIAP Training ${plan.label} est active`);
-  formData.append('html',    html);
-
-  const mgUrl = `https://api.eu.mailgun.net/v3/${process.env.MAILGUN_DOMAIN}/messages`;
-  const response = await fetch(mgUrl, {
-    method:  'POST',
-    headers: {
-      Authorization:  'Basic ' + Buffer.from(`api:${process.env.MAILGUN_API_KEY}`).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: formData.toString(),
-  });
-
-  if (!response.ok) {
-    const errTxt = await response.text();
-    throw new Error(`Mailgun EU error: ${errTxt}`);
+// ── Générer un PIN à 6 chiffres unique dans le centre ──
+async function generateUniquePin(centerId) {
+  let attempts = 0;
+  while (attempts < 20) {
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    const snap = await db.ref(`centers/${centerId}/formateurs`)
+      .orderByChild('pin').equalTo(pin).once('value');
+    if (!snap.exists()) return pin;
+    attempts++;
   }
-  console.log(`[sendWelcomeEmail] ✅ Envoyé à ${to} [PIN: ${pinFormateur ? 'OUI (' + pinFormateur + ')' : 'N/A'}]`);
+  throw new Error('Impossible de générer un PIN unique');
 }
 
-// ─── createLicenceInFirebase ────────────────────────────────────────────────
-async function createLicenceInFirebase({ planKey, nomCentre, email, plan, source = 'stripe' }) {
-  const db          = admin.database();
-  const planKeyNorm = (planKey || '').toLowerCase().trim();
+// ══════════════════════════════════════════════════════════════
+// POST /api/formateur/activate-independant
+// Première connexion d'un formateur indépendant.
+// Vérifie la clé de licence + PIN → crée le centre + formateur
+// → retourne un JWT prêt à l'emploi.
+// ⚠️  Doit rester AVANT tout middleware d'authentification.
+// ══════════════════════════════════════════════════════════════
+router.post('/activate-independant', async (req, res) => {
+  const { licenceKey, pin } = req.body;
 
-  console.log(`[createLicence] planKeyNorm="${planKeyNorm}" source=${source}`);
+  if (!licenceKey || !pin)
+    return res.status(400).json({ success: false, error: 'Clé de licence et PIN requis' });
+  if (!/^\d{6}$/.test(pin))
+    return res.status(400).json({ success: false, error: 'PIN invalide (6 chiffres requis)' });
 
-  const licenceKey = generateLicenceKey(planKeyNorm);
-  const now        = new Date().toISOString();
-
-  const licenceData = {
-    key:           licenceKey,
-    type:          plan.label,
-    plan:          planKeyNorm,
-    nomCentre,
-    email,
-    source,
-    actif:         true,
-    used:          false,
-    maxCentres:    plan.maxCentres,
-    maxFormateurs: plan.maxFormateurs,
-    maxStagiaires: plan.maxStagiaires,
-    createdAt:     now,
-    expiresAt:     planKeyNorm === 'entreprise'
-      ? new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString()
-      : null,
-  };
-
-  let pinClear = null;
-
-  if (planKeyNorm === 'independant') {
-    pinClear = generatePin();
-    console.log(`[createLicence] 🔐 PIN brut généré : ${pinClear}`);
-    licenceData.pinHash       = await bcrypt.hash(pinClear, 10);
-    licenceData.isIndependant = true;
-    licenceData.pinGenerated  = true;
-    console.log(`[createLicence] ✅ pinHash OK, longueur=${licenceData.pinHash.length}`);
-  } else {
-    console.log(`[createLicence] Plan "${planKeyNorm}" → pas de PIN`);
-  }
-
-  await db.ref(`licences/${licenceKey}`).set(licenceData);
-  console.log(`[createLicence] 💾 Firebase: licences/${licenceKey} écrit`);
-
-  return { licenceKey, pinClear };
-}
-
-// ─── ROUTE 1 : Checkout Stripe ─────────────────────────────────────────────
-router.post('/checkout', async (req, res) => {
   try {
-    const planKeyNorm = (req.body.planKey || '').toLowerCase().trim();
-    const { nomCentre, email } = req.body;
-    const plan = PLANS[planKeyNorm];
-    if (!plan) return res.status(400).json({ error: 'Plan inconnu' });
+    // ── 1. Lire la licence ──
+    const licSnap = await db.ref(`licences/${licenceKey.toUpperCase()}`).once('value');
+    if (!licSnap.exists())
+      return res.status(404).json({ success: false, error: 'Clé de licence invalide ou inexistante' });
 
-    const session = await stripe.checkout.sessions.create({
-      mode:                 'subscription',
-      payment_method_types: ['card'],
-      customer_email:       email,
-      line_items:           [{ price: plan.priceId, quantity: 1 }],
-      metadata:             { planKey: planKeyNorm, nomCentre, email },
-      success_url: `${process.env.APP_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${process.env.APP_URL || 'https://formation.mib-prevention.fr'}/#pricing`,
-      locale: 'fr',
+    const lic = licSnap.val();
+
+    if (!lic.isIndependant)
+      return res.status(400).json({ success: false, error: "Cette clé n'est pas une licence INDÉPENDANT" });
+
+    if (lic.used && lic.centerId)
+      return res.status(409).json({
+        success: false,
+        error: 'Cette licence est déjà activée. Connectez-vous avec votre PIN.',
+        alreadyActivated: true,
+        centerId: lic.centerId,
+      });
+
+    if (!lic.actif)
+      return res.status(403).json({ success: false, error: 'Licence désactivée. Contactez l\'administrateur.' });
+
+    if (lic.expiresAt && new Date(lic.expiresAt).getTime() < Date.now())
+      return res.status(403).json({ success: false, error: 'Licence expirée.' });
+
+    // ── 2. Vérifier le PIN ──
+    // stripe.routes.js stocke le PIN en clair dans lic.pinClear (no bcrypt côté Stripe)
+    // On compare directement, puis on le hashe ici avec bcryptjs pour le formateur.
+    if (!lic.pinClear)
+      return res.status(500).json({ success: false, error: 'Licence corrompue (PIN manquant) — contactez l\'administrateur' });
+
+    if (String(lic.pinClear) !== String(pin))
+      return res.status(401).json({ success: false, error: 'Code PIN incorrect pour cette clé de licence' });
+
+    // Hash bcryptjs (pure JS — pas de module natif)
+    const pinHash = await bcrypt.hash(pin, 10);
+    console.log(`[formateur] activate-independant: PIN OK, pinHash longueur=${pinHash.length}`);
+
+    // ── 3. Créer le centre INDÉPENDANT ──
+    const centerId    = `center_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    const formateurId = `fmt_indep_${centerId}`;
+    const now         = Date.now();
+
+    await db.ref(`centers/${centerId}`).set({
+      centerId,
+      info: {
+        nom:           lic.nomCentre,
+        email:         lic.email,
+        telephone:     '',
+        ville:         '',
+        createdAt:     now,
+        isIndependant: true,
+      },
+      license: {
+        key:           licenceKey.toUpperCase(),
+        type:          'INDEPENDANT',
+        expiresAt:     lic.expiresAt || null,
+        maxFormateurs: lic.maxFormateurs || 1,
+        maxStagiaires: lic.maxStagiaires || 20,
+        activatedAt:   now,
+      },
+      stats:  { formateurs: 1, stagiaires: 0, sessions: 0 },
+      status: 'active',
     });
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error('Stripe checkout error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
 
-// ─── ROUTE 2 : Webhook Stripe ──────────────────────────────────────────────
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-  if (event.type === 'checkout.session.completed')
-    await activateLicence(event.data.object);
-  if (event.type === 'customer.subscription.deleted')
-    await deactivateLicence(event.data.object.metadata?.licenceKey);
-  res.json({ received: true });
-});
-
-// ─── ROUTE 3 : Session Stripe ──────────────────────────────────────────────
-router.get('/session/:sessionId', async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
-    const planKeyNorm = (session.metadata?.planKey || '').toLowerCase();
-    res.json({
-      status: session.payment_status,
-      email:  session.customer_email,
-      plan:   PLANS[planKeyNorm]?.label,
+    // ── 4. Créer le formateur avec pinHash (bcryptjs) ──
+    await db.ref(`centers/${centerId}/formateurs/${formateurId}`).set({
+      formateurId,
+      centerId,
+      nom:           lic.nomCentre,
+      prenom:        'Formateur',
+      email:         lic.email,
+      pinHash,                        // hash bcryptjs créé à l'activation
+      niveaux:       [1, 2, 3],
+      isIndependant: true,
+      createdAt:     now,
+      lastLogin:     now,
+      status:        'actif',
+      stats:         { sessions: 0, stagiaires: 0 },
     });
+
+    // ── 5. Marquer la licence utilisée ──
+    await db.ref(`licences/${licenceKey.toUpperCase()}`).update({
+      used:        true,
+      centerId,
+      usedAt:      now,
+      centerNom:   lic.nomCentre,
+      centerEmail: lic.email,
+    });
+
+    console.log(`✅ Licence INDÉPENDANT activée : ${licenceKey} → ${centerId}`);
+
+    // ── 6. Générer JWT (même format que /login) ──
+    const token = jwt.sign(
+      { formateurId, centerId, role: 'formateur', isIndependant: true },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '8h' }
+    );
+
+    return res.json({
+      success:      true,
+      token,
+      formateurId,
+      centerId,
+      nom:          lic.nomCentre,
+      prenom:       'Formateur',
+      email:        lic.email,
+      centerNom:    lic.nomCentre,
+      niveaux:      [1, 2, 3],
+      isFirstLogin: true,
+      message:      '🎉 Licence activée ! Bienvenue sur SSIAP Training.',
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('activate-independant error:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });
 
-// ─── ROUTE 4 : Activation manuelle ────────────────────────────────────────
-// POST /api/stripe/activate-manual
-// Body : { planKey, nomCentre, email, adminKey }
-router.post('/activate-manual', async (req, res) => {
+// ══════════════════════════════════════════════════════════════
+// POST /api/formateur/create
+// ══════════════════════════════════════════════════════════════
+router.post('/create', async (req, res) => {
+  const { centerId, nom, prenom, email, telephone, niveaux } = req.body;
+
+  if (!centerId || !nom || !prenom)
+    return res.status(400).json({ success: false, error: 'centerId, nom et prenom requis' });
+
   try {
-    const { nomCentre, email, adminKey } = req.body;
-    const planKeyNorm = (req.body.planKey || '').toLowerCase().trim();
+    const centerSnap = await db.ref(`centers/${centerId}`).once('value');
+    if (!centerSnap.exists())
+      return res.status(404).json({ success: false, error: 'Centre non trouvé' });
 
-    console.log(`\n[activate-manual] planKey="${req.body.planKey}" → norm="${planKeyNorm}" | email=${email}`);
+    const center = centerSnap.val();
+    const maxF   = center.license?.maxFormateurs || 1;
 
-    if (adminKey !== process.env.ADMIN_SECRET_KEY) {
-      console.warn('[activate-manual] ⛔ Clé admin incorrecte');
-      return res.status(403).json({ error: 'Non autorisé' });
+    const listSnap = await db.ref(`centers/${centerId}/formateurs`).once('value');
+    const count    = listSnap.exists() ? Object.keys(listSnap.val()).length : 0;
+
+    if (count >= maxF && maxF !== 9999)
+      return res.status(403).json({
+        success: false,
+        error: `Limite atteinte : ${maxF} formateur(s) maximum avec votre licence`,
+      });
+
+    if (email) {
+      const emailCheck = await db.ref(`centers/${centerId}/formateurs`)
+        .orderByChild('email').equalTo(email).once('value');
+      if (emailCheck.exists())
+        return res.status(400).json({ success: false, error: 'Email déjà utilisé dans ce centre' });
     }
 
-    const plan = PLANS[planKeyNorm];
-    if (!plan) {
-      console.error(`[activate-manual] ❌ Plan inconnu "${planKeyNorm}". Disponibles: ${Object.keys(PLANS).join(', ')}`);
-      return res.status(400).json({ error: `Plan inconnu : ${planKeyNorm}` });
-    }
-    console.log(`[activate-manual] ✅ Plan=${plan.label}`);
+    const pin         = await generateUniquePin(centerId);
+    const formateurId = `form_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 
-    const { licenceKey, pinClear } = await createLicenceInFirebase({
-      planKey: planKeyNorm, nomCentre, email, plan, source: 'virement',
-    });
+    const formateurData = {
+      formateurId,
+      centerId,
+      nom,
+      prenom,
+      email:     email     || '',
+      telephone: telephone || '',
+      niveaux:   niveaux   || ['SSIAP1', 'SSIAP2', 'SSIAP3'],
+      pin,                          // PIN en clair pour les formateurs non-indépendants
+      createdAt: Date.now(),
+      lastLogin: null,
+      status:    'actif',
+      stats:     { sessions: 0, stagiaires: 0 },
+    };
 
-    const baseUrl  = process.env.APP_URL || 'https://ssiap-training-center.onrender.com';
-    const loginUrl = planKeyNorm === 'independant'
-      ? `${baseUrl}/center/formateur-login.html`
-      : `${baseUrl}/center/center-login.html`;
+    await db.ref(`centers/${centerId}/formateurs/${formateurId}`).set(formateurData);
+    await db.ref(`centers/${centerId}/stats/formateurs`).set(count + 1);
 
-    console.log(`[activate-manual] loginUrl=${loginUrl} | pinClear=${pinClear || 'null'}`);
-
-    await sendWelcomeEmail({ to: email, nomCentre, plan, licenceKey, pinFormateur: pinClear, loginUrl });
-
-    const resp = { success: true, licenceKey };
-    if (pinClear) resp.pinFormateur = pinClear;
-
-    console.log(`[activate-manual] ✅ Terminé → ${licenceKey} | PIN=${pinClear ? 'OUI' : 'NON'}\n`);
-    res.json(resp);
+    res.json({ success: true, formateurId, nom, prenom, pin, message: `Formateur créé — PIN : ${pin}` });
 
   } catch (err) {
-    console.error('[activate-manual] ❌ ERREUR:', err.message, err.stack);
-    res.status(500).json({ error: err.message });
+    console.error('Erreur création formateur:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });
 
-// ─── ROUTE 5 : Vérifier une licence ────────────────────────────────────────
-router.get('/licence/:key', async (req, res) => {
+// ══════════════════════════════════════════════════════════════
+// POST /api/formateur/login
+// Supporte deux modes :
+//   • formateurs classiques  : champ `pin` (clair) stocké en Firebase
+//   • formateurs INDÉPENDANT : champ `pinHash` (bcrypt)
+// ══════════════════════════════════════════════════════════════
+router.post('/login', async (req, res) => {
+  const { centerId, email, pin } = req.body;
+
+  if (!pin || pin.length !== 6)
+    return res.status(400).json({ success: false, error: 'Code PIN à 6 chiffres requis' });
+  if (!centerId && !email)
+    return res.status(400).json({ success: false, error: 'Fournir centerId OU email' });
+
   try {
-    const snap = await admin.database().ref(`licences/${req.params.key}`).once('value');
-    if (!snap.exists()) return res.status(404).json({ error: 'Licence non trouvée' });
-    const { pinHash: _, ...safe } = snap.val();
-    res.json(safe);
+    let formateurData = null;
+    let formCenterId  = centerId;
+
+    if (centerId) {
+      const formateursSnap = await db.ref(`centers/${centerId}/formateurs`).once('value');
+
+      if (!formateursSnap.exists())
+        return res.status(401).json({ success: false, error: 'PIN incorrect pour ce centre' });
+
+      // Chercher parmi tous les formateurs du centre
+      const checks = [];
+      formateursSnap.forEach(child => {
+        const f = child.val();
+        checks.push({ key: child.key, data: f });
+      });
+
+      for (const { key, data: f } of checks) {
+        let match = false;
+        if (f.pinHash) {
+          // Formateur INDÉPENDANT → comparaison bcrypt
+          match = await bcrypt.compare(pin, f.pinHash);
+        } else if (f.pin) {
+          // Formateur classique → comparaison directe
+          match = (f.pin === pin);
+        }
+        if (match) {
+          formateurData = { id: key, ...f };
+          break;
+        }
+      }
+
+      if (!formateurData)
+        return res.status(401).json({ success: false, error: 'PIN incorrect pour ce centre' });
+
+    } else {
+      // Recherche par email sur tous les centres
+      const centersSnap = await db.ref('centers').once('value');
+      if (!centersSnap.exists())
+        return res.status(401).json({ success: false, error: 'Email ou PIN incorrect' });
+
+      const centreList = [];
+      centersSnap.forEach(c => centreList.push({ key: c.key, val: c.val() }));
+
+      for (const { key: ckey, val: cval } of centreList) {
+        if (formateurData) break;
+        const formateurs = cval?.formateurs || {};
+        for (const [fid, f] of Object.entries(formateurs)) {
+          if (f.email !== email) continue;
+          let match = false;
+          if (f.pinHash) match = await bcrypt.compare(pin, f.pinHash);
+          else if (f.pin) match = (f.pin === pin);
+          if (match) { formateurData = { id: fid, ...f }; formCenterId = ckey; break; }
+        }
+      }
+
+      if (!formateurData)
+        return res.status(401).json({ success: false, error: 'Email ou PIN incorrect' });
+    }
+
+    if (formateurData.status === 'inactif' || formateurData.status === 'suspendu')
+      return res.status(403).json({ success: false, error: 'Compte formateur désactivé, contactez votre centre' });
+
+    const centerSnap = await db.ref(`centers/${formCenterId}`).once('value');
+    const centerInfo = centerSnap.val()?.info || {};
+
+    await db.ref(`centers/${formCenterId}/formateurs/${formateurData.id}/lastLogin`).set(Date.now());
+
+    // JWT signé (remplace l'ancien token aléatoire non vérifiable)
+    const token = jwt.sign(
+      { formateurId: formateurData.id, centerId: formCenterId, role: 'formateur' },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '8h' }
+    );
+
+    return res.json({
+      success:     true,
+      token,
+      formateurId: formateurData.id,
+      nom:         formateurData.nom,
+      prenom:      formateurData.prenom,
+      email:       formateurData.email || '',
+      centerId:    formCenterId,
+      centerNom:   centerInfo.nom || '—',
+      niveaux:     formateurData.niveaux || [],
+      stats:       formateurData.stats   || {},
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Erreur login formateur:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });
 
-// ─── HELPERS WEBHOOK ───────────────────────────────────────────────────────
-async function activateLicence(session) {
+// ══════════════════════════════════════════════════════════════
+// GET /api/formateur/list/:centerId
+// ══════════════════════════════════════════════════════════════
+router.get('/list/:centerId', async (req, res) => {
+  const { centerId } = req.params;
   try {
-    const planKeyNorm = (session.metadata?.planKey || '').toLowerCase().trim();
-    const nomCentre   = session.metadata?.nomCentre || 'Votre centre';
-    const email       = session.metadata?.email || session.customer_email;
-    const plan        = PLANS[planKeyNorm];
+    const snap = await db.ref(`centers/${centerId}/formateurs`).once('value');
+    if (!snap.exists()) return res.json({ success: true, formateurs: [] });
 
-    if (!plan) {
-      console.error(`[webhook] Plan inconnu "${planKeyNorm}"`);
-      return;
-    }
-
-    const { licenceKey, pinClear } = await createLicenceInFirebase({
-      planKey: planKeyNorm, nomCentre, email, plan, source: 'stripe',
+    const formateurs = [];
+    snap.forEach(child => {
+      const f = child.val();
+      formateurs.push({
+        formateurId:   child.key,
+        nom:           f.nom,
+        prenom:        f.prenom,
+        email:         f.email      || '',
+        telephone:     f.telephone  || '',
+        // Ne jamais exposer pinHash ; pour les indépendants, pin est masqué
+        pin:           f.pinHash ? '••••••' : (f.pin || ''),
+        isIndependant: f.isIndependant || false,
+        niveaux:       f.niveaux    || [],
+        status:        f.status     || 'actif',
+        actif:         f.status !== 'inactif',
+        createdAt:     f.createdAt  || null,
+        lastLogin:     f.lastLogin  || null,
+        stats:         f.stats      || {},
+      });
     });
 
-    const baseUrl  = process.env.APP_URL || 'https://ssiap-training-center.onrender.com';
-    const loginUrl = planKeyNorm === 'independant'
-      ? `${baseUrl}/center/formateur-login.html`
-      : `${baseUrl}/center/center-login.html`;
+    res.json({ success: true, formateurs, total: formateurs.length });
 
-    await sendWelcomeEmail({ to: email, nomCentre, plan, licenceKey, pinFormateur: pinClear, loginUrl });
-    console.log(`[webhook] ✅ Licence ${licenceKey} activée (${plan.label})`);
   } catch (err) {
-    console.error('[webhook] Erreur activateLicence:', err.message);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
-}
+});
 
-async function deactivateLicence(licenceKey) {
-  if (!licenceKey) return;
+// ══════════════════════════════════════════════════════════════
+// GET /api/formateur/:formateurId
+// ══════════════════════════════════════════════════════════════
+router.get('/:formateurId', async (req, res) => {
+  const { formateurId } = req.params;
+  const { centerId } = req.query;
+  if (!centerId) return res.status(400).json({ error: 'centerId requis en query' });
   try {
-    await admin.database().ref(`licences/${licenceKey}/actif`).set(false);
+    const snap = await db.ref(`centers/${centerId}/formateurs/${formateurId}`).once('value');
+    if (!snap.exists()) return res.status(404).json({ error: 'Formateur non trouvé' });
+    const f = snap.val();
+    // Masquer pinHash
+    const { pinHash: _, ...safe } = f;
+    res.json({ success: true, formateur: { formateurId, ...safe } });
   } catch (err) {
-    console.error('[webhook] Erreur deactivateLicence:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-}
+});
+
+// ══════════════════════════════════════════════════════════════
+// PUT /api/formateur/update/:formateurId
+// ══════════════════════════════════════════════════════════════
+router.put('/update/:formateurId', async (req, res) => {
+  const { formateurId } = req.params;
+  const { centerId, nom, prenom, email, telephone, niveaux, status, actif } = req.body;
+  if (!centerId) return res.status(400).json({ error: 'centerId requis' });
+  try {
+    const updates = {};
+    if (nom       !== undefined) updates.nom       = nom;
+    if (prenom    !== undefined) updates.prenom    = prenom;
+    if (email     !== undefined) updates.email     = email;
+    if (telephone !== undefined) updates.telephone = telephone;
+    if (niveaux   !== undefined) updates.niveaux   = niveaux;
+    if (status    !== undefined) updates.status    = status;
+    if (actif     !== undefined) updates.status    = actif ? 'actif' : 'inactif';
+    await db.ref(`centers/${centerId}/formateurs/${formateurId}`).update(updates);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// POST /api/formateur/regenerate-pin/:formateurId
+// ══════════════════════════════════════════════════════════════
+router.post('/regenerate-pin/:formateurId', async (req, res) => {
+  const { formateurId } = req.params;
+  const { centerId } = req.body;
+  if (!centerId) return res.status(400).json({ error: 'centerId requis' });
+  try {
+    const snap = await db.ref(`centers/${centerId}/formateurs/${formateurId}`).once('value');
+    if (!snap.exists()) return res.status(404).json({ error: 'Formateur non trouvé' });
+    const f = snap.val();
+
+    if (f.isIndependant)
+      return res.status(403).json({ error: 'Le PIN d\'un formateur indépendant ne peut pas être régénéré depuis ici.' });
+
+    const newPin = await generateUniquePin(centerId);
+    await db.ref(`centers/${centerId}/formateurs/${formateurId}`).update({ pin: newPin });
+    res.json({ success: true, pin: newPin, message: `Nouveau PIN : ${newPin}` });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// DELETE /api/formateur/delete/:formateurId
+// ══════════════════════════════════════════════════════════════
+router.delete('/delete/:formateurId', async (req, res) => {
+  const { formateurId } = req.params;
+  const { centerId }    = req.query;
+  if (!centerId) return res.status(400).json({ error: 'centerId requis' });
+  try {
+    await db.ref(`centers/${centerId}/formateurs/${formateurId}`).remove();
+    const listSnap = await db.ref(`centers/${centerId}/formateurs`).once('value');
+    const count    = listSnap.exists() ? Object.keys(listSnap.val()).length : 0;
+    await db.ref(`centers/${centerId}/stats/formateurs`).set(count);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// POST /api/formateur/send-access
+// ══════════════════════════════════════════════════════════════
+router.post('/send-access', async (req, res) => {
+  try {
+    const { centerId, formateurId } = req.body;
+    if (!centerId || !formateurId)
+      return res.status(400).json({ error: 'centerId et formateurId requis' });
+
+    const fSnap = await db.ref(`centers/${centerId}/formateurs/${formateurId}`).once('value');
+    if (!fSnap.exists()) return res.status(404).json({ error: 'Formateur introuvable' });
+    const f = fSnap.val();
+
+    if (!f.email) return res.status(400).json({ error: "Ce formateur n'a pas d'adresse email" });
+    if (f.isIndependant)
+      return res.status(400).json({ error: "Le PIN d'un formateur indépendant ne peut pas être envoyé par email (déjà reçu lors de l'activation de la licence)." });
+
+    const cSnap     = await db.ref(`centers/${centerId}`).once('value');
+    const centre    = cSnap.val() || {};
+    const centreNom = centre.nom || centre.info?.nom || centerId;
+    const nom       = [f.prenom, f.nom].filter(Boolean).join(' ') || 'Formateur';
+    const pin       = f.pin || '——';
+    const loginUrl  = `${APP_URL}/center/formateur-login.html`;
+    const qrUrl     = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(loginUrl)}&bgcolor=ffffff&color=1e1a17&margin=10`;
+
+    const html = `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>Accès SSIAP Training</title></head>
+<body style="margin:0;padding:0;background:#f7f4f0;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 0;background:#f7f4f0">
+<tr><td align="center">
+<table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)">
+  <tr><td style="background:linear-gradient(135deg,#c25a3a,#aa4a2c);padding:28px 32px;text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">🔥</div>
+    <h1 style="color:#fff;font-size:22px;margin:0;font-weight:700">SSIAP Training</h1>
+    <p style="color:rgba(255,255,255,.8);font-size:13px;margin:4px 0 0">${centreNom}</p>
+  </td></tr>
+  <tr><td style="padding:28px 32px 0">
+    <p style="font-size:16px;color:#1e1a17;margin:0 0 8px">Bonjour <strong>${nom}</strong>,</p>
+    <p style="font-size:14px;color:#4a4340;margin:0;line-height:1.6">Voici vos informations de connexion au tableau de bord formateur.</p>
+  </td></tr>
+  <tr><td style="padding:20px 32px">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fdf2ee;border:2px solid #c25a3a;border-radius:12px">
+      <tr><td style="padding:18px;text-align:center">
+        <p style="font-size:11px;color:#8c8078;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px">Code PIN de connexion</p>
+        <p style="font-family:'Courier New',monospace;font-size:40px;font-weight:700;color:#c25a3a;letter-spacing:12px;margin:0">${pin}</p>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="padding:0 32px;text-align:center">
+    <p style="font-size:13px;color:#8c8078;margin:0 0 12px">Scannez le QR code pour accéder au dashboard</p>
+    <img src="${qrUrl}" width="160" height="160" alt="QR Code" style="border-radius:10px;border:1px solid #e8e2db">
+  </td></tr>
+  <tr><td style="padding:20px 32px;text-align:center">
+    <a href="${loginUrl}" style="display:inline-block;background:#c25a3a;color:#fff;font-size:15px;font-weight:700;padding:14px 32px;border-radius:9px;text-decoration:none">
+      🚀 Accéder au dashboard formateur
+    </a>
+  </td></tr>
+  <tr><td style="padding:0 32px 24px">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4f0;border-radius:10px">
+      <tr><td style="padding:16px">
+        <p style="font-size:11px;color:#8c8078;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px">Instructions</p>
+        <ol style="margin:0;padding-left:18px;font-size:13px;color:#4a4340;line-height:1.8">
+          <li>Cliquez sur le bouton ci-dessus ou scannez le QR code</li>
+          <li>Sélectionnez le centre : <strong>${centreNom}</strong></li>
+          <li>Entrez votre PIN : <strong style="color:#c25a3a;font-size:15px">${pin}</strong></li>
+        </ol>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="background:#f0ece7;padding:16px 32px;text-align:center;border-top:1px solid #e8e2db">
+    <p style="font-size:11px;color:#8c8078;margin:0">Email envoyé par <strong>${centreNom}</strong> via SSIAP Training</p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+
+    const formData = new URLSearchParams();
+    formData.append('from',    MAILGUN_FROM);
+    formData.append('to',      f.email);
+    formData.append('subject', `Accès SSIAP Training — ${centreNom}`);
+    formData.append('html',    html);
+    formData.append('text',    `Bonjour ${nom},\n\nCentre : ${centreNom}\nCode PIN : ${pin}\nLien : ${loginUrl}\n\nCordialement,\n${centreNom}`);
+
+    const mgRes = await fetch(`https://api.eu.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`, {
+      method:  'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64'),
+        'Content-Type':  'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    });
+
+    if (!mgRes.ok) {
+      const err = await mgRes.text();
+      console.error('[send-access] Mailgun error:', err);
+      return res.status(500).json({ error: 'Erreur Mailgun : ' + err });
+    }
+
+    console.log(`[send-access] Email envoyé à ${f.email}`);
+    res.json({ success: true, message: `Email envoyé à ${f.email}` });
+
+  } catch (error) {
+    console.error('[send-access] Erreur:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
