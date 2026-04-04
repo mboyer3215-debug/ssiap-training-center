@@ -173,7 +173,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   </div>
 
   <div id="page-sessions" class="page">
-    <h2 class="page-title">Mes sessions</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h2 class="page-title" style="margin-bottom:0">Mes sessions</h2>
+      <button class="btn btn-primary" onclick="openCreateSession()">➕ Nouvelle session</button>
+    </div>
     <div id="sessions-accordeon"></div>
   </div>
 
@@ -248,6 +251,52 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
   </div>
 </div>
 
+<!-- MODAL CRÉER SESSION -->
+<div class="modal-overlay" id="modal-create-session">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">
+      <h3>📅 Nouvelle session</h3>
+      <button class="modal-close" onclick="closeCreateSession()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="create-session-alert" style="background:#fdf2ee;border:1.5px solid var(--rouge);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--rouge);margin-bottom:12px;display:none"></div>
+ 
+      <div class="modal-form-group">
+        <label class="modal-label">Titre de la session *</label>
+        <input type="text" id="cs-titre" class="modal-input" placeholder="Ex: Formation SSIAP 1 — Juin 2026">
+      </div>
+ 
+      <div class="modal-form-group">
+        <label class="modal-label">Niveau SSIAP *</label>
+        <select id="cs-niveau" class="modal-input">
+          <option value="">— Choisir —</option>
+          <option value="SSIAP1">SSIAP 1 — Agent de sécurité</option>
+          <option value="SSIAP2">SSIAP 2 — Chef d'équipe</option>
+          <option value="SSIAP3">SSIAP 3 — Chef de service</option>
+          <option value="RECYCLAGE">Recyclage</option>
+          <option value="MAC">MAC</option>
+        </select>
+      </div>
+ 
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="modal-form-group">
+          <label class="modal-label">Date de début *</label>
+          <input type="date" id="cs-debut" class="modal-input">
+        </div>
+        <div class="modal-form-group">
+          <label class="modal-label">Date de fin *</label>
+          <input type="date" id="cs-fin" class="modal-input">
+        </div>
+      </div>
+ 
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="closeCreateSession()">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="btn-create-session" onclick="creerSession()">📅 Créer la session</button>
+      </div>
+    </div>
+  </div>
+</div>
+  
 <div id="print-area"></div>
 <div id="loader" class="loader"><div class="spinner"></div><p style="font-size:13px;color:var(--muted)">Chargement…</p></div>
 
@@ -915,7 +964,81 @@ document.getElementById('modal-fiche').addEventListener('click',function(e){if(e
 document.getElementById('modal-qr').addEventListener('click',function(e){if(e.target===this)closeQR();});
 document.getElementById('modal-echecs-form').addEventListener('click',function(e){if(e.target===this)closeEchecsForm();});
 document.getElementById('modal-edit-stag').addEventListener('click',function(e){if(e.target===this)closeEditStag();});
-
+document.getElementById('modal-create-session').addEventListener('click',function(e){if(e.target===this)closeCreateSession();});
+  
+// ══════════════════════════════════════
+//  CRÉER SESSION
+// ══════════════════════════════════════
+function openCreateSession() {
+  var today      = new Date().toISOString().slice(0, 10);
+  var endDefault = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  document.getElementById('cs-titre').value  = '';
+  document.getElementById('cs-niveau').value = '';
+  document.getElementById('cs-debut').value  = today;
+  document.getElementById('cs-fin').value    = endDefault;
+  document.getElementById('create-session-alert').style.display = 'none';
+  document.getElementById('modal-create-session').classList.add('open');
+  setTimeout(function() { document.getElementById('cs-titre').focus(); }, 100);
+}
+ 
+function closeCreateSession() {
+  document.getElementById('modal-create-session').classList.remove('open');
+}
+ 
+async function creerSession() {
+  var titre  = (document.getElementById('cs-titre').value  || '').trim();
+  var niveau = (document.getElementById('cs-niveau').value || '').trim();
+  var debut  = (document.getElementById('cs-debut').value  || '').trim();
+  var fin    = (document.getElementById('cs-fin').value    || '').trim();
+  var alertEl = document.getElementById('create-session-alert');
+  alertEl.style.display = 'none';
+ 
+  if (!titre || !niveau || !debut || !fin) {
+    alertEl.textContent = '⚠️ Veuillez remplir tous les champs obligatoires.';
+    alertEl.style.display = 'block'; return;
+  }
+  if (debut > fin) {
+    alertEl.textContent = '⚠️ La date de fin doit être après la date de début.';
+    alertEl.style.display = 'block'; return;
+  }
+ 
+  var btn = document.getElementById('btn-create-session');
+  btn.disabled = true; btn.textContent = '⏳ Création…';
+ 
+  try {
+    var r = await fetch(API + '/session/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        centerId:    formateurData.centerId,
+        formateurId: formateurData.formateurId || formateurData.id,
+        titre:       titre,
+        niveau:      niveau,
+        dateDebut:   new Date(debut).getTime(),
+        dateFin:     new Date(fin).getTime(),
+        status:      'à venir',
+      })
+    });
+    var d = await r.json();
+    if (d.success || d.sessionId) {
+      closeCreateSession();
+      allSessions = [];
+      showLoader();
+      await fetchAllData();
+      hideLoader();
+      renderSessions();
+    } else {
+      alertEl.textContent = '❌ ' + (d.error || 'Erreur lors de la création');
+      alertEl.style.display = 'block';
+    }
+  } catch(e) {
+    alertEl.textContent = '⚠️ Serveur inaccessible';
+    alertEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '📅 Créer la session';
+  }
+}
+  
 loadOverview();
 </script>
 </body>
