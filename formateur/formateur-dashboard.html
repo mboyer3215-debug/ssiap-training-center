@@ -967,14 +967,79 @@ function toggleQDetail(i) {
   if(chev) chev.style.transform=open?'':'rotate(180deg)';
 }
 
+// ══════════════════════════════════════════════════════════════
+// PATCH formateur-dashboard.html
+// Remplacer la fonction loadFormateurProfile() existante.
+// Correction : affichage PIN adapté pour les formateurs indépendants.
+// ══════════════════════════════════════════════════════════════
+
 function loadFormateurProfile() {
-  var el=document.getElementById('formateur-info'); if(!formateurData) return;
-  el.innerHTML='<div style="display:grid;gap:10px">' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>Nom :</strong> '+(formateurData.prenom||'')+' '+(formateurData.nom||'')+'</div>' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>Email :</strong> '+(formateurData.email||'—')+'</div>' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>PIN :</strong> <span style="font-family:monospace;background:var(--blue-light);padding:3px 8px;border-radius:5px;color:var(--blue);font-weight:700">'+(formateurData.pin||'—')+'</span></div>' +
-    '<div style="background:var(--subtle);padding:12px 16px;border-radius:8px;border:1px solid var(--border)"><strong>Centre :</strong> <code>'+(formateurData.centerId||'—')+'</code></div>' +
-  '</div>';
+  var el = document.getElementById('formateur-info');
+  if (!formateurData) return;
+
+  // Récupérer les données stockées au login / activation
+  var centerData = null;
+  try {
+    var cs = sessionStorage.getItem('ssiap_formateur_center') || localStorage.getItem('ssiap_formateur_center');
+    if (cs) centerData = JSON.parse(cs);
+  } catch(e) {}
+
+  var isIndep  = !!(centerData && centerData.isIndep) || !!(formateurData.isIndependant);
+  var centerNom = (centerData && centerData.nom) ? centerData.nom : (formateurData.centerId || '—');
+
+  // Bloc PIN selon le type de formateur
+  var pinBloc;
+  if (isIndep) {
+    pinBloc = '<span style="font-family:monospace;background:var(--indep-bg,#f3effe);color:#7b5ea7;padding:3px 8px;border-radius:5px;font-weight:700">🔐 Code PIN sécurisé</span>' +
+              '<span style="font-size:11px;color:var(--muted);margin-left:8px">Le PIN n\'est pas affiché pour des raisons de sécurité</span>';
+  } else if (formateurData.pin) {
+    pinBloc = '<span style="font-family:monospace;background:var(--blue-light);color:var(--blue);padding:3px 8px;border-radius:5px;font-weight:700">' + formateurData.pin + '</span>';
+  } else {
+    pinBloc = '<span style="color:var(--muted)">Non disponible</span>';
+  }
+
+  var niveaux = (formateurData.niveaux || []).map(function(n) {
+    var labels = { '1': 'SSIAP 1', '2': 'SSIAP 2', '3': 'SSIAP 3', 1: 'SSIAP 1', 2: 'SSIAP 2', 3: 'SSIAP 3' };
+    return '<span style="background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-right:4px">' +
+      (labels[n] || 'SSIAP ' + n) + '</span>';
+  }).join('') || '<span style="color:var(--muted)">—</span>';
+
+  el.innerHTML =
+    '<div style="display:grid;gap:10px">' +
+
+      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:18px">👤</span>' +
+        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Nom</div>' +
+        '<div style="font-size:14px;font-weight:600">' + (formateurData.prenom || '') + ' ' + (formateurData.nom || '') + '</div></div>' +
+      '</div>' +
+
+      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:18px">✉️</span>' +
+        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Email</div>' +
+        '<div style="font-size:14px">' + (formateurData.email || '—') + '</div></div>' +
+      '</div>' +
+
+      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:18px">🔑</span>' +
+        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Code PIN</div>' +
+        '<div>' + pinBloc + '</div></div>' +
+      '</div>' +
+
+      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:18px">🏢</span>' +
+        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Centre</div>' +
+        '<div style="font-size:14px;font-weight:600">' + centerNom + '</div>' +
+        (isIndep ? '<div style="font-size:11px;color:#7b5ea7;margin-top:3px;font-weight:600">👤 Formateur Indépendant</div>' : '') +
+        '</div>' +
+      '</div>' +
+
+      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:18px">📚</span>' +
+        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Niveaux habilités</div>' +
+        '<div>' + niveaux + '</div></div>' +
+      '</div>' +
+
+    '</div>';
 }
 
 function exportCSV() {
