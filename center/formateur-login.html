@@ -333,6 +333,12 @@ function onCentreChange() {
     document.getElementById('centre-confirm-icon').textContent = centreIsIndep ? '👤' : '🏢';
     conf.className = 'centre-confirm show ' + (centreIsIndep ? 'indep' : 'normal');
     if (pin.length < 6) pinHint.classList.add('show');
+    // Si centre indépendant sélectionné → masquer le panel "Première connexion"
+    if (centreIsIndep) {
+      document.getElementById('first-login-panel').classList.remove('show');
+      document.getElementById('first-login-trigger').classList.remove('show');
+      firstLoginOpen = false;
+    }
   } else {
     conf.classList.remove('show');
   }
@@ -373,10 +379,12 @@ function refresh() {
   else if (complete)         { s1.className='step done'; s2.className='step active'; s3.className='step'; }
   else                       { s1.className='step active'; s2.className='step'; s3.className='step'; }
 
-  // Afficher le bouton "Première connexion" dès que PIN complet
+  // Afficher le bouton "Première connexion" seulement si :
+  // PIN complet ET aucun centre indépendant déjà sélectionné
+  // (si un centre indép est dans la liste, la licence est déjà activée)
   const trigger = document.getElementById('first-login-trigger');
-  if (complete) trigger.classList.add('show');
-  else          trigger.classList.remove('show');
+  if (complete && !centreIsIndep) trigger.classList.add('show');
+  else                            trigger.classList.remove('show');
 
   // Mettre à jour le bouton d'activation
   updateActivateBtn();
