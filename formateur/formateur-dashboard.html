@@ -901,30 +901,64 @@ async function loadQuestionStats(niveau) {
   renderQuestions(list);
 }
 
+// ══════════════════════════════════════════════════════════════
+// PATCH formateur-dashboard.html
+// Remplacer la fonction renderQuestions() existante par celle-ci.
+// Correction : les questions sont TOUJOURS cliquables,
+// même sans correctAnswerLabels ni explanation.
+// ══════════════════════════════════════════════════════════════
+
 function renderQuestions(list) {
   var c = document.getElementById('questions-list');
   if (!list.length) {
-    c.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted)"><div style="font-size:36px;margin-bottom:10px">📊</div><p style="font-size:13px;font-weight:600">Aucune donnée disponible.</p><p style="font-size:12px;margin-top:6px">Les erreurs des stagiaires apparaîtront ici.</p></div>'; return;
+    c.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--muted)">' +
+      '<div style="font-size:36px;margin-bottom:10px">📊</div>' +
+      '<p style="font-size:13px;font-weight:600">Aucune donnée disponible.</p>' +
+      '<p style="font-size:12px;margin-top:6px">Les erreurs des stagiaires apparaîtront ici.</p>' +
+    '</div>';
+    return;
   }
+
   c.innerHTML = list.map(function(q, i) {
     var col = q.nbEchecs >= 5 ? 'var(--rouge)' : q.nbEchecs >= 2 ? 'var(--gold)' : 'var(--muted)';
     var hasCorrect = q.correctAnswerLabels && q.correctAnswerLabels.length > 0;
-    var hasExpl = !!q.explanation;
-    var hasDetail = hasCorrect || hasExpl;
+    var hasExpl    = !!q.explanation;
+
+    // Contenu du panneau dépliable
+    var detailContent = '';
+    if (hasCorrect) {
+      detailContent += '<div style="background:#edf7f2;border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #2e7d52">' +
+        '<div style="font-size:10px;font-weight:700;color:#2e7d52;text-transform:uppercase;margin-bottom:5px">✅ Bonne réponse</div>' +
+        '<div style="font-size:13px;color:#1e4a30;font-weight:600;line-height:1.45">' + q.correctAnswerLabels.join(' · ') + '</div>' +
+      '</div>';
+    }
+    if (hasExpl) {
+      detailContent += '<div style="background:#fef7e0;border-radius:8px;padding:10px 14px;border-left:3px solid #d4960a">' +
+        '<div style="font-size:10px;font-weight:700;color:#d4960a;text-transform:uppercase;margin-bottom:5px">💡 Explication</div>' +
+        '<div style="font-size:13px;color:#4a4340;line-height:1.55">' + q.explanation + '</div>' +
+      '</div>';
+    }
+    if (!hasCorrect && !hasExpl) {
+      detailContent = '<div style="font-size:12px;color:var(--muted);padding:4px 0">Aucun détail disponible pour cette question.</div>';
+    }
+
     return '<div style="border-bottom:1px solid var(--border)">' +
-      '<div style="padding:14px 16px;display:flex;align-items:center;gap:14px;'+(hasDetail?'cursor:pointer" onclick="toggleQDetail('+i+')':'"')+'>' +
-        '<div style="flex:1;font-size:13px;font-weight:600;color:var(--text);line-height:1.45">'+q.question+'</div>' +
-        '<div style="text-align:center;flex-shrink:0;min-width:68px"><div style="font-size:22px;font-weight:800;line-height:1;color:'+col+'">'+q.nbEchecs+'</div><div style="font-size:10px;color:var(--muted);margin-top:2px">fois échouée</div></div>' +
-        (hasDetail?'<div style="font-size:13px;color:var(--muted);flex-shrink:0" id="qchev-'+i+'">▼</div>':'<div style="width:17px"></div>') +
+      // En-tête toujours cliquable
+      '<div style="padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleQDetail(' + i + ')">' +
+        '<div style="flex:1;font-size:13px;font-weight:600;color:var(--text);line-height:1.45">' + q.question + '</div>' +
+        '<div style="text-align:center;flex-shrink:0;min-width:68px">' +
+          '<div style="font-size:22px;font-weight:800;line-height:1;color:' + col + '">' + q.nbEchecs + '</div>' +
+          '<div style="font-size:10px;color:var(--muted);margin-top:2px">fois échouée</div>' +
+        '</div>' +
+        '<div style="font-size:13px;color:var(--muted);flex-shrink:0;transition:.2s" id="qchev-' + i + '">▼</div>' +
       '</div>' +
-      (hasDetail?'<div id="qdetail-'+i+'" style="display:none;background:var(--subtle);border-top:1px solid var(--border);padding:14px 18px">' +
-        (hasCorrect?'<div style="background:#edf7f2;border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #2e7d52"><div style="font-size:10px;font-weight:700;color:#2e7d52;text-transform:uppercase;margin-bottom:5px">✅ Bonne réponse</div><div style="font-size:13px;color:#1e4a30;font-weight:600;line-height:1.45">'+q.correctAnswerLabels.join(' · ')+'</div></div>':'') +
-        (hasExpl?'<div style="background:#fef7e0;border-radius:8px;padding:10px 14px;border-left:3px solid #d4960a"><div style="font-size:10px;font-weight:700;color:#d4960a;text-transform:uppercase;margin-bottom:5px">💡 Explication</div><div style="font-size:13px;color:#4a4340;line-height:1.55">'+q.explanation+'</div></div>':'') +
-      '</div>':'') +
+      // Panneau détail (toujours présent, initialement caché)
+      '<div id="qdetail-' + i + '" style="display:none;background:var(--subtle);border-top:1px solid var(--border);padding:14px 18px">' +
+        detailContent +
+      '</div>' +
     '</div>';
   }).join('');
 }
-
 function toggleQDetail(i) {
   var el=document.getElementById('qdetail-'+i), chev=document.getElementById('qchev-'+i);
   if(!el) return;
