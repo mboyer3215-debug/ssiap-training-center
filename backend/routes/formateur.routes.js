@@ -122,7 +122,7 @@ router.post('/activate-independant', async (req, res) => {
       stats:         { sessions: 0, stagiaires: 0 },
     });
 
-    // ── 5. Marquer la licence utilisée ──
+    // ── 5. Marquer la licence utilisée + effacer le PIN en clair ──
     await db.ref(`licences/${licenceKey.toUpperCase()}`).update({
       used:        true,
       centerId,
@@ -130,8 +130,11 @@ router.post('/activate-independant', async (req, res) => {
       centerNom:   lic.nomCentre,
       centerEmail: lic.email,
     });
+    // Effacer le PIN en clair — inutilisable après la première activation
+    await db.ref(`licences/${licenceKey.toUpperCase()}/pinClear`).remove();
 
     console.log(`✅ Licence INDÉPENDANT activée : ${licenceKey} → ${centerId}`);
+    console.log(`🗑️  pinClear effacé de Firebase pour ${licenceKey}`);
 
     // ── 6. Générer JWT (même format que /login) ──
     const token = jwt.sign(
