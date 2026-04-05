@@ -114,6 +114,22 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
 .flp-close{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;cursor:pointer;text-decoration:underline}
 .flp-close:hover{color:var(--red)}
 
+/* ── RENOUVELLEMENT ── */
+.renew-panel{display:none;margin-top:12px;background:#fff8f0;border:2px solid #f0a060;border-radius:12px;padding:18px;animation:fadeIn .25s ease}
+.renew-panel.show{display:block}
+.renew-title{font-size:13px;font-weight:700;color:#c25a3a;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.renew-sub{font-size:11.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.renew-input{width:100%;padding:12px 16px;border:1.5px solid #f0a060;border-radius:9px;font-size:13px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px;color:var(--text);background:var(--surface);outline:none;transition:.15s;text-transform:uppercase}
+.renew-input:focus{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-bg)}
+.renew-input::placeholder{font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);font-size:13px}
+.btn-renew{width:100%;padding:13px;border-radius:10px;border:none;background:var(--terra);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-renew:hover:not(:disabled){background:var(--terra-d)}
+.btn-renew:disabled{opacity:.4;cursor:not-allowed}
+.btn-stripe{width:100%;padding:11px;border-radius:9px;border:1.5px solid rgba(99,91,255,.4);background:#f5f4ff;color:#5147e0;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;margin-bottom:10px;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-stripe:hover{background:#ededff;border-color:rgba(99,91,255,.7)}
+.expired-banner{background:#fdf2ee;border:2px solid var(--terra);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:none}
+.expired-banner.show{display:block}
+
 /* ── BTN CONNEXION ── */
 .btn-conn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-conn:hover:not(:disabled){background:var(--blue-d)}
@@ -250,6 +266,12 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
       </button>
     </div>
 
+    <!-- ── BANNIÈRE LICENCE EXPIRÉE ── -->
+    <div class="expired-banner" id="expired-banner">
+      <div style="font-size:13px;font-weight:700;color:var(--terra);margin-bottom:4px">⛔ Votre licence a expiré</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5">Renouvelez votre licence pour continuer à accéder à votre espace formateur.</div>
+    </div>
+
     <div class="first-login-panel" id="first-login-panel">
       <div class="flp-title">🔑 Activation — Formateur Indépendant</div>
       <div class="flp-sub">
@@ -267,6 +289,27 @@ body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;min-height:
         <span id="btn-activate-txt">🚀 Activer et me connecter</span>
       </button>
       <div class="flp-close" onclick="toggleFirstLogin()">Annuler</div>
+    </div>
+
+    <!-- ── RENOUVELLEMENT LICENCE ── -->
+    <div class="renew-panel" id="renew-panel">
+      <div class="renew-title">🔄 Renouveler ma licence</div>
+      <div class="renew-sub">
+        Votre PIN reste inchangé. Entrez votre nouvelle clé de licence reçue par email.
+      </div>
+      <a class="btn-stripe" id="btn-stripe-link" href="https://formation.mib-prevention.fr/#pricing" target="_blank">
+        💳 Acheter une nouvelle licence →
+      </a>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px">— ou si vous avez déjà reçu votre clé —</div>
+      <input type="text" class="renew-input" id="renew-key"
+             placeholder="MIB-IND-XXXXXXXXXXXXXXXX"
+             maxlength="24"
+             oninput="onRenewKeyInput()"
+             onkeydown="if(event.key==='Enter') renew()">
+      <button class="btn-renew" id="btn-renew" onclick="renew()" disabled>
+        <span id="btn-renew-txt">🔄 Renouveler et me connecter</span>
+      </button>
+      <div class="flp-close" onclick="closeRenew()">Annuler</div>
     </div>
 
   </div>
@@ -520,8 +563,14 @@ async function login() {
       document.getElementById('step3').className = 'step done';
       setTimeout(() => window.location.href = 'formateur-dashboard.html', 750);
     } else {
-      doShake();
-      showAlert('error', '❌ ' + (d.error || d.message || 'PIN incorrect pour ce centre'));
+      // Détecter si la licence est expirée
+      if (d.licenseExpired) {
+        showAlert('error', '⛔ Votre licence a expiré. Renouvelez-la ci-dessous.');
+        showExpiredBanner(centreId);
+      } else {
+        doShake();
+        showAlert('error', '❌ ' + (d.error || d.message || 'PIN incorrect pour ce centre'));
+      }
     }
   } catch {
     doShake();
@@ -548,6 +597,86 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Escape') { raz(); if (firstLoginOpen) toggleFirstLogin(); }
   else if (e.key === 'Enter' && pin.length===6 && centreId && !firstLoginOpen) login();
 });
+
+/* ═══ RENOUVELLEMENT LICENCE ═══ */
+let renewOpen = false;
+
+function showExpiredBanner(centreId) {
+  const banner = document.getElementById('expired-banner');
+  const renew  = document.getElementById('renew-panel');
+  if (banner) banner.classList.add('show');
+  // Afficher directement le panneau de renouvellement
+  renewOpen = true;
+  if (renew) renew.classList.add('show');
+  // Stocker le centreId pour l'appel API
+  window._expiredCentreId = centreId;
+}
+
+function closeRenew() {
+  renewOpen = false;
+  const renew  = document.getElementById('renew-panel');
+  const banner = document.getElementById('expired-banner');
+  if (renew)  renew.classList.remove('show');
+  if (banner) banner.classList.remove('show');
+  if (document.getElementById('renew-key')) document.getElementById('renew-key').value = '';
+  updateRenewBtn();
+}
+
+function onRenewKeyInput() {
+  const val = (document.getElementById('renew-key').value || '').trim().toUpperCase();
+  document.getElementById('renew-key').value = val;
+  updateRenewBtn();
+}
+
+function updateRenewBtn() {
+  const key = (document.getElementById('renew-key')?.value || '').trim();
+  const btn = document.getElementById('btn-renew');
+  btn.disabled = !(pin.length === 6 && key.length > 0 && window._expiredCentreId);
+}
+
+async function renew() {
+  const licenceKey = document.getElementById('renew-key').value.trim().toUpperCase();
+  const centreId   = window._expiredCentreId || centreId;
+  if (!licenceKey || pin.length !== 6 || !centreId) return;
+
+  const btn = document.getElementById('btn-renew');
+  btn.disabled = true;
+  document.getElementById('btn-renew-txt').textContent = '⏳ Renouvellement…';
+
+  try {
+    const r = await fetch(`${API}/formateur/renew-independant`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ centerId: centreId, pin, licenceKey }),
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      const fData = JSON.stringify({
+        formateurId: d.formateurId, nom: d.nom, prenom: d.prenom,
+        email: d.email || '', centerId: d.centerId, niveaux: d.niveaux || [],
+      });
+      const cData = JSON.stringify({ centerId: d.centerId, nom: d.centerNom || '', isIndep: true });
+      localStorage.setItem('ssiap_formateur_token',  d.token);
+      localStorage.setItem('ssiap_formateur',        fData);
+      localStorage.setItem('ssiap_formateur_center', cData);
+      sessionStorage.setItem('ssiap_formateur_token',  d.token);
+      sessionStorage.setItem('ssiap_formateur',        fData);
+      sessionStorage.setItem('ssiap_formateur_center', cData);
+      showAlert('success', `🔄 Licence renouvelée ! Bienvenue ${d.nom}.`);
+      document.getElementById('step3').className = 'step done';
+      setTimeout(() => window.location.href = 'formateur-dashboard.html', 900);
+    } else {
+      showAlert('error', '❌ ' + (d.error || 'Erreur de renouvellement'));
+    }
+  } catch {
+    showAlert('error', '⚠️ Serveur inaccessible — vérifiez votre connexion');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btn-renew-txt').textContent = '🔄 Renouveler et me connecter';
+    updateRenewBtn();
+  }
+}
 
 loadCentres();
 refresh();
