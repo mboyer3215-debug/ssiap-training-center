@@ -201,7 +201,14 @@ document.getElementById('btn-precedent').addEventListener('click', () => {
 });
 
 document.getElementById('btn-terminer').addEventListener('click', async () => {
-    if (!confirm('Terminer cet entraînement ?')) return;
+    // Modal custom (remplace le confirm() natif)
+    const confirmed = await showConfirmModal(
+        'Terminer cet entraînement ?',
+        'Vos réponses seront définitivement enregistrées.',
+        '✓ Terminer',
+        'Annuler'
+    );
+    if (!confirmed) return;
     showLoader();
     try {
         const r = await fetch(`${API_URL}/entrainement/finish`, {
@@ -244,6 +251,7 @@ document.getElementById('btn-terminer').addEventListener('click', async () => {
                         centerId:        currentUser.centerId,
                         sessionId:       currentUser.sessionId || '',
                         stagiaireId:     currentUser.stagiaireId,
+                        mode:            'entrainement',
                         score:           d.results.score,
                         total:           d.results.total,
                         pct:             d.results.percentage,
@@ -689,4 +697,65 @@ if (_btnNouvel) _btnNouvel.addEventListener('click', window.resetPourNouvelEntra
 document.querySelectorAll('#btn-voir-historique').forEach(btn =>
     btn.addEventListener('click', openHistoriqueModal)
 );
+
+function showConfirmModal(titre, message, btnOk, btnCancel) {
+    return new Promise(function(resolve) {
+        var existing = document.getElementById('ssiap-confirm-modal');
+        if (existing) existing.remove();
+ 
+        var overlay = document.createElement('div');
+        overlay.id = 'ssiap-confirm-modal';
+        overlay.style.cssText = [
+            'position:fixed', 'inset:0', 'z-index:9999',
+            'background:rgba(0,0,0,0.6)',
+            'display:flex', 'align-items:center', 'justify-content:center',
+            'padding:20px', 'font-family:"Plus Jakarta Sans",sans-serif'
+        ].join(';');
+ 
+        overlay.innerHTML = `
+            <div style="
+                background:#fff;border-radius:16px;padding:0;
+                max-width:380px;width:100%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.3);
+                overflow:hidden;animation:confirmPop .2s ease;">
+                <div style="
+                    background:linear-gradient(135deg,#1a4a32,#0c2118);
+                    padding:20px 24px;">
+                    <div style="font-size:28px;margin-bottom:8px">⚠️</div>
+                    <div style="font-size:17px;font-weight:800;color:#fff">${titre}</div>
+                    ${message ? `<div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:4px">${message}</div>` : ''}
+                </div>
+                <div style="padding:20px 24px;display:flex;gap:10px;justify-content:flex-end;">
+                    <button id="confirm-cancel" style="
+                        padding:11px 20px;border-radius:9px;
+                        border:2px solid #e8e2db;background:#f0ece7;
+                        font-family:'Plus Jakarta Sans',sans-serif;
+                        font-size:14px;font-weight:700;cursor:pointer;color:#4a4340;">
+                        ${btnCancel}
+                    </button>
+                    <button id="confirm-ok" style="
+                        padding:11px 24px;border-radius:9px;border:none;
+                        background:#2e7d52;color:#fff;
+                        font-family:'Plus Jakarta Sans',sans-serif;
+                        font-size:14px;font-weight:800;cursor:pointer;">
+                        ${btnOk}
+                    </button>
+                </div>
+            </div>
+            <style>@keyframes confirmPop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}</style>`;
+ 
+        document.body.appendChild(overlay);
+ 
+        document.getElementById('confirm-ok').addEventListener('click', function() {
+            overlay.remove(); resolve(true);
+        });
+        document.getElementById('confirm-cancel').addEventListener('click', function() {
+            overlay.remove(); resolve(false);
+        });
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) { overlay.remove(); resolve(false); }
+        });
+    });
+}
+
 console.log('🔥 SSIAP Entraînement — API:', API_URL);
