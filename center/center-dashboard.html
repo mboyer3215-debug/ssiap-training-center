@@ -1610,30 +1610,125 @@ async function loadAvisPage() {
 }
 
 // ── LICENCE ───────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// PATCH center-dashboard.html
+// Remplacer la fonction loadLicenseInfo() existante par celle-ci.
+// Corrections :
+//  - Affiche dates début + fin pour toutes les licences
+//  - DEMO      → expiration dans X jours
+//  - Stripe    → "Renouvellement automatique (abonnement actif)"
+//  - Annuelle  → "Renouvellement annuel · Date anniversaire : DD/MM/YYYY"
+//  - Expirée   → badge rouge + message d'action
+// ══════════════════════════════════════════════════════════════
+
 async function loadLicenseInfo() {
-    try {
-        const r = await authFetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
-        if (!r) return;
-        const d = await r.json();
-        if (d.license) { centerData.license = {...centerData.license,...d.license}; localStorage.setItem('ssiap_center',JSON.stringify(centerData)); }
-    } catch {}
-    const l      = centerData.license || {};
-    const licType = (l.type||'').toUpperCase();
-    const exp    = l.expiresAt;
-    const days   = exp ? Math.max(0, Math.ceil((exp-Date.now())/86400000)) : null;
-    const validUntil = exp ? new Date(exp).toLocaleDateString('fr-FR') : 'Renouvellement automatique';
+  try {
+    const r = await authFetch(`${API_URL}/center/dashboard/${centerData.centerId}`);
+    if (!r) return;
+    const d = await r.json();
+    if (d.license) {
+      centerData.license = { ...centerData.license, ...d.license };
+      localStorage.setItem('ssiap_center', JSON.stringify(centerData));
+    }
+  } catch {}
 
-    document.getElementById('license-info').innerHTML = `
-        <div class="licence-row"><strong>Type :</strong> <span class="badge badge-gold">${licType||'—'}</span></div>
-        <div class="licence-row"><strong>Statut :</strong> <span class="badge ${days===null||days>0?'badge-green':'badge-red'}">${days===null||days>0?'Active':'Expirée'}</span></div>
-        <div class="licence-row"><strong>Validité :</strong> ${validUntil}${days!==null?` (${days} jours restants)`:''}</div>
-        <div class="licence-row"><strong>Formateurs autorisés :</strong> ${l.maxFormateurs||'—'}</div>
-        <div class="licence-row"><strong>Stagiaires max :</strong> ${l.maxStagiaires||'—'}</div>`;
+  const l       = centerData.license || {};
+  const licType = (l.type || '').toUpperCase();
+  const exp     = l.expiresAt   ? new Date(l.expiresAt)   : null;
+  const debut   = l.activatedAt ? new Date(l.activatedAt) : null;
+  const now     = Date.now();
 
-    document.getElementById('center-info').innerHTML = `
-        <div class="licence-row"><strong>Nom :</strong> ${centerData.nom||'—'}</div>
-        <div class="licence-row"><strong>Email :</strong> ${centerData.email||'—'}</div>
-        <div class="licence-row"><strong>ID Centre :</strong> <code style="font-size:11px">${centerData.centerId||'—'}</code></div>`;
+  const fmt = d => d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+
+  // ── Calcul jours restants ──
+  const days    = exp ? Math.max(0, Math.ceil((exp.getTime() - now) / 86400000)) : null;
+  const expired = exp ? exp.getTime() < now : false;
+
+  // ── Type de renouvellement selon la licence ──
+  let validiteHtml = '';
+  let statutBadge  = '';
+  let alertHtml    = '';
+
+  if (!exp) {
+    // Stripe → renouvellement automatique
+    validiteHtml = `
+      <div class="licence-row">
+        <strong>Renouvellement :</strong>
+        <span style="background:#e8f5ee;color:#2e7d52;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;margin-left:6px">
+          ♾️ Automatique (abonnement Stripe actif)
+        </span>
+      </div>`;
+    statutBadge = '<span class="badge badge-green">Active</span>';
+  } else if (licType === 'DEMO') {
+    validiteHtml = `
+      <div class="licence-row"><strong>Date début :</strong> ${fmt(debut)}</div>
+      <div class="licence-row"><strong>Date fin :</strong> ${fmt(exp)} ${!expired ? `<span style="color:#d4960a;font-size:11px;margin-left:6px">(${days} jour${days > 1 ? 's' : ''} restant${days > 1 ? 's' : ''})</span>` : ''}</div>
+      <div class="licence-row">
+        <strong>Renouvellement :</strong>
+        <span style="background:#fef7e0;color:#d4960a;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;margin-left:6px">
+          Licence DEMO 7 jours
+        </span>
+      </div>`;
+    statutBadge = expired
+      ? '<span class="badge badge-red">Expirée</span>'
+      : days <= 2
+        ? '<span class="badge badge-gold">Expire bientôt</span>'
+        : '<span class="badge badge-green">Active</span>';
+  } else {
+    // Licence annuelle (INDÉPENDANT, STARTER, PRO, ENTREPRISE)
+    // Date anniversaire = même jour/mois que la date de début, l'année suivante
+    let anniversaire = null;
+    if (debut) {
+      anniversaire = new Date(debut);
+      anniversaire.setFullYear(anniversaire.getFullYear() + 1);
+    }
+    validiteHtml = `
+      <div class="licence-row"><strong>Date début :</strong> ${fmt(debut)}</div>
+      <div class="licence-row"><strong>Date fin :</strong> ${fmt(exp)} ${!expired ? `<span style="color:${days <= 30 ? '#d4960a' : '#2e7d52'};font-size:11px;margin-left:6px">(${days} jour${days > 1 ? 's' : ''} restant${days > 1 ? 's' : ''})</span>` : ''}</div>
+      <div class="licence-row">
+        <strong>Renouvellement :</strong>
+        <span style="background:#eef4fb;color:#2e5c8a;padding:3px 10px;border-radius:5px;font-size:11px;font-weight:700;margin-left:6px">
+          📅 Annuel${anniversaire ? ' · Date anniversaire : ' + fmt(anniversaire) : ''}
+        </span>
+      </div>`;
+    statutBadge = expired
+      ? '<span class="badge badge-red">Expirée</span>'
+      : days <= 30
+        ? '<span class="badge badge-gold">Expire bientôt</span>'
+        : '<span class="badge badge-green">Active</span>';
+  }
+
+  // ── Alerte si expirée ou proche ──
+  if (expired) {
+    alertHtml = `
+      <div style="background:#fdecea;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#c0392b;margin-bottom:3px">⛔ Licence expirée</div>
+          <div style="font-size:12px;color:#8c8078">Contactez MIB PRÉVENTION pour renouveler votre accès.</div>
+        </div>
+        <a href="mailto:contact@mib-prevention.fr" style="padding:9px 16px;background:#c0392b;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none">
+          📧 Contacter
+        </a>
+      </div>`;
+  } else if (days !== null && days <= 30 && days > 0) {
+    alertHtml = `
+      <div style="background:#fef7e0;border:1.5px solid rgba(212,150,10,.25);border-radius:10px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:#d4960a;margin-bottom:3px">⚠️ Licence bientôt expirée</div>
+        <div style="font-size:12px;color:#8c8078">Il reste <strong>${days} jour${days > 1 ? 's' : ''}</strong> — pensez à renouveler votre licence.</div>
+      </div>`;
+  }
+
+  document.getElementById('license-info').innerHTML = alertHtml + `
+    <div class="licence-row"><strong>Type :</strong> <span class="badge badge-gold" style="margin-left:6px">${licType || '—'}</span></div>
+    <div class="licence-row"><strong>Statut :</strong> <span style="margin-left:6px">${statutBadge}</span></div>
+    ${validiteHtml}
+    <div class="licence-row"><strong>Formateurs autorisés :</strong> ${l.maxFormateurs || '—'}</div>
+    <div class="licence-row"><strong>Stagiaires max :</strong> ${l.maxStagiaires || '—'}</div>`;
+
+  document.getElementById('center-info').innerHTML = `
+    <div class="licence-row"><strong>Nom :</strong> ${centerData.nom || '—'}</div>
+    <div class="licence-row"><strong>Email :</strong> ${centerData.email || '—'}</div>
+    <div class="licence-row"><strong>ID Centre :</strong> <code style="font-size:11px;background:var(--subtle);padding:2px 7px;border-radius:4px">${centerData.centerId || '—'}</code></div>`;
 }
 
 // ── MODIFIER STAGIAIRE ────────────────────────────────────────
