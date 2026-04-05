@@ -671,16 +671,26 @@ async function openFiche(idx) {
   var debut=s.dateDebut?new Date(s.dateDebut).toLocaleDateString('fr-FR'):'—';
   var fin=s.dateFin?new Date(s.dateFin).toLocaleDateString('fr-FR'):'—';
 
-  var parTheme={};
-  trains.forEach(function(h) {
-    var cle=h.partieId||h.partie||null;
-    if(cle&&cle!=='toutes'){if(!parTheme[cle])parTheme[cle]={label:cle,totalCorrect:0,totalQuestions:0};parTheme[cle].totalCorrect+=parseInt(h.score||0);parTheme[cle].totalQuestions+=parseInt(h.total||0);}
-    else if(h.themesBreakdown&&typeof h.themesBreakdown==='object'){Object.keys(h.themesBreakdown).forEach(function(theme){var data=h.themesBreakdown[theme];if(!parTheme[theme])parTheme[theme]={label:data.label||theme,totalCorrect:0,totalQuestions:0};parTheme[theme].totalCorrect+=parseInt(data.score||0);parTheme[theme].totalQuestions+=parseInt(data.total||0);});}
-  });
-  var themes=Object.values(parTheme).filter(function(t){return t.totalQuestions>0;});
-  var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQuestions)*100);});
+  var niveauSession = String((s.sessionNiveau||'').replace('SSIAP','').trim() || '1');
+  var partiesNiveau = {
+    '1': ['Le feu et ses conséquences','Sécurité incendie','Installations techniques','Rôle et missions des agents','Concrétisation des acquis'],
+    '2': ["Rôles et missions du chef d'équipe",'Manipulation du SSI','Hygiène et sécurité','Chef du poste central de sécurité'],
+    '3': ['Le feu et ses conséquences','Sécurité incendie et bâtiments','Réglementation incendie','Gestion des risques',"Conseil au chef d'établissement",'Commissions de sécurité',"Management de l'équipe",'Budget du service sécurité']
+  }[niveauSession] || [];
+  function getPartieLabel(cle) {
+    if (!cle || cle === 'toutes') return cle;
+    var idx = parseInt((cle).replace('partie','')) - 1;
+    return (partiesNiveau[idx]) ? partiesNiveau[idx] : cle;
+  }
 
-  window._currentFicheTrains = trains;
+var parTheme={};
+trains.forEach(function(h) {
+  var cle=h.partieId||h.partie||null;
+  if(cle&&cle!=='toutes'){if(!parTheme[cle])parTheme[cle]={label:getPartieLabel(cle),totalCorrect:0,totalQuestions:0};parTheme[cle].totalCorrect+=parseInt(h.score||0);parTheme[cle].totalQuestions+=parseInt(h.total||0);}
+  else if(h.themesBreakdown&&typeof h.themesBreakdown==='object'){Object.keys(h.themesBreakdown).forEach(function(theme){var data=h.themesBreakdown[theme];if(!parTheme[theme])parTheme[theme]={label:data.label||getPartieLabel(theme)||theme,totalCorrect:0,totalQuestions:0};parTheme[theme].totalCorrect+=parseInt(data.score||0);parTheme[theme].totalQuestions+=parseInt(data.total||0);});}
+});
+var themes=Object.values(parTheme).filter(function(t){return t.totalQuestions>0;});
+var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQuestions)*100);});
 
   var html='';
   html+='<div class="fiche-header"><div class="fiche-avatar">👤</div><div>' +
