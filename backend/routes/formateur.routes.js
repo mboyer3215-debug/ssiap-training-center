@@ -164,6 +164,139 @@ router.post('/activate-independant', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
+// PATCH formateur.routes.js
+// Ajouter cette route AVANT le middleware d'authentification.
+// Elle permet à un formateur indépendant existant de renouveler
+// sa licence en conservant son PIN actuel.
+// ══════════════════════════════════════════════════════════════
+
+// POST /api/formateur/renew-independant
+// Body : { centerId, pin, licenceKey }
+router.post('/renew-independant', async (req, res) => {
+  const { centerId, pin, licenceKey } = req.body;
+
+  if (!centerId || !pin || !licenceKey)
+    return res.status(400).json({ success: false, error: 'centerId, pin et licenceKey requis' });
+  if (!/^\d{6}$/.test(pin))
+    return res.status(400).json({ success: false, error: 'PIN invalide (6 chiffres requis)' });
+
+  try {
+    // ── 1. Vérifier que le centre existe et est INDÉPENDANT ──
+    const centerSnap = await db.ref(`centers/${centerId}`).once('value');
+    if (!centerSnap.exists())
+      return res.status(404).json({ success: false, error: 'Centre non trouvé' });
+
+    const center = centerSnap.val();
+    const licType = (center.license?.type || '').toUpperCase().replace('INDÉPENDANT', 'INDEPENDANT');
+    if (licType !== 'INDEPENDANT')
+      return res.status(400).json({ success: false, error: 'Ce centre n\'est pas une licence INDÉPENDANT' });
+
+    // ── 2. Trouver le formateur indépendant du centre ──
+    const formateursSnap = await db.ref(`centers/${centerId}/formateurs`).once('value');
+    if (!formateursSnap.exists())
+      return res.status(404).json({ success: false, error: 'Formateur non trouvé' });
+
+    let formateurId = null;
+    let formateurData = null;
+    formateursSnap.forEach(child => {
+      if (child.val().isIndependant) {
+        formateurId = child.key;
+        formateurData = child.val();
+      }
+    });
+
+    if (!formateurId || !formateurData?.pinHash)
+      return res.status(404).json({ success: false, error: 'Formateur indépendant non trouvé' });
+
+    // ── 3. Vérifier le PIN avec bcryptjs ──
+    const pinValid = await bcrypt.compare(pin, formateurData.pinHash);
+    if (!pinValid)
+      return res.status(401).json({ success: false, error: 'Code PIN incorrect' });
+
+    // ── 4. Lire et valider la nouvelle licence ──
+    const licSnap = await db.ref(`licences/${licenceKey.toUpperCase()}`).once('value');
+    if (!licSnap.exists())
+      return res.status(404).json({ success: false, error: 'Clé de licence invalide ou inexistante' });
+
+    const lic = licSnap.val();
+
+    if (!lic.isIndependant)
+      return res.status(400).json({ success: false, error: 'Cette clé n\'est pas une licence INDÉPENDANT' });
+    if (lic.used && lic.centerId)
+      return res.status(409).json({ success: false, error: 'Cette clé de licence est déjà utilisée' });
+    if (!lic.actif)
+      return res.status(403).json({ success: false, error: 'Licence désactivée — contactez l\'administrateur' });
+    if (!lic.pinClear)
+      return res.status(500).json({ success: false, error: 'Licence corrompue — contactez l\'administrateur' });
+
+    // Vérifier que la clé correspond bien au même titulaire (email identique)
+    if (lic.email && center.info?.email && lic.email !== center.info.email) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cette licence appartient à un autre compte. Contactez l\'administrateur.'
+      });
+    }
+
+    const now = Date.now();
+
+    // ── 5. Mettre à jour la licence du centre ──
+    await db.ref(`centers/${centerId}/license`).update({
+      key:           licenceKey.toUpperCase(),
+      type:          'INDEPENDANT',
+      expiresAt:     lic.expiresAt || null,
+      maxFormateurs: lic.maxFormateurs || 1,
+      maxStagiaires: lic.maxStagiaires || 20,
+      activatedAt:   now,
+      renewedAt:     now,
+    });
+
+    // ── 6. Marquer la licence utilisée (PIN du formateur INCHANGÉ) ──
+    await db.ref(`licences/${licenceKey.toUpperCase()}`).update({
+      used:        true,
+      centerId,
+      usedAt:      now,
+      centerNom:   center.info?.nom   || lic.nomCentre,
+      centerEmail: center.info?.email || lic.email,
+    });
+    // Supprimer le pinClear de la licence (inutile maintenant)
+    await db.ref(`licences/${licenceKey.toUpperCase()}/pinClear`).remove();
+
+    // Mettre à jour le statut du centre si inactif
+    await db.ref(`centers/${centerId}`).update({ status: 'active' });
+
+    console.log(`🔄 Licence INDÉPENDANT renouvelée : ${licenceKey} → ${centerId} (PIN conservé)`);
+
+    // ── 7. Générer un nouveau JWT ──
+    const token = jwt.sign(
+      { formateurId, centerId, role: 'formateur', isIndependant: true },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '8h' }
+    );
+
+    await db.ref(`centers/${centerId}/formateurs/${formateurId}/lastLogin`).set(now);
+
+    return res.json({
+      success:    true,
+      token,
+      formateurId,
+      centerId,
+      nom:        formateurData.nom,
+      prenom:     formateurData.prenom || 'Formateur',
+      email:      formateurData.email,
+      centerNom:  center.info?.nom || lic.nomCentre,
+      niveaux:    formateurData.niveaux || [1, 2, 3],
+      isRenewal:  true,
+      message:    '🔄 Licence renouvelée avec succès ! Bon retour.',
+    });
+
+  } catch (err) {
+    console.error('renew-independant error:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
+
+// ══════════════════════════════════════════════════════════════
 // POST /api/formateur/create
 // ══════════════════════════════════════════════════════════════
 router.post('/create', async (req, res) => {
@@ -302,7 +435,18 @@ router.post('/login', async (req, res) => {
     if (formateurData.status === 'inactif' || formateurData.status === 'suspendu')
       return res.status(403).json({ success: false, error: 'Compte formateur désactivé, contactez votre centre' });
 
+    // Vérifier si la licence du centre est expirée
     const centerSnap = await db.ref(`centers/${formCenterId}`).once('value');
+    const centerVal  = centerSnap.val() || {};
+    const licExp     = centerVal.license?.expiresAt;
+    if (licExp && new Date(licExp).getTime() < Date.now()) {
+      return res.status(403).json({
+        success:        false,
+        licenseExpired: true,
+        centerId:       formCenterId,
+        error:          'Votre licence a expiré. Veuillez la renouveler.',
+      });
+    }
     const centerInfo = centerSnap.val()?.info || {};
 
     await db.ref(`centers/${formCenterId}/formateurs/${formateurData.id}/lastLogin`).set(Date.now());
