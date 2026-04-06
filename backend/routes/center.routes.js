@@ -3,7 +3,7 @@ const express  = require('express');
 const router   = express.Router();
 const bcrypt   = require('bcryptjs');
 const crypto   = require('crypto');
-const jwt      = require('jsonwebtoken'); 
+const jwt      = require('jsonwebtoken');
 const admin    = require('firebase-admin');
 const db       = admin.database();
 const { verifyCenterToken } = require('../middleware/center.auth.middleware');
@@ -25,17 +25,6 @@ function getMailer() {
 // ROUTES PUBLIQUES (pas de JWT requis)
 // ══════════════════════════════════════════════════════════════
 
-// ══════════════════════════════════════════════════════════════════════════
-// PATCH center.routes.js — Route POST /register
-// Remplace la route existante /register par celle-ci.
-//
-// Changements :
-//  1. Lit licenseData.type OU licenseData.plan pour compatibilité les deux sources
-//     (license.routes.js stocke `type`, stripe.routes.js stockait `plan`)
-//  2. Pour les licences INDÉPENDANT : crée automatiquement un formateur
-//     avec le pinHash stocké dans Firebase lors de la génération de licence.
-// ══════════════════════════════════════════════════════════════════════════
-
 router.post('/register', async (req, res) => {
   const { licenseKey, nom, email, password, telephone, ville } = req.body;
   if (!licenseKey || !nom || !email || !password)
@@ -44,17 +33,14 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Mot de passe minimum 8 caractères' });
 
   try {
-    // ── Lire la licence (nœud `licences/` pour Stripe, `licenses/` pour license.routes) ──
     let licenseData = null;
     let licenceNode = null;
 
-    // Essai 1 : nœud `licences` (stripe.routes.js)
     const snapNew = await db.ref(`licences/${licenseKey}`).once('value');
     if (snapNew.exists()) {
       licenseData = snapNew.val();
       licenceNode = 'licences';
     } else {
-      // Essai 2 : nœud `licenses` (license.routes.js)
       const snapOld = await db.ref(`licenses/${licenseKey}`).once('value');
       if (snapOld.exists()) {
         licenseData = snapOld.val();
@@ -73,12 +59,9 @@ router.post('/register', async (req, res) => {
     if (emailCheck.exists())
       return res.status(400).json({ success: false, error: 'Cet email est déjà utilisé' });
 
-    // ── Normalisation du type de licence ──
-    // stripe.routes.js stocke `plan` (lowercase) et `type` (label normalisé)
-    // license.routes.js stocke `type` (uppercase)
     const rawType     = licenseData.type || licenseData.plan || 'DEMO';
     const licenceType = rawType.toUpperCase()
-      .replace('INDÉPENDANT', 'INDEPENDANT')  // normalise accent
+      .replace('INDÉPENDANT', 'INDEPENDANT')
       .replace('INDEPENDANT', 'INDEPENDANT');
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -86,11 +69,11 @@ router.post('/register', async (req, res) => {
       || `center_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 
     const maxFormateurs = licenseData.maxFormateurs || 1;
-    const maxStagiaires = licenseData.maxStagiaires || licenseData.maxStagiaires || 10;
+    const maxStagiaires = licenseData.maxStagiaires || 10;
 
-    // ── Créer le centre ──
     await db.ref(`centers/${centerId}`).set({
       centerId,
+      nom, // top-level pour center/list
       info: {
         nom, email,
         telephone: telephone || '',
@@ -111,7 +94,6 @@ router.post('/register', async (req, res) => {
       status: 'active',
     });
 
-    // ── Marquer la licence comme utilisée ──
     await db.ref(`${licenceNode}/${licenseKey}`).update({
       used:        true,
       centerId,
@@ -120,17 +102,11 @@ router.post('/register', async (req, res) => {
       centerEmail: email,
     });
 
-    // ══════════════════════════════════════════════════════════════
-    // AUTO-CRÉATION FORMATEUR INDÉPENDANT
-    // Si la licence est de type INDÉPENDANT et qu'un pinHash a été
-    // généré lors de l'activation (stripe.routes.js), on crée
-    // automatiquement le formateur unique du centre.
-    // ══════════════════════════════════════════════════════════════
     if (licenceType === 'INDEPENDANT' && licenseData.pinHash) {
       const formateurId = `fmt_indep_${centerId}`;
       await db.ref(`centers/${centerId}/formateurs/${formateurId}`).set({
         formateurId,
-        nom:           nom,          // nom du centre = nom du formateur indépendant
+        nom:           nom,
         prenom:        'Formateur',
         email:         email,
         pinHash:       licenseData.pinHash,
@@ -140,14 +116,9 @@ router.post('/register', async (req, res) => {
         createdAt:     Date.now(),
         status:        'active',
       });
-
-      // Mettre à jour le compteur formateurs
       await db.ref(`centers/${centerId}/stats/formateurs`).set(1);
-
-      console.log(`👤 Formateur indépendant créé automatiquement : ${formateurId} pour ${centerId}`);
     }
 
-    // ── Email de bienvenue (simple confirmation) ──
     try {
       const mailer = getMailer();
       await mailer.sendMail({
@@ -175,6 +146,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// ── Brute-force protection ──
 const centerAttempts = {};
 const MAX_ATTEMPTS   = 5;
 const WINDOW_MS      = 15 * 60 * 1000;
@@ -213,7 +185,18 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ success: false, error: "Compte désactivé, contactez l'administrateur" });
 
     delete centerAttempts[key];
+
+    // ── Vérifier si la licence est expirée ──────────────────
     const licExp = centerData.license?.expiresAt;
+    if (licExp && new Date(licExp).getTime() < Date.now()) {
+      return res.status(403).json({
+        success:        false,
+        licenseExpired: true,
+        licenseType:    centerData.license?.type || 'DEMO',
+        error:          'Votre licence a expiré. Contactez contact@mib-prevention.fr pour la renouveler.',
+      });
+    }
+
     await db.ref(`centers/${centerData.id}/auth`).update({ lastLogin: Date.now() });
 
     const token = jwt.sign(
@@ -226,8 +209,9 @@ router.post('/login', async (req, res) => {
       nom:   centerData.info?.nom || '—',
       email: centerData.auth.email,
       license: {
-        type: centerData.license?.type || 'DEMO', expiresAt: licExp,
-        active: !licExp || licExp > Date.now(),
+        type:          centerData.license?.type      || 'DEMO',
+        expiresAt:     licExp,
+        active:        !licExp || licExp > Date.now(),
         maxFormateurs: centerData.license?.maxFormateurs || 1,
         maxStagiaires: centerData.license?.maxStagiaires || 10,
       }
@@ -277,15 +261,14 @@ router.post('/reset-password', async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/center/list
-// - Sans JWT  → infos minimales pour le dropdown formateur
-// - Avec JWT  → données enrichies pour le dashboard admin
+// Sans JWT → infos minimales pour dropdown formateur
+// Avec JWT → données enrichies pour dashboard admin
 // ─────────────────────────────────────────────────────────────
 router.get('/list', async (req, res) => {
   try {
     const snapshot = await db.ref('centers').once('value');
     if (!snapshot.exists()) return res.json({ centers: [], total: 0 });
 
-    // Requête enrichie si Authorization header présent (dashboard admin)
     const isAdmin = !!(req.headers['authorization'] || '').startsWith('Bearer ');
 
     const centers = [];
@@ -295,17 +278,16 @@ router.get('/list', async (req, res) => {
 
       const base = {
         centerId: child.key,
-        nom:      c.info?.nom   || '—',
+        nom:      c.nom || c.info?.nom || '—',
         ville:    c.info?.ville || '',
         license:  { type: c.license?.type || 'DEMO' },
         status:   c.status || 'active',
       };
 
       if (isAdmin) {
-        // Données complètes pour le dashboard admin
         base.info = {
-          nom:       c.info?.nom       || '—',
-          email:     c.info?.email     || c.auth?.email || null,
+          nom:       c.nom || c.info?.nom       || '—',
+          email:     c.info?.email || c.auth?.email || null,
           telephone: c.info?.telephone || '',
           ville:     c.info?.ville     || '',
           createdAt: c.info?.createdAt || null,
@@ -336,14 +318,9 @@ router.get('/list', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
-// ROUTES PROTÉGÉES — JWT requis
-// ══════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════
-// ROUTES OTP — Réinitialisation mot de passe avec code email
-// À insérer AVANT router.use(verifyCenterToken) dans center.routes.js
+// ROUTES OTP
 // ══════════════════════════════════════════════════════════════
 
-// ── Mailgun helper (réutilise les variables déjà en place) ──
 async function sendOtpEmail({ to, code, nomCentre }) {
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto">
@@ -387,145 +364,86 @@ async function sendOtpEmail({ to, code, nomCentre }) {
   }
 }
 
-// ── ÉTAPE 1 : Demande de code OTP ──────────────────────────
-// POST /api/center/forgot-password-otp
-// Body : { email }
 router.post('/forgot-password-otp', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ success: false, error: 'Email requis' });
-
   try {
     const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
-
-    // Réponse identique que l'email existe ou non (anti-énumération)
-    if (!snapshot.exists()) {
-      return res.json({ success: true, message: 'Si cet email est enregistré, un code a été envoyé.' });
-    }
-
+    if (!snapshot.exists()) return res.json({ success: true, message: 'Si cet email est enregistré, un code a été envoyé.' });
     let centerId, centerData;
     snapshot.forEach(c => { centerId = c.key; centerData = c.val(); });
-
-    // Générer code 6 chiffres cryptographiquement sûr
     const code = String(parseInt(crypto.randomBytes(3).toString('hex'), 16) % 1000000).padStart(6, '0');
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-    // Stocker le code hashé dans Firebase (jamais en clair)
+    const expiresAt = Date.now() + 10 * 60 * 1000;
     const codeHash = crypto.createHash('sha256').update(code).digest('hex');
-    await db.ref(`centers/${centerId}/auth`).update({
-      otpHash:     codeHash,
-      otpExpires:  expiresAt,
-      otpAttempts: 0,
-    });
-
-    // Envoyer l'email
-    await sendOtpEmail({
-      to:         email,
-      code,
-      nomCentre:  centerData.info?.nom || '',
-    });
-
+    await db.ref(`centers/${centerId}/auth`).update({ otpHash: codeHash, otpExpires: expiresAt, otpAttempts: 0 });
+    await sendOtpEmail({ to: email, code, nomCentre: centerData.info?.nom || '' });
     console.log(`📧 OTP envoyé à ${email} pour ${centerId}`);
     res.json({ success: true, message: 'Code envoyé.' });
-
   } catch (err) {
     console.error('OTP send error:', err.message);
     res.status(500).json({ success: false, error: 'Erreur lors de l\'envoi du code' });
   }
 });
 
-// ── ÉTAPE 2 : Vérification du code OTP ─────────────────────
-// POST /api/center/verify-otp
-// Body : { email, code }
 router.post('/verify-otp', async (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ success: false, error: 'Paramètres manquants' });
   if (!/^\d{6}$/.test(code)) return res.status(400).json({ success: false, error: 'Code invalide' });
-
   try {
     const snapshot = await db.ref('centers').orderByChild('auth/email').equalTo(email).once('value');
     if (!snapshot.exists()) return res.status(400).json({ success: false, error: 'Email inconnu' });
-
     let centerId, centerData;
     snapshot.forEach(c => { centerId = c.key; centerData = c.val(); });
-
     const auth = centerData.auth || {};
-
-    // Vérifier expiration
-    if (!auth.otpHash || !auth.otpExpires || Date.now() > auth.otpExpires) {
+    if (!auth.otpHash || !auth.otpExpires || Date.now() > auth.otpExpires)
       return res.status(400).json({ success: false, error: 'Code expiré. Demandez un nouveau code.' });
-    }
-
-    // Vérifier tentatives (max 5)
     const attempts = auth.otpAttempts || 0;
     if (attempts >= 5) {
       await db.ref(`centers/${centerId}/auth`).update({ otpHash: null, otpExpires: null });
       return res.status(429).json({ success: false, error: 'Trop de tentatives. Demandez un nouveau code.' });
     }
-
-    // Vérifier le code (comparaison hash)
     const codeHash = crypto.createHash('sha256').update(code).digest('hex');
     if (codeHash !== auth.otpHash) {
       await db.ref(`centers/${centerId}/auth/otpAttempts`).set(attempts + 1);
       const remaining = 5 - (attempts + 1);
       return res.status(400).json({ success: false, error: `Code incorrect. ${remaining} tentative(s) restante(s).` });
     }
-
-    // ✅ Code valide — générer un token de reset à usage unique (valable 15 min)
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetExpires = Date.now() + 15 * 60 * 1000;
-
-    await db.ref(`centers/${centerId}/auth`).update({
-      otpHash:        null,
-      otpExpires:     null,
-      otpAttempts:    0,
-      resetToken,
-      resetTokenExpires: resetExpires,
-    });
-
+    await db.ref(`centers/${centerId}/auth`).update({ otpHash: null, otpExpires: null, otpAttempts: 0, resetToken, resetTokenExpires: resetExpires });
     res.json({ success: true, resetToken, centerId });
-
   } catch (err) {
     console.error('OTP verify error:', err.message);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });
 
-// ── ÉTAPE 3 : Nouveau mot de passe ─────────────────────────
-// POST /api/center/reset-password-otp
-// Body : { centerId, resetToken, newPassword }
 router.post('/reset-password-otp', async (req, res) => {
   const { centerId, resetToken, newPassword } = req.body;
   if (!centerId || !resetToken || !newPassword)
     return res.status(400).json({ success: false, error: 'Paramètres manquants' });
   if (newPassword.length < 8)
     return res.status(400).json({ success: false, error: 'Minimum 8 caractères' });
-
   try {
     const snap = await db.ref(`centers/${centerId}/auth`).once('value');
     const auth = snap.val();
-
     if (!auth || auth.resetToken !== resetToken)
       return res.status(400).json({ success: false, error: 'Lien invalide ou déjà utilisé' });
     if (!auth.resetTokenExpires || Date.now() > auth.resetTokenExpires)
       return res.status(400).json({ success: false, error: 'Lien expiré. Recommencez la procédure.' });
-
     const passwordHash = await bcrypt.hash(newPassword, 12);
-    await db.ref(`centers/${centerId}/auth`).update({
-      passwordHash,
-      resetToken:        null,
-      resetTokenExpires: null,
-      passwordChangedAt: Date.now(),
-    });
-
+    await db.ref(`centers/${centerId}/auth`).update({ passwordHash, resetToken: null, resetTokenExpires: null, passwordChangedAt: Date.now() });
     console.log(`✅ Mot de passe réinitialisé via OTP pour ${centerId}`);
     res.json({ success: true, message: 'Mot de passe modifié avec succès' });
-
   } catch (err) {
     console.error('Reset password OTP error:', err.message);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });
 
+// ══════════════════════════════════════════════════════════════
+// ROUTES PROTÉGÉES — JWT requis
+// ══════════════════════════════════════════════════════════════
 router.use(verifyCenterToken);
 
 router.get('/dashboard/:centerId', async (req, res) => {
@@ -536,9 +454,20 @@ router.get('/dashboard/:centerId', async (req, res) => {
     if (!snapshot.exists()) return res.status(404).json({ error: 'Centre non trouvé' });
     const c = snapshot.val();
     res.json({
-      centerId, nom: c.info?.nom || '—', email: c.info?.email || c.auth?.email || '—', info: c.info || {},
-      license: { type: c.license?.type || 'DEMO', expiresAt: c.license?.expiresAt || null, active: !c.license?.expiresAt || c.license.expiresAt > Date.now(), maxFormateurs: c.license?.maxFormateurs || 1, maxStagiaires: c.license?.maxStagiaires || 10 },
-      stats: c.stats || {}, status: c.status || 'active'
+      centerId,
+      nom:   c.nom || c.info?.nom || '—',
+      email: c.info?.email || c.auth?.email || '—',
+      info:  c.info || {},
+      license: {
+        type:          c.license?.type          || 'DEMO',
+        expiresAt:     c.license?.expiresAt     || null,
+        activatedAt:   c.license?.activatedAt   || null,
+        active:        !c.license?.expiresAt || c.license.expiresAt > Date.now(),
+        maxFormateurs: c.license?.maxFormateurs  || 1,
+        maxStagiaires: c.license?.maxStagiaires  || 10,
+      },
+      stats:  c.stats  || {},
+      status: c.status || 'active',
     });
   } catch (err) { res.status(500).json({ error: 'Erreur serveur' }); }
 });
@@ -549,8 +478,8 @@ router.put('/update/:centerId', async (req, res) => {
   const { nom, telephone, ville, site, adresse, email } = req.body;
   try {
     const updates = {};
-    if (nom !== undefined) updates['nom']       = nom;
-    if (nom !== undefined) updates['info/nom']  = nom;
+    if (nom       !== undefined) updates['nom']            = nom; // top-level
+    if (nom       !== undefined) updates['info/nom']       = nom;
     if (telephone !== undefined) updates['info/telephone'] = telephone;
     if (ville     !== undefined) updates['info/ville']     = ville;
     if (site      !== undefined) updates['info/site']      = site;
@@ -562,7 +491,6 @@ router.put('/update/:centerId', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Erreur serveur' }); }
 });
 
-// ── Changement mot de passe par le centre lui-même ──
 router.post('/change-password', async (req, res) => {
   const { centerId, newPassword } = req.body;
   if (!centerId || !newPassword) return res.status(400).json({ success: false, error: 'Paramètres manquants' });
