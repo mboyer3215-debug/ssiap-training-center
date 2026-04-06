@@ -260,12 +260,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
     </div>
     <div class="modal-body">
       <div id="create-session-alert" style="background:#fdf2ee;border:1.5px solid var(--rouge);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--rouge);margin-bottom:12px;display:none"></div>
- 
       <div class="modal-form-group">
         <label class="modal-label">Titre de la session *</label>
         <input type="text" id="cs-titre" class="modal-input" placeholder="Ex: Formation SSIAP 1 — Juin 2026">
       </div>
- 
       <div class="modal-form-group">
         <label class="modal-label">Niveau SSIAP *</label>
         <select id="cs-niveau" class="modal-input">
@@ -277,7 +275,6 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
           <option value="MAC">MAC</option>
         </select>
       </div>
- 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="modal-form-group">
           <label class="modal-label">Date de début *</label>
@@ -288,7 +285,6 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
           <input type="date" id="cs-fin" class="modal-input">
         </div>
       </div>
- 
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" onclick="closeCreateSession()">Annuler</button>
         <button class="btn btn-primary btn-sm" id="btn-create-session" onclick="creerSession()">📅 Créer la session</button>
@@ -296,7 +292,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
     </div>
   </div>
 </div>
-  
+
 <div id="print-area"></div>
 <div id="loader" class="loader"><div class="spinner"></div><p style="font-size:13px;color:var(--muted)">Chargement…</p></div>
 
@@ -467,12 +463,10 @@ function renderSessionBody(sess, si, stags) {
     '<div class="form-row"><div class="form-field"><label>Email</label><input type="email" id="s-email-'+si+'" placeholder="email@exemple.fr"></div><div class="form-field"><label>Téléphone</label><input type="tel" id="s-tel-'+si+'" placeholder="06..."></div></div>' +
     '<div class="form-actions"><button class="btn btn-secondary btn-sm" onclick="toggleAddForm(\'form-'+si+'\')">Annuler</button><button class="btn btn-primary btn-sm" onclick="ajouterStagiaire(\''+sess.sessionId+'\','+si+')">✓ Enregistrer</button></div>' +
   '</div>';
-
   if (!stags.length) {
     html+='<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">Aucun stagiaire dans cette session.</div>';
     return html;
   }
-
   html+='<div style="overflow-x:auto;margin-top:4px"><table class="stag-table"><thead><tr><th>Stagiaire</th><th>PIN</th><th>Email</th><th>Entr.</th><th>Score moy.</th><th>QR</th><th>Actions</th></tr></thead><tbody>';
   stags.forEach(function(s, idx) {
     var gIdx=allStagiaires.findIndex(function(x){return x.stagiaireId===s.stagiaireId;});
@@ -481,8 +475,6 @@ function renderSessionBody(sess, si, stags) {
     var scores=trains.map(function(h){return parseFloat(h.pct||0);});
     var moy=scores.length?Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length):null;
     var mc=moy==null?'var(--muted)':moy>=70?'var(--green)':moy>=50?'var(--gold)':'var(--rouge)';
-    // Stocker les données pour édition
-    var stagData = JSON.stringify({stagiaireId:s.stagiaireId,sessionId:s.sessionId,prenom:s.prenom||'',nom:s.nom||'',email:s.email||'',telephone:s.telephone||''}).replace(/'/g,'&#39;');
     html+='<tr>' +
       '<td class="stag-clickable" onclick="openFiche('+gIdx+')"><strong>'+(s.prenom||'')+' '+(s.nom||'')+'</strong></td>' +
       '<td><span style="font-family:monospace;background:var(--blue-light);padding:2px 7px;border-radius:4px;color:var(--blue);font-weight:700">'+(s.pin||'—')+'</span></td>' +
@@ -526,7 +518,77 @@ function lancerQuizSalle(sessionId) {
 }
 
 // ══════════════════════════════════════
-//  AJOUT STAGIAIRE (avec détection doublons)
+//  CRÉER SESSION
+// ══════════════════════════════════════
+function openCreateSession() {
+  var today      = new Date().toISOString().slice(0, 10);
+  var endDefault = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  document.getElementById('cs-titre').value  = '';
+  document.getElementById('cs-niveau').value = '';
+  document.getElementById('cs-debut').value  = today;
+  document.getElementById('cs-fin').value    = endDefault;
+  document.getElementById('create-session-alert').style.display = 'none';
+  document.getElementById('modal-create-session').classList.add('open');
+  setTimeout(function() { document.getElementById('cs-titre').focus(); }, 100);
+}
+
+function closeCreateSession() {
+  document.getElementById('modal-create-session').classList.remove('open');
+}
+
+async function creerSession() {
+  var titre  = (document.getElementById('cs-titre').value  || '').trim();
+  var niveau = (document.getElementById('cs-niveau').value || '').trim();
+  var debut  = (document.getElementById('cs-debut').value  || '').trim();
+  var fin    = (document.getElementById('cs-fin').value    || '').trim();
+  var alertEl = document.getElementById('create-session-alert');
+  alertEl.style.display = 'none';
+  if (!titre || !niveau || !debut || !fin) {
+    alertEl.textContent = '⚠️ Veuillez remplir tous les champs obligatoires.';
+    alertEl.style.display = 'block'; return;
+  }
+  if (debut > fin) {
+    alertEl.textContent = '⚠️ La date de fin doit être après la date de début.';
+    alertEl.style.display = 'block'; return;
+  }
+  var btn = document.getElementById('btn-create-session');
+  btn.disabled = true; btn.textContent = '⏳ Création…';
+  try {
+    var r = await fetch(API + '/session/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        centerId:    formateurData.centerId,
+        formateurId: formateurData.formateurId || formateurData.id,
+        titre:       titre,
+        niveau:      niveau,
+        dateDebut:   new Date(debut).getTime(),
+        dateFin:     new Date(fin).getTime(),
+        status:      'à venir',
+      })
+    });
+    var d = await r.json();
+    if (d.success || d.sessionId) {
+      closeCreateSession();
+      allSessions = [];
+      showLoader();
+      await fetchAllData();
+      hideLoader();
+      renderSessions();
+    } else {
+      alertEl.textContent = '❌ ' + (d.error || 'Erreur lors de la création');
+      alertEl.style.display = 'block';
+    }
+  } catch(e) {
+    alertEl.textContent = '⚠️ Serveur inaccessible';
+    alertEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '📅 Créer la session';
+  }
+}
+
+// ══════════════════════════════════════
+//  AJOUT STAGIAIRE
 // ══════════════════════════════════════
 async function ajouterStagiaire(sessionId, si) {
   var prenom=(document.getElementById('s-prenom-'+si).value||'').trim();
@@ -535,8 +597,6 @@ async function ajouterStagiaire(sessionId, si) {
   var tel=(document.getElementById('s-tel-'+si).value||'').trim();
   if(!prenom||!nom){alert('Prénom et nom sont obligatoires.');return;}
   var alertEl=document.getElementById('alert-doublon-'+si); alertEl.style.display='none';
-
-  // Détection doublons
   var doublons=allStagiaires.filter(function(s) {
     var mN=s.nom&&s.prenom&&s.nom.trim().toLowerCase()===nom.toLowerCase()&&s.prenom.trim().toLowerCase()===prenom.toLowerCase();
     var mE=email&&s.email&&s.email.trim().toLowerCase()===email;
@@ -549,7 +609,6 @@ async function ajouterStagiaire(sessionId, si) {
     else msg+=' dans la session "'+(d0.sessionTitre||'autre session')+'".'+(d0.pin?' PIN : '+d0.pin:'');
     alertEl.textContent=msg; alertEl.style.display='block'; return;
   }
-
   showLoader();
   try {
     var r=await fetch(API+'/stagiaire/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({centerId:formateurData.centerId,sessionId:sessionId,prenom:prenom,nom:nom,email:email||'',telephone:tel||''})});
@@ -578,7 +637,6 @@ function ouvrirEditStagiaire(stagiaireId, sessionId) {
   document.getElementById('edit-stag-doublon').style.display = 'none';
   document.getElementById('modal-edit-stag').classList.add('open');
 }
-
 function closeEditStag() { document.getElementById('modal-edit-stag').classList.remove('open'); }
 
 async function saveEditStag() {
@@ -589,8 +647,6 @@ async function saveEditStag() {
   var email       = document.getElementById('edit-stag-email').value.trim();
   var tel         = document.getElementById('edit-stag-tel').value.trim();
   if (!prenom || !nom) { alert('Prénom et nom requis'); return; }
-
-  // Détection doublon (exclure le stagiaire en cours d'édition)
   var doublon = allStagiaires.find(function(s) {
     return s.stagiaireId !== stagiaireId &&
       s.nom && s.prenom &&
@@ -603,7 +659,6 @@ async function saveEditStag() {
     var el = document.getElementById('edit-stag-doublon');
     el.textContent = msg; el.style.display = 'block'; return;
   }
-
   var btn = document.getElementById('btn-edit-stag-save');
   if (btn) { btn.disabled = true; btn.textContent = '⏳…'; }
   try {
@@ -615,7 +670,6 @@ async function saveEditStag() {
     if (d.success) {
       closeEditStag();
       await fetchAllData(); renderSessions();
-      // Ré-ouvrir l'accordéon de la session
       var idx = allSessions.findIndex(function(s){ return s.sessionId === sessionId; });
       if (idx >= 0) { toggleAcc(idx); setTimeout(function(){ toggleAcc(idx); }, 50); }
     } else { alert('Erreur : '+(d.error||'Erreur modification')); }
@@ -671,26 +725,41 @@ async function openFiche(idx) {
   var debut=s.dateDebut?new Date(s.dateDebut).toLocaleDateString('fr-FR'):'—';
   var fin=s.dateFin?new Date(s.dateFin).toLocaleDateString('fr-FR'):'—';
 
+  // ── Labels thématiques selon le niveau de la session ──
   var niveauSession = String((s.sessionNiveau||'').replace('SSIAP','').trim() || '1');
   var partiesNiveau = {
     '1': ['Le feu et ses conséquences','Sécurité incendie','Installations techniques','Rôle et missions des agents','Concrétisation des acquis'],
     '2': ["Rôles et missions du chef d'équipe",'Manipulation du SSI','Hygiène et sécurité','Chef du poste central de sécurité'],
     '3': ['Le feu et ses conséquences','Sécurité incendie et bâtiments','Réglementation incendie','Gestion des risques',"Conseil au chef d'établissement",'Commissions de sécurité',"Management de l'équipe",'Budget du service sécurité']
   }[niveauSession] || [];
+
   function getPartieLabel(cle) {
     if (!cle || cle === 'toutes') return cle;
     var idx = parseInt((cle).replace('partie','')) - 1;
     return (partiesNiveau[idx]) ? partiesNiveau[idx] : cle;
   }
 
-var parTheme={};
-trains.forEach(function(h) {
-  var cle=h.partieId||h.partie||null;
-  if(cle&&cle!=='toutes'){if(!parTheme[cle])parTheme[cle]={label:getPartieLabel(cle),totalCorrect:0,totalQuestions:0};parTheme[cle].totalCorrect+=parseInt(h.score||0);parTheme[cle].totalQuestions+=parseInt(h.total||0);}
-  else if(h.themesBreakdown&&typeof h.themesBreakdown==='object'){Object.keys(h.themesBreakdown).forEach(function(theme){var data=h.themesBreakdown[theme];if(!parTheme[theme])parTheme[theme]={label:data.label||getPartieLabel(theme)||theme,totalCorrect:0,totalQuestions:0};parTheme[theme].totalCorrect+=parseInt(data.score||0);parTheme[theme].totalQuestions+=parseInt(data.total||0);});}
-});
-var themes=Object.values(parTheme).filter(function(t){return t.totalQuestions>0;});
-var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQuestions)*100);});
+  var parTheme={};
+  trains.forEach(function(h) {
+    var cle=h.partieId||h.partie||null;
+    if(cle&&cle!=='toutes'){
+      var label = getPartieLabel(cle);
+      if(!parTheme[cle])parTheme[cle]={label:label,totalCorrect:0,totalQuestions:0};
+      parTheme[cle].totalCorrect+=parseInt(h.score||0);
+      parTheme[cle].totalQuestions+=parseInt(h.total||0);
+    } else if(h.themesBreakdown&&typeof h.themesBreakdown==='object'){
+      Object.keys(h.themesBreakdown).forEach(function(theme){
+        var data=h.themesBreakdown[theme];
+        if(!parTheme[theme])parTheme[theme]={label:data.label||getPartieLabel(theme)||theme,totalCorrect:0,totalQuestions:0};
+        parTheme[theme].totalCorrect+=parseInt(data.score||0);
+        parTheme[theme].totalQuestions+=parseInt(data.total||0);
+      });
+    }
+  });
+  var themes=Object.values(parTheme).filter(function(t){return t.totalQuestions>0;});
+  var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQuestions)*100);});
+
+  window._currentFicheTrains = trains;
 
   var html='';
   html+='<div class="fiche-header"><div class="fiche-avatar">👤</div><div>' +
@@ -732,7 +801,7 @@ var themeMoys=themes.map(function(t){return Math.round((t.totalCorrect/t.totalQu
       html+='<div class="train-card '+(ok?'ok':'ko')+'" style="flex-wrap:wrap;gap:6px">' +
         '<div style="display:flex;align-items:center;gap:10px;flex:1;">' +
           '<div style="text-align:center;min-width:48px;flex-shrink:0;"><div style="font-size:18px;font-weight:800;color:'+col+'">'+pct+'%</div><div style="font-size:9px;color:'+col+';font-weight:700">'+(ok?'✓ OK':'✗ KO')+'</div></div>' +
-          '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:#1e1a17">'+(niveauLabel[h.niveau]||'SSIAP '+(h.niveau||'?'))+(h.partieId&&h.partieId!=='toutes'?' · '+h.partieId:'')+'</div>' +
+          '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:#1e1a17">'+(niveauLabel[h.niveau]||'SSIAP '+(h.niveau||'?'))+(h.partieId&&h.partieId!=='toutes'?' · '+getPartieLabel(h.partieId):'')+'</div>' +
           '<div style="font-size:11px;color:#8c8078">'+h.score+'/'+(h.total||'?')+' questions · '+date+'</div></div>' +
         '</div>' +
         (hasEchecs?'<button onclick="openEchecsFormateur('+tIdx+')" style="background:#fff;border:1.5px solid '+col+';color:'+col+';border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Plus Jakarta Sans\',sans-serif;flex-shrink:0">⚠️ '+h.detailsEchecs.length+' erreur'+(h.detailsEchecs.length>1?'s':'')+'</button>'
@@ -911,13 +980,7 @@ async function loadQuestionStats(niveau) {
   renderQuestions(list);
 }
 
-// ══════════════════════════════════════════════════════════════
-// PATCH formateur-dashboard.html
-// Remplacer la fonction renderQuestions() existante par celle-ci.
-// Correction : les questions sont TOUJOURS cliquables,
-// même sans correctAnswerLabels ni explanation.
-// ══════════════════════════════════════════════════════════════
-
+// ── renderQuestions — TOUJOURS cliquable ──
 function renderQuestions(list) {
   var c = document.getElementById('questions-list');
   if (!list.length) {
@@ -928,13 +991,10 @@ function renderQuestions(list) {
     '</div>';
     return;
   }
-
   c.innerHTML = list.map(function(q, i) {
     var col = q.nbEchecs >= 5 ? 'var(--rouge)' : q.nbEchecs >= 2 ? 'var(--gold)' : 'var(--muted)';
     var hasCorrect = q.correctAnswerLabels && q.correctAnswerLabels.length > 0;
     var hasExpl    = !!q.explanation;
-
-    // Contenu du panneau dépliable
     var detailContent = '';
     if (hasCorrect) {
       detailContent += '<div style="background:#edf7f2;border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #2e7d52">' +
@@ -951,9 +1011,7 @@ function renderQuestions(list) {
     if (!hasCorrect && !hasExpl) {
       detailContent = '<div style="font-size:12px;color:var(--muted);padding:4px 0">Aucun détail disponible pour cette question.</div>';
     }
-
     return '<div style="border-bottom:1px solid var(--border)">' +
-      // En-tête toujours cliquable
       '<div style="padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleQDetail(' + i + ')">' +
         '<div style="flex:1;font-size:13px;font-weight:600;color:var(--text);line-height:1.45">' + q.question + '</div>' +
         '<div style="text-align:center;flex-shrink:0;min-width:68px">' +
@@ -962,13 +1020,13 @@ function renderQuestions(list) {
         '</div>' +
         '<div style="font-size:13px;color:var(--muted);flex-shrink:0;transition:.2s" id="qchev-' + i + '">▼</div>' +
       '</div>' +
-      // Panneau détail (toujours présent, initialement caché)
       '<div id="qdetail-' + i + '" style="display:none;background:var(--subtle);border-top:1px solid var(--border);padding:14px 18px">' +
         detailContent +
       '</div>' +
     '</div>';
   }).join('');
 }
+
 function toggleQDetail(i) {
   var el=document.getElementById('qdetail-'+i), chev=document.getElementById('qchev-'+i);
   if(!el) return;
@@ -977,30 +1035,25 @@ function toggleQDetail(i) {
   if(chev) chev.style.transform=open?'':'rotate(180deg)';
 }
 
-// ══════════════════════════════════════════════════════════════
-// PATCH formateur-dashboard.html
-// Remplacer la fonction loadFormateurProfile() existante.
-// Correction : affichage PIN adapté pour les formateurs indépendants.
-// ══════════════════════════════════════════════════════════════
-
+// ══════════════════════════════════════
+//  PROFIL FORMATEUR
+// ══════════════════════════════════════
 function loadFormateurProfile() {
   var el = document.getElementById('formateur-info');
   if (!formateurData) return;
 
-  // Récupérer les données stockées au login / activation
   var centerData = null;
   try {
     var cs = sessionStorage.getItem('ssiap_formateur_center') || localStorage.getItem('ssiap_formateur_center');
     if (cs) centerData = JSON.parse(cs);
   } catch(e) {}
 
-  var isIndep  = !!(centerData && centerData.isIndep) || !!(formateurData.isIndependant);
+  var isIndep   = !!(centerData && centerData.isIndep) || !!(formateurData.isIndependant);
   var centerNom = (centerData && centerData.nom) ? centerData.nom : (formateurData.centerId || '—');
 
-  // Bloc PIN selon le type de formateur
   var pinBloc;
   if (isIndep) {
-    pinBloc = '<span style="font-family:monospace;background:var(--indep-bg,#f3effe);color:#7b5ea7;padding:3px 8px;border-radius:5px;font-weight:700">🔐 Code PIN sécurisé</span>' +
+    pinBloc = '<span style="font-family:monospace;background:#f3effe;color:#7b5ea7;padding:3px 8px;border-radius:5px;font-weight:700">🔐 Code PIN sécurisé</span>' +
               '<span style="font-size:11px;color:var(--muted);margin-left:8px">Le PIN n\'est pas affiché pour des raisons de sécurité</span>';
   } else if (formateurData.pin) {
     pinBloc = '<span style="font-family:monospace;background:var(--blue-light);color:var(--blue);padding:3px 8px;border-radius:5px;font-weight:700">' + formateurData.pin + '</span>';
@@ -1008,48 +1061,73 @@ function loadFormateurProfile() {
     pinBloc = '<span style="color:var(--muted)">Non disponible</span>';
   }
 
+  // Bloc validité licence (indépendant)
+  var licenceBloc = '';
+  if (isIndep) {
+    try {
+      var cd = JSON.parse(localStorage.getItem('ssiap_center') || sessionStorage.getItem('ssiap_center') || '{}');
+      var lic = cd.license || {};
+      var exp = lic.expiresAt ? new Date(lic.expiresAt) : null;
+      var debut = lic.activatedAt ? new Date(lic.activatedAt) : null;
+      var fmtD = function(d) { return d ? d.toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; };
+      var days = exp ? Math.max(0, Math.ceil((exp.getTime() - Date.now()) / 86400000)) : null;
+      var expired = exp ? exp.getTime() < Date.now() : false;
+      var col = expired ? '#c0392b' : (days !== null && days <= 30) ? '#d4960a' : '#2e7d52';
+      var validiteStr = exp
+        ? fmtD(debut) + ' → ' + fmtD(exp) + (expired
+            ? ' <span style="color:#c0392b;font-weight:700">⛔ Expirée</span>'
+            : ' <span style="color:' + col + '">(' + days + ' j. restants)</span>')
+        : '♾️ Abonnement actif';
+      licenceBloc = '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:18px">📜</span>' +
+        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Validité licence</div>' +
+        '<div style="font-size:13px">' + validiteStr + '</div></div>' +
+        '</div>';
+    } catch(e) {}
+  }
+
   var niveaux = (formateurData.niveaux || []).map(function(n) {
-    var labels = { '1': 'SSIAP 1', '2': 'SSIAP 2', '3': 'SSIAP 3', 1: 'SSIAP 1', 2: 'SSIAP 2', 3: 'SSIAP 3' };
-    return '<span style="background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-right:4px">' +
-      (labels[n] || 'SSIAP ' + n) + '</span>';
+    var labels = { '1':'SSIAP 1','2':'SSIAP 2','3':'SSIAP 3',1:'SSIAP 1',2:'SSIAP 2',3:'SSIAP 3' };
+    return '<span style="background:var(--blue-light);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-right:4px">' + (labels[n]||'SSIAP '+n) + '</span>';
   }).join('') || '<span style="color:var(--muted)">—</span>';
 
-  el.innerHTML =
-    '<div style="display:grid;gap:10px">' +
+  el.innerHTML = '<div style="display:grid;gap:10px">' +
 
-      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:18px">👤</span>' +
-        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Nom</div>' +
-        '<div style="font-size:14px;font-weight:600">' + (formateurData.prenom || '') + ' ' + (formateurData.nom || '') + '</div></div>' +
+    '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">👤</span>' +
+      '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Nom</div>' +
+      '<div style="font-size:14px;font-weight:600">' + (formateurData.prenom||'') + ' ' + (formateurData.nom||'') + '</div></div>' +
+    '</div>' +
+
+    '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">✉️</span>' +
+      '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Email</div>' +
+      '<div style="font-size:14px">' + (formateurData.email||'—') + '</div></div>' +
+    '</div>' +
+
+    '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">🔑</span>' +
+      '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Code PIN</div>' +
+      '<div>' + pinBloc + '</div></div>' +
+    '</div>' +
+
+    '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">🏢</span>' +
+      '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Centre</div>' +
+      '<div style="font-size:14px;font-weight:600">' + centerNom + '</div>' +
+      (isIndep ? '<div style="font-size:11px;color:#7b5ea7;margin-top:3px;font-weight:600">👤 Formateur Indépendant</div>' : '') +
       '</div>' +
+    '</div>' +
 
-      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:18px">✉️</span>' +
-        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Email</div>' +
-        '<div style="font-size:14px">' + (formateurData.email || '—') + '</div></div>' +
-      '</div>' +
+    '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">📚</span>' +
+      '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Niveaux habilités</div>' +
+      '<div>' + niveaux + '</div></div>' +
+    '</div>' +
 
-      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:18px">🔑</span>' +
-        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Code PIN</div>' +
-        '<div>' + pinBloc + '</div></div>' +
-      '</div>' +
+    licenceBloc +
 
-      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:18px">🏢</span>' +
-        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Centre</div>' +
-        '<div style="font-size:14px;font-weight:600">' + centerNom + '</div>' +
-        (isIndep ? '<div style="font-size:11px;color:#7b5ea7;margin-top:3px;font-weight:600">👤 Formateur Indépendant</div>' : '') +
-        '</div>' +
-      '</div>' +
-
-      '<div style="background:var(--subtle);padding:13px 16px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:18px">📚</span>' +
-        '<div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Niveaux habilités</div>' +
-        '<div>' + niveaux + '</div></div>' +
-      '</div>' +
-
-    '</div>';
+  '</div>';
 }
 
 function exportCSV() {
@@ -1074,80 +1152,7 @@ document.getElementById('modal-qr').addEventListener('click',function(e){if(e.ta
 document.getElementById('modal-echecs-form').addEventListener('click',function(e){if(e.target===this)closeEchecsForm();});
 document.getElementById('modal-edit-stag').addEventListener('click',function(e){if(e.target===this)closeEditStag();});
 document.getElementById('modal-create-session').addEventListener('click',function(e){if(e.target===this)closeCreateSession();});
-  
-// ══════════════════════════════════════
-//  CRÉER SESSION
-// ══════════════════════════════════════
-function openCreateSession() {
-  var today      = new Date().toISOString().slice(0, 10);
-  var endDefault = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-  document.getElementById('cs-titre').value  = '';
-  document.getElementById('cs-niveau').value = '';
-  document.getElementById('cs-debut').value  = today;
-  document.getElementById('cs-fin').value    = endDefault;
-  document.getElementById('create-session-alert').style.display = 'none';
-  document.getElementById('modal-create-session').classList.add('open');
-  setTimeout(function() { document.getElementById('cs-titre').focus(); }, 100);
-}
- 
-function closeCreateSession() {
-  document.getElementById('modal-create-session').classList.remove('open');
-}
- 
-async function creerSession() {
-  var titre  = (document.getElementById('cs-titre').value  || '').trim();
-  var niveau = (document.getElementById('cs-niveau').value || '').trim();
-  var debut  = (document.getElementById('cs-debut').value  || '').trim();
-  var fin    = (document.getElementById('cs-fin').value    || '').trim();
-  var alertEl = document.getElementById('create-session-alert');
-  alertEl.style.display = 'none';
- 
-  if (!titre || !niveau || !debut || !fin) {
-    alertEl.textContent = '⚠️ Veuillez remplir tous les champs obligatoires.';
-    alertEl.style.display = 'block'; return;
-  }
-  if (debut > fin) {
-    alertEl.textContent = '⚠️ La date de fin doit être après la date de début.';
-    alertEl.style.display = 'block'; return;
-  }
- 
-  var btn = document.getElementById('btn-create-session');
-  btn.disabled = true; btn.textContent = '⏳ Création…';
- 
-  try {
-    var r = await fetch(API + '/session/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        centerId:    formateurData.centerId,
-        formateurId: formateurData.formateurId || formateurData.id,
-        titre:       titre,
-        niveau:      niveau,
-        dateDebut:   new Date(debut).getTime(),
-        dateFin:     new Date(fin).getTime(),
-        status:      'à venir',
-      })
-    });
-    var d = await r.json();
-    if (d.success || d.sessionId) {
-      closeCreateSession();
-      allSessions = [];
-      showLoader();
-      await fetchAllData();
-      hideLoader();
-      renderSessions();
-    } else {
-      alertEl.textContent = '❌ ' + (d.error || 'Erreur lors de la création');
-      alertEl.style.display = 'block';
-    }
-  } catch(e) {
-    alertEl.textContent = '⚠️ Serveur inaccessible';
-    alertEl.style.display = 'block';
-  } finally {
-    btn.disabled = false; btn.textContent = '📅 Créer la session';
-  }
-}
-  
+
 loadOverview();
 </script>
 </body>
