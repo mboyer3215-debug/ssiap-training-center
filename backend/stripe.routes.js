@@ -203,11 +203,13 @@ async function createLicenceInFirebase({ planKey, nomCentre, email, plan, source
     maxFormateurs: plan.maxFormateurs,
     maxStagiaires: plan.maxStagiaires,
     createdAt:     now,
-    expiresAt:     planKeyNorm === 'independant'
-      ? new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()   // 30 jours
-      : planKeyNorm === 'entreprise'
-        ? new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString() // 1 an
-        : null, // Stripe subscription (starter, pro) — géré par webhook
+    expiresAt:     planKeyNorm === 'demo'
+      ? new Date(Date.now() +   7 * 24 * 3600 * 1000).toISOString()   // 7 jours
+      : planKeyNorm === 'independant'
+        ? new Date(Date.now() +  30 * 24 * 3600 * 1000).toISOString() // 30 jours
+        : planKeyNorm === 'entreprise'
+          ? new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString() // 1 an
+          : null, // Stripe subscription (starter, pro) — géré par webhook
   };
 
   let pinClear = null;
