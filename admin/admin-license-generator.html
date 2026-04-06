@@ -640,10 +640,18 @@ function renderCenters(centers) {
     // Dates lisibles
     const fmt = ts => ts ? new Date(ts).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : null;
     const dateDebut = fmt(licCreated) || '—';
-    const isStripe = !licExp && licType.toLowerCase() !== 'demo';
-    const dateFin = isStripe ? 'Stripe actif' : (fmt(licExp) || '—');
+    const licTypeLow = licType.toLowerCase();
+    // DEMO sans expiresAt : calculer depuis activatedAt + 7j
+    let effectiveExp = licExp ? new Date(licExp).getTime() : null;
+    if (!effectiveExp && licTypeLow === 'demo' && licCreated) {
+      effectiveExp = new Date(licCreated).getTime() + 7 * 24 * 3600 * 1000;
+    }
+    const isStripe = !effectiveExp && licTypeLow !== 'demo';
+    const dateFin = isStripe
+      ? '♾️ Stripe actif'
+      : effectiveExp ? fmt(new Date(effectiveExp)) : '—';
 
-    const jours = licExp ? Math.ceil((new Date(licExp) - Date.now()) / 86400000) : null;
+    const jours = effectiveExp ? Math.ceil((effectiveExp - Date.now()) / 86400000) : null;
     const expired = jours !== null && jours < 0;
     const urgent = !expired && jours !== null && jours < 30;
 
