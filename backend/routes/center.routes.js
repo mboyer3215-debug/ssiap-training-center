@@ -549,7 +549,8 @@ router.put('/update/:centerId', async (req, res) => {
   const { nom, telephone, ville, site, adresse, email } = req.body;
   try {
     const updates = {};
-    if (nom)      updates['info/nom']       = nom;
+    if (nom !== undefined) updates['nom']       = nom;
+    if (nom !== undefined) updates['info/nom']  = nom;
     if (telephone !== undefined) updates['info/telephone'] = telephone;
     if (ville     !== undefined) updates['info/ville']     = ville;
     if (site      !== undefined) updates['info/site']      = site;
