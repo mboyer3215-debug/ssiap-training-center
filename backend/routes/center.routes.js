@@ -187,13 +187,29 @@ router.post('/login', async (req, res) => {
     delete centerAttempts[key];
 
     // ── Vérifier si la licence est expirée ──────────────────
-    const licExp = centerData.license?.expiresAt;
-    if (licExp && new Date(licExp).getTime() < Date.now()) {
+    const licType   = (centerData.license?.type || 'DEMO').toUpperCase();
+    const licExp    = centerData.license?.expiresAt;
+
+    // Pour les DEMO sans expiresAt (anciens comptes), calculer depuis activatedAt + 7j
+    let effectiveExp = licExp ? new Date(licExp).getTime() : null;
+    if (!effectiveExp && licType === 'DEMO') {
+      const activatedAt = centerData.license?.activatedAt
+                       || centerData.info?.createdAt
+                       || centerData.auth?.createdAt
+                       || null;
+      if (activatedAt) {
+        effectiveExp = new Date(activatedAt).getTime() + 7 * 24 * 3600 * 1000;
+        console.log(`⏰ DEMO fallback expiry pour ${centerData.id}: ${new Date(effectiveExp).toLocaleDateString('fr-FR')}`);
+      }
+    }
+
+    if (effectiveExp && effectiveExp < Date.now()) {
       return res.status(403).json({
         success:        false,
         licenseExpired: true,
-        licenseType:    centerData.license?.type || 'DEMO',
-        error:          'Votre licence a expiré. Contactez contact@mib-prevention.fr pour la renouveler.',
+        licenseType:    licType,
+        expiredAt:      new Date(effectiveExp).toLocaleDateString('fr-FR'),
+        error:          `Votre licence ${licType} a expiré. Contactez contact@mib-prevention.fr pour la renouveler.`,
       });
     }
 
