@@ -521,25 +521,44 @@ function copyKey() {
 // ── CHARGEMENT HISTORIQUE ──────────────────────────────────
 async function loadHistory() {
   try {
-    const r = await fetch(`${API}/license/list`).catch(() => null);
-    if (!r || !r.ok) throw new Error();
+    // Construire depuis /center/list (déjà chargé par loadCenters)
+    const token = sessionStorage.getItem('adminToken') || '';
+    const r = await fetch(`${API}/center/list`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!r.ok) throw new Error();
     const data = await r.json();
-    const lics = data.licenses || [];
-    const actives = lics.filter(l => l.active).length;
-    const stripes = lics.filter(l => l.source === 'stripe').length;
-    const manuels = lics.filter(l => l.source === 'virement' || l.source === 'manual').length;
+    const centers = data.centers || [];
 
-    document.getElementById('stat-total').textContent = lics.length;
+    const total   = centers.length;
+    const actives = centers.filter(c => c.status !== 'inactive').length;
+    const stripes = centers.filter(c => !c.license?.expiresAt && c.license?.type !== 'DEMO').length;
+    const manuels = centers.filter(c => c.license?.expiresAt || c.license?.type === 'DEMO').length;
+
+    document.getElementById('stat-total').textContent   = total;
     document.getElementById('stat-actives').textContent = actives;
-    document.getElementById('stat-stripe').textContent = stripes;
-    document.getElementById('stat-manual').textContent = manuels;
-    renderHistory(lics.slice(0, 6));
-  } catch {
-    // Fallback : charger depuis Firebase licences directement
-    loadLicencesFirebase();
+    document.getElementById('stat-stripe').textContent  = stripes;
+    document.getElementById('stat-manual').textContent  = manuels;
+
+    // Historique basé sur les centres
+    renderHistory(centers.slice(0, 6).map(c => ({
+      key:       c.license?.key || '—',
+      nomCentre: c.nom || c.info?.nom || c.centerId,
+      type:      c.license?.type || 'DEMO',
+      active:    c.status !== 'inactive',
+      expiresAt: c.license?.expiresAt ? new Date(c.license.expiresAt).getTime() : null,
+      source:    c.license?.expiresAt ? 'virement' : 'stripe',
+    })));
+
+  } catch(e) {
+    document.getElementById('stat-total').textContent   = '—';
+    document.getElementById('stat-actives').textContent = '—';
+    document.getElementById('stat-stripe').textContent  = '—';
+    document.getElementById('stat-manual').textContent  = '—';
+    document.getElementById('history-list').innerHTML =
+      '<div style="color:var(--muted);font-size:11px;text-align:center;padding:12px">Historique via Firebase · Voir dashboard admin</div>';
   }
 }
-
 async function loadLicencesFirebase() {
   try {
     const r = await fetch(`${API}/stripe/licence/list`).catch(() => null);
