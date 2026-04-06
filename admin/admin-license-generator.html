@@ -608,7 +608,8 @@ async function loadCenters() {
   const tbody = document.getElementById('centers-tbody');
   tbody.innerHTML = '<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--muted);font-size:12px">⏳ Chargement…</td></tr>';
   try {
-    const r = await fetch(`${API}/center/list`);
+    const token = sessionStorage.getItem('adminToken') || '';
+    const r = await fetch(`${API}/center/list`, { headers: { 'Authorization': 'Bearer ' + token } });
     if (!r.ok) throw new Error();
     const data = await r.json();
     const centers = data.centers || [];
@@ -631,15 +632,15 @@ function renderCenters(centers) {
   tbody.innerHTML = centers.map(c => {
     // NOM : c.nom direct (pas c.info.nom)
     const nom = c.nom || c.info?.nom || '—';
-    const email = c.info?.email || c.email || null;
+    const email = c.info?.email || c.auth?.email || c.email || null;
     const licType = c.license?.type || 'DEMO';
-    const licCreated = c.license?.createdAt || c.createdAt;
+    const licCreated = c.license?.activatedAt || c.license?.createdAt || c.info?.createdAt || null;
     const licExp = c.license?.expiresAt || c.license?.validUntil;
 
     // Dates lisibles
     const fmt = ts => ts ? new Date(ts).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : null;
     const dateDebut = fmt(licCreated) || '—';
-    const isStripe = !licExp; // Stripe gère l'expiration → pas de date fixe
+    const isStripe = !licExp && licType.toLowerCase() !== 'demo';
     const dateFin = isStripe ? 'Stripe actif' : (fmt(licExp) || '—');
 
     const jours = licExp ? Math.ceil((new Date(licExp) - Date.now()) / 86400000) : null;
